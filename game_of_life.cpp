@@ -2,7 +2,7 @@
 #include "motifs.h"
 
 bool GameOfLife::access(size_t i, size_t j) {
-    if (i>=L || j>=C) return false;
+    if (i>=500 || j>=500) return false;
     else return champ[i][j];
 }
 bool GameOfLife::next_state(size_t i, size_t j) {
@@ -19,16 +19,16 @@ bool GameOfLife::next_state(size_t i, size_t j) {
 }
 
 GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : nbr_gen(0), C(C), L(L) {
-   for (size_t i(0); i < L; ++i) {
-      for (size_t j(0); j < C; ++j) champ[i][j] = false;
+   for (size_t i(0); i < 500; ++i) {
+      for (size_t j(0); j < 500; ++j) champ[i][j] = false;
    }
    for (vec::const_iterator it(a_marquer.cbegin()); it != a_marquer.cend(); ++it) champ[it->first][it->second] = true;
 }
 
 void GameOfLife::print(std::ostream& out) const {
       out << "Debut" << std::endl;
-      for (size_t i(0); i < L; ++i) {
-      for (size_t j(0); j < C; ++j) {
+      for (size_t i(50); i < L+50; ++i) {
+      for (size_t j(50); j < C+50; ++j) {
          if (champ[i][j]) out << 1;
          else out << ' ';
       }
@@ -39,8 +39,8 @@ void GameOfLife::print(std::ostream& out) const {
 
 void GameOfLife::evolve() { // todo : optimiser les zones vides
    std::array<std::array<bool,500>,500> res;
-   for (size_t i(0); i < L ; ++i) {
-      for (size_t j = 0; j < C ; ++j) {
+   for (size_t i(0); i < 500 ; ++i) {
+      for (size_t j = 0; j < 500 ; ++j) {
          res[i][j]=next_state(i,j);
       }
    }
