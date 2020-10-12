@@ -17,7 +17,7 @@ public :
     GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);
     void print(std::ostream& out = std::cout) const;
     void evolve();
-    void life(std::ostream& out = std::cout);
+    std::array<std::array<bool,500>,500> life(std::ostream& out = std::cout);
 };
 
 #endif // GAME_OF_LIFE_H

@@ -2,7 +2,7 @@
 #include "motifs.h"
 
 bool GameOfLife::access(size_t i, size_t j) {
-    if (i>=L or j>=C) return false;
+    if (i>=L || j>=C) return false;
     else return champ[i][j];
 }
 bool GameOfLife::next_state(size_t i, size_t j) {
@@ -15,7 +15,7 @@ bool GameOfLife::next_state(size_t i, size_t j) {
     if (access(i + 1, j - 1)) ++S;
     if (access(i + 1, j)) ++S;
     if (access(i + 1, j + 1)) ++S;
-    return (S==3) or (access(i, j) and S == 2);
+    return (S==3) || (access(i, j) && S == 2);
 }
 
 GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : nbr_gen(0), C(C), L(L) {
@@ -48,7 +48,7 @@ void GameOfLife::evolve() { // todo : optimiser les zones vides
    ++nbr_gen;
 }
 
-void GameOfLife::life(std::ostream& out) {
-   print(out);
+std::array<std::array<bool,500>,500> GameOfLife::life(std::ostream& out) {
    evolve();
+   return champ;
 }
