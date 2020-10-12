@@ -31,9 +31,12 @@ public:
 
     void timerEvent(QTimerEvent* event) override;
 
+    void charger_grille();
+
 public slots:
     void creer_s();
     void lancer_s();
+    void pause_s();
 
 
 private:
@@ -41,11 +44,13 @@ private:
     QLineEdit* x_;
     QLineEdit* y_;
     QPushButton* cree;
+    QPushButton* lance;
+    QPushButton* pause;
     QPainter* paint;
-    unsigned int x_current;
-    unsigned int y_current;
+    int x_current;
+    int y_current;
     int timer;
-    GameOfLife<400, 400>* ptr;
+    GameOfLife* ptr;
 };
 #endif // MAINWINDOW_H
 /* Etape 1 : bon en gros l'idée c'est de faire la classe qui va permettre l'affichage des
