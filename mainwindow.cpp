@@ -73,6 +73,16 @@ void MainWindow::paintEvent(QPaintEvent *event)
             }
         }
     }
+    if (calque.on_off && x_current >= 0 && y_current >= 0)
+    {
+        for (auto const& a : calque.alive)
+        {
+            QRect rect(cells2[a.first][a.second].rect());
+            QRect transl(cells2[x_current][y_current].rect());
+            rect.moveTo(rect.x() + transl.x() - 10, rect.y() + transl.y() - 90);
+            paint->fillRect(rect, QColor(128,128,128,180));
+        }
+    }
 
     paint->end();
 
@@ -85,7 +95,7 @@ void MainWindow::charger_grille()
     {
         for (size_t b(0); b<cells2[a].size(); b++)
         {
-            if (cells2[a][b].state()) {tab.push_back({a,b});}
+            if (cells2[a][b].state()) {tab.push_back({a+50,b+50});}
         }
     }
     motifs::Motif test(motifs::lievres);
@@ -102,6 +112,11 @@ void MainWindow::lancer_s()
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
     pause->show();
+    calque_mod = new QPushButton("pause", this);
+    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_on_s()));
+    calque_mod->move(225, 0);
+    calque_mod->show();
+    calque.alive = {{0,0}, {1, 2}, {1,1}};
 }
 
 void MainWindow::pause_s()
@@ -155,7 +170,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
         {
             for (size_t b(0); b<cells2[a].size(); b++)
             {
-                if (tab[a][b] != cells2[a][b].state()) {cells2[a][b].change_color();}
+                if (tab[a+50][b+50] != cells2[a][b].state()) {cells2[a][b].change_color();}
             }
         }
         this->update();

@@ -7,6 +7,10 @@
 typedef std::vector<std::pair<size_t,size_t>> vec;
 
 namespace motifs {
+    struct calque {
+        vec alive = {{}};
+        bool on_off = false;
+    };
     class Motif {
     private :
         vec liste;

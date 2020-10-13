@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "cell.h"
 #include "cell_.h"
 #include <QLabel>
 #include <vector>
@@ -11,6 +12,7 @@
 #include <QMouseEvent>
 #include <QTime>
 #include "game_of_life.h"
+#include "motifs.h"
 
 class MainWindow : public QMainWindow
 {
@@ -36,6 +38,7 @@ public slots:
     void creer_s();
     void lancer_s();
     void pause_s();
+    void calque_on_s() {calque.on_off = true;}
 
 
 private:
@@ -45,13 +48,17 @@ private:
     QPushButton* cree;
     QPushButton* lance;
     QPushButton* pause;
+    QPushButton* calque_mod;
     QPainter* paint;
     int x_current;
     int y_current;
     int timer;
     GameOfLife* ptr;
+    motifs::calque calque;
 };
 #endif // MAINWINDOW_H
-/* Etape 1 : bon en gros l'idée c'est de faire la classe qui va permettre l'affichage des
- * cases.
- * */
+/* Ajouter le nombre de générations
+ * Ajouter la sauvegarde dans un fichier
+ * Ajouter l'ajout de forme par calque
+ * copié-collé ?
+ */
