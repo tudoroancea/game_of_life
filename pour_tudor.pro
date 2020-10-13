@@ -16,7 +16,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    cell.cpp \
     cell_.cpp \
     motifs.cpp \
     game_of_life.cpp \
@@ -25,7 +24,6 @@ SOURCES += \
 
 
 HEADERS += \
-    cell.h \
     cell_.h \
     motifs.h \
     game_of_life.h \
