@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "cell.h"
 #include "cell_.h"
 #include <QLabel>
 #include <vector>
