@@ -62,4 +62,4 @@ private:
  * Ajouter l'ajout de forme par calque
  * copié-collé ?
  */
-//LOL
+
