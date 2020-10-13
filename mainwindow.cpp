@@ -44,6 +44,9 @@ void MainWindow::creer(unsigned int x, unsigned int y)
     lance = new QPushButton("lancer", this);
     connect(lance, SIGNAL (clicked()), this, SLOT (lancer_s()));
     lance->show();
+    pos_souris = new QLabel(this);
+    pos_souris->move(480, 580);
+    pos_souris->show();
 }
 
 void MainWindow::creer_s() { this->creer(x_->text().toUInt(), y_->text().toUInt()); }
@@ -73,14 +76,19 @@ void MainWindow::paintEvent(QPaintEvent *event)
             }
         }
     }
+
     if (calque.on_off && x_current >= 0 && y_current >= 0)
     {
         for (auto const& a : calque.alive)
         {
-            QRect rect(cells2[a.first][a.second].rect());
-            QRect transl(cells2[x_current][y_current].rect());
-            rect.moveTo(rect.x() + transl.x() - 10, rect.y() + transl.y() - 90);
-            paint->fillRect(rect, QColor(128,128,128,180));
+            if (a.first + x_current >=0     &&
+                a.second + y_current >= 0   &&
+                a.first + x_current < cells2.size()   &&
+                a.second + y_current < cells2[0].size())
+            {
+                QRect rect(cells2[a.first + x_current][a.second + y_current].rect());
+                paint->fillRect(rect, QColor(128,128,128,180));
+            }
         }
     }
 
@@ -112,11 +120,11 @@ void MainWindow::lancer_s()
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
     pause->show();
-    calque_mod = new QPushButton("pause", this);
-    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_on_s()));
+    calque_mod = new QPushButton("calque_switch", this);
+    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
     calque_mod->show();
-    calque.alive = {{0,0}, {1, 2}, {1,1}};
+    calque.alive = {{-1,-1}, {0, 0}, {1,0}};
 }
 
 void MainWindow::pause_s()
@@ -138,7 +146,24 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     if (((event->x() >= 10) && (event->x() <= 510))&&
         ((event->y() >= 90) && (event->y() <= 590)))
     {
-        cells2[(event->x()-10)*cells2.size()/500][(event->y()-90)*cells2[0].size()/500].change_color();
+        if (calque.on_off)
+        {
+            for (auto const& a : calque.alive)
+            {
+                if ((event->x()-10)*cells2.size()/500 + a.first >= 0            &&
+                    (event->y()-90)*cells2.size()/500 + a.second >= 0           &&
+                    (event->x()-10)*cells2.size()/500 + a.first < cells2.size() &&
+                    (event->y()-90)*cells2.size()/500 + a.second < cells2[0].size())
+                {
+                    Cell_& current(cells2[(event->x()-10)*cells2.size()/500 + a.first][(event->y()-90)*cells2[0].size()/500 + a.second]);
+                    if (!current.state())
+                    {
+                        current.change_color();
+                    }
+                }
+            }
+        }
+        else { cells2[(event->x()-10)*cells2.size()/500][(event->y()-90)*cells2[0].size()/500].change_color();}
         x_current = (event->x()-10)*cells2.size()/500;
         y_current = (event->y()-90)*cells2[0].size()/500;
         this->update();
@@ -158,6 +183,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         else {x_current = -1; y_current = -1;}
         this->update();
     }
+    pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)
@@ -183,5 +209,7 @@ MainWindow::~MainWindow()
     delete ptr;
     delete lance;
     delete pause;
+    delete calque_mod;
+    delete pos_souris;
 }
 

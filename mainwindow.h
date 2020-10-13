@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "cell.h"
 #include "cell_.h"
 #include <QLabel>
 #include <vector>
@@ -37,7 +38,7 @@ public slots:
     void creer_s();
     void lancer_s();
     void pause_s();
-    void calque_on_s() {calque.on_off = true;}
+    void calque_switch_s() {calque.on_off = 1 - calque.on_off;}
 
 
 private:
@@ -49,6 +50,7 @@ private:
     QPushButton* pause;
     QPushButton* calque_mod;
     QPainter* paint;
+    QLabel* pos_souris;
     int x_current;
     int y_current;
     int timer;
