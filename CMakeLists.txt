@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(game_of_life)
+project(Game_of_life)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -16,17 +16,27 @@ set(SRC
         cell_.cpp
         game_of_life.cpp
         mainwindow.cpp
-        moc_mainwindow.cpp
         motifs.cpp
 )
 set(HDR
         cell_.h
         game_of_life.h
         mainwindow.h
-        moc_mainwindow.h
         motifs.h
 )
 
-add_executable(main main.cpp SRC HDR)
+add_executable(main
+        main.cpp
+        cell_.h
+        game_of_life.h
+        mainwindow.h
+        # moc_mainwindow.h
+        motifs.h
+        cell_.cpp
+        game_of_life.cpp
+        mainwindow.cpp
+        # moc_mainwindow.cpp
+        motifs.cpp
+)
 
-target_link_libraries(main PRIVATE)
+target_link_libraries(main PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)
