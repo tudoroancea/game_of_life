@@ -5,12 +5,14 @@
 #include <vector>
 
 typedef std::vector<std::pair<size_t,size_t>> vec;
+typedef std::vector<std::pair<int,int>> vec_neg;
 
 namespace motifs {
     struct calque {
-        vec alive = {{}};
+        vec_neg alive;
         bool on_off = false;
     };
+    void translate(calque& calque);
     class Motif {
     private :
         vec liste;

@@ -1,6 +1,19 @@
 #include "motifs.h"
 
 namespace motifs {
+    void translate(calque& calque)
+    {
+        if (calque.alive.size() > 0)
+        {
+            int decal_x(calque.alive[0].first);
+            int decal_y(calque.alive[0].second);
+            for (auto& a : calque.alive)
+            {
+                a.first -= decal_x;
+                a.second -= decal_y;
+            }
+        }
+    }
     size_t Motif::min_ligne() const {
         size_t min(liste.front().first);
         for (auto el : liste) {

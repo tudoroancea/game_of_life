@@ -31,7 +31,13 @@ public:
 
     void timerEvent(QTimerEvent* event) override;
 
+    void keyPressEvent(QKeyEvent* event) override;
+
+    void keyReleaseEvent(QKeyEvent* event) override;
+
     void charger_grille();
+
+    void charger_calque();
 
 public slots:
     void creer_s();
@@ -52,9 +58,14 @@ private:
     QLabel* pos_souris;
     int x_current;
     int y_current;
+    int x_first;
+    int y_first;
+    int x_end;
+    int y_end;
     int timer;
     GameOfLife* ptr;
     motifs::calque calque;
+    bool ctrl_on;
 };
 #endif // MAINWINDOW_H
 /* Ajouter le nombre de générations

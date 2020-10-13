@@ -8,7 +8,7 @@
 #include "motifs.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr)
+    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr), ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -77,7 +77,25 @@ void MainWindow::paintEvent(QPaintEvent *event)
         }
     }
 
-    if (calque.on_off && x_current >= 0 && y_current >= 0)
+    if (ctrl_on)
+    {
+        int min_x, max_x, min_y, max_y;
+        if (x_current >= x_first) {min_x = x_first; max_x = x_current;}
+        else {max_x = x_first; min_x = x_current;}
+        if (y_current >= y_first) {min_y = y_first; max_y = y_current;}
+        else {max_y = y_first; min_y = y_current;}
+        if (min_x >= 0 && max_x < cells2.size() && min_y >= 0 && max_y < cells2[0].size())
+        {
+            for (size_t a(min_x); a<=max_x; a++)
+            {
+                for (size_t b(min_y); b<=max_y; b++)
+                {
+                    paint->fillRect(cells2[a][b].rect(), QColor(0,0,100,180));
+                }
+            }
+        }
+    }
+    else if (calque.on_off && x_current >= 0 && y_current >= 0)
     {
         for (auto const& a : calque.alive)
         {
@@ -88,6 +106,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
             {
                 QRect rect(cells2[a.first + x_current][a.second + y_current].rect());
                 paint->fillRect(rect, QColor(128,128,128,180));
+                pos_souris->setText(QString::number(calque.alive[0].first + x_current) + " " + QString::number(calque.alive[0].second + y_current));
             }
         }
     }
@@ -109,6 +128,35 @@ void MainWindow::charger_grille()
     motifs::Motif test(motifs::lievres);
     test += {200,200};
     ptr = new GameOfLife(tab, cells2.size(), cells2[0].size());
+}
+
+void MainWindow::charger_calque()
+{
+    x_end = x_current; y_end = y_current;
+    if (x_first != x_end || y_first != y_end)
+    {
+        int min_x, max_x, min_y, max_y;
+        if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
+        else {max_x = x_first; min_x = x_end;}
+        if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
+        else {max_y = y_first; min_y = y_end;}
+        if (min_x >= 0 && max_x < cells2.size() && min_y >= 0 && max_y < cells2[0].size())
+        {
+            motifs::calque temp;
+            for (size_t a(min_x); a<=max_x; a++)
+            {
+                for (size_t b(min_y); b<=max_y; b++)
+                {
+                    if (cells2[a][b].state())
+                    {
+                        temp.alive.push_back({a,b});
+                    }
+                }
+            }
+            motifs::translate(temp);
+            calque.alive = temp.alive;//voué à changer
+        }
+    }
 }
 
 void MainWindow::lancer_s()
@@ -171,9 +219,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
-{
+{  
     if (cells2.size() >= 1)
     {
+        if (!(event->modifiers() == Qt::ControlModifier)) {ctrl_on = false;}
         if (((event->x() >= 10) && (event->x() <= 510))&&
             ((event->y() >= 90) && (event->y() <= 590)))
         {
@@ -184,6 +233,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         this->update();
     }
     pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));
+
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)
@@ -200,6 +250,28 @@ void MainWindow::timerEvent(QTimerEvent *event)
             }
         }
         this->update();
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+        ctrl_on = true;
+        if (ctrl_on)
+        {
+            x_first = x_current;
+            y_first = y_current;
+        }
+    }
+    if (event->key() == Qt::Key_C) {this->charger_calque();}
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+
     }
 }
 
