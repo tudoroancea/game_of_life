@@ -30,13 +30,16 @@ add_executable(main
         cell_.h
         game_of_life.h
         mainwindow.h
-        # moc_mainwindow.h
         motifs.h
         cell_.cpp
         game_of_life.cpp
         mainwindow.cpp
-        # moc_mainwindow.cpp
         motifs.cpp
+)
+add_executable(time_test
+        time_test.cpp
+        game_of_life.cpp game_of_life.h
+        motifs.h motifs.cpp
 )
 
 target_link_libraries(main PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)
