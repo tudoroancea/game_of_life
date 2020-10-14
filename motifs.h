@@ -5,14 +5,8 @@
 #include <vector>
 
 typedef std::vector<std::pair<size_t,size_t>> vec;
-typedef std::vector<std::pair<int,int>> vec_neg;
 
 namespace motifs {
-    struct calque {
-        vec_neg alive;
-        bool on_off = false;
-    };
-    void translate(calque& calque);
     class Motif {
     private :
         vec liste;
@@ -25,6 +19,7 @@ namespace motifs {
         Motif() = default;
         Motif(Motif const&) = default;
         Motif(std::initializer_list<std::pair<size_t,size_t>> L) : liste(L) {}
+        Motif(vec L) : liste(L) {}
 
         // Méthodes de modification
         void push_back(std::pair<size_t,size_t> const& p) {liste.push_back(p);}
@@ -41,7 +36,7 @@ namespace motifs {
         vec::iterator end() {return liste.end();}
         vec::const_iterator cbegin() const {return liste.cbegin();}
         vec::const_iterator cend() const {return liste.cend();}
-    };
+    };   
     Motif operator+(Motif lhs, Motif const& rhs);
     Motif operator+(Motif lhs, std::pair<size_t,size_t> const& rhs);
 
@@ -58,6 +53,13 @@ namespace motifs {
     Motif rectangle(size_t lignes, size_t colonnes);
     Motif ligneh(size_t longueur);
     Motif lignev(size_t longueur);
+
+    struct calque {
+        motifs::Motif alive;
+        std::pair<size_t, size_t> translate = {0,0};
+        bool on_off = false;
+    };
+    void translate(calque& calque);
 } // namespace motifs
 
 

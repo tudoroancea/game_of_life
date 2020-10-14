@@ -99,14 +99,14 @@ void MainWindow::paintEvent(QPaintEvent *event)
     {
         for (auto const& a : calque.alive)
         {
-            if (a.first + x_current >=0     &&
-                a.second + y_current >= 0   &&
-                a.first + x_current < cells2.size()   &&
-                a.second + y_current < cells2[0].size())
+            if (a.first + x_current - calque.translate.first >=0     &&
+                a.second + y_current - calque.translate.second >= 0   &&
+                a.first + x_current - calque.translate.first < cells2.size()   &&
+                a.second + y_current - calque.translate.second < cells2[0].size())
             {
-                QRect rect(cells2[a.first + x_current][a.second + y_current].rect());
+                QRect rect(cells2[a.first + x_current - calque.translate.first][a.second + y_current - calque.translate.second].rect());
                 paint->fillRect(rect, QColor(128,128,128,180));
-                pos_souris->setText(QString::number(calque.alive[0].first + x_current) + " " + QString::number(calque.alive[0].second + y_current));
+                pos_souris->setText(QString::number(calque.translate.first) + " " + QString::number(calque.translate.second));
             }
         }
     }
@@ -155,6 +155,7 @@ void MainWindow::charger_calque()
             }
             motifs::translate(temp);
             calque.alive = temp.alive;//voué à changer
+            calque.translate = temp.translate;
         }
     }
 }
@@ -172,7 +173,8 @@ void MainWindow::lancer_s()
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
     calque_mod->show();
-    calque.alive = {{-1,-1}, {0, 0}, {1,0}};
+    calque.alive = motifs::grenouille;
+    motifs::translate(calque);
 }
 
 void MainWindow::pause_s()
@@ -198,12 +200,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         {
             for (auto const& a : calque.alive)
             {
-                if ((event->x()-10)*cells2.size()/500 + a.first >= 0            &&
-                    (event->y()-90)*cells2.size()/500 + a.second >= 0           &&
-                    (event->x()-10)*cells2.size()/500 + a.first < cells2.size() &&
-                    (event->y()-90)*cells2.size()/500 + a.second < cells2[0].size())
+                if ((event->x()-10)*cells2.size()/500 + a.first - calque.translate.first >= 0            &&
+                    (event->y()-90)*cells2.size()/500 + a.second - calque.translate.second >= 0           &&
+                    (event->x()-10)*cells2.size()/500 + a.first  - calque.translate.first < cells2.size() &&
+                    (event->y()-90)*cells2.size()/500 + a.second - calque.translate.second < cells2[0].size())
                 {
-                    Cell_& current(cells2[(event->x()-10)*cells2.size()/500 + a.first][(event->y()-90)*cells2[0].size()/500 + a.second]);
+                    Cell_& current(cells2[(event->x()-10)*cells2.size()/500 + a.first  - calque.translate.first][(event->y()-90)*cells2[0].size()/500 + a.second - calque.translate.second]);
                     if (!current.state())
                     {
                         current.change_color();
