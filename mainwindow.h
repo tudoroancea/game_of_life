@@ -10,6 +10,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QTime>
+#include <QFrame>
 #include "game_of_life.h"
 #include "motifs.h"
 

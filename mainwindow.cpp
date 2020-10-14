@@ -56,13 +56,14 @@ void MainWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     paint->begin(this);
-
+    QRect rect(10, 90, 500, 500);
+    paint->fillRect(rect, Qt::black);
     for (size_t a(0); a < cells2.size(); a++)
     {
         for (size_t c(0); c < cells2[a].size(); c++)
         {
             Cell_ b = cells2[a][c];
-            paint->fillRect(b.rect(), b.color());
+            if (b.state()) {paint->fillRect(b.rect(), b.color());}
             if (a == x_current && c == y_current)
             {
                 if (b.color() == Qt::black)
@@ -200,7 +201,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         {
             for (auto const& a : calque.alive)
             {
-                if ((event->x()-10)*cells2.size()/500 + a.first - calque.translate.first >= 0            &&
+                if ((event->x()-10)*cells2.size()/500 + a.first - calque.translate.first >= 0             &&
                     (event->y()-90)*cells2.size()/500 + a.second - calque.translate.second >= 0           &&
                     (event->x()-10)*cells2.size()/500 + a.first  - calque.translate.first < cells2.size() &&
                     (event->y()-90)*cells2.size()/500 + a.second - calque.translate.second < cells2[0].size())
