@@ -12,19 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
-set(SRC
-        cell_.cpp
-        game_of_life.cpp
-        mainwindow.cpp
-        motifs.cpp
-)
-set(HDR
-        cell_.h
-        game_of_life.h
-        mainwindow.h
-        motifs.h
-)
-
 add_executable(main
         main.cpp
         cell_.h
