@@ -6,15 +6,8 @@ namespace motifs {
     Motif::Motif(std::string const& fichier) {
         rapidcsv::Document motif("../../data/"+fichier);
         for (size_t i(0); i < motif.GetRowCount() ; ++i) {
-            const size_t zero(0), one(1);
-            const size_t j(i);
+            liste.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
         }
-            const size_t zero(0), one(1);
-            const size_t j(2);
-            size_t a(motif.GetCell<size_t>(zero, j));
-            size_t b(motif.GetCell<size_t>(one, j));
-            std::pair<size_t,size_t> p(a,b);
-            liste.push_back(p);
     }
     size_t Motif::min_ligne() const {
         size_t min(liste.front().first);
