@@ -11,8 +11,8 @@ namespace motifs {
         }
             const size_t zero(0), one(1);
             const size_t j(2);
-            std::string a(motif.GetCell(zero, j));
-            std::string b(motif.GetCell(one, j));
+            size_t a(motif.GetCell<size_t>(zero, j));
+            size_t b(motif.GetCell<size_t>(one, j));
             std::pair<size_t,size_t> p(a,b);
             liste.push_back(p);
     }

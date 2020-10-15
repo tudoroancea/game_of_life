@@ -22,12 +22,14 @@ public :
     bool access(size_t i, size_t j);
     void add_cell(std::pair<size_t,size_t> const& c);
     void suppr_cell(std::pair<size_t,size_t> const& c);
+    void inv_cell(std::pair<size_t,size_t> const& c);
     void add_motif(motifs::Motif const& m);
     void suppr_motif(motifs::Motif const& m);
 
     // Evolution de la simulaitton
     void evolve();
     std::vector<std::pair<size_t,size_t>> const& life(std::ostream& out = std::cout);
+    std::vector<std::pair<size_t,size_t>> const& get_viv(std::ostream& out = std::cout) {return vivantes;}
 
     // Gestion des motifs
     void save_motif(std::string const& nom_motif) const;

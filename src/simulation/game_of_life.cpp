@@ -50,6 +50,19 @@ void GameOfLife::suppr_cell(std::pair<size_t,size_t> const& c) {
       vivantes.erase(it);
    }
 }
+void GameOfLife::inv_cell(std::pair<size_t,size_t> const& c) {
+    bool in_(access(c.first, c.second));
+   if((!in_) && ((c.first < L+100) && (c.second < C+100))) {vivantes.push_back(c); champ[c.first][c.second] = true;}
+   else if (in_)
+   {
+       champ[c.first][c.second] = false;
+       std::vector<std::pair<size_t,size_t>>::iterator it(vivantes.begin());
+       while (*it != c && it != vivantes.end()) {
+           ++it;
+       }
+       vivantes.erase(it);
+   }
+}
 void GameOfLife::add_motif(motifs::Motif const& m) {
    for (std::vector<std::pair<size_t,size_t>>::const_iterator it(m.cbegin()); it != m.cend(); ++it) add_cell(*it);
 }
@@ -109,6 +122,8 @@ void GameOfLife::evolve() {
    for (auto const& el : nouvelles) champ[el.first][el.second] = true;
    // On update la liste des vivantes et le nombre de generatitons
    vivantes = nouvelles;
+   for (auto a : vivantes) { std::cout << a.first << " " << a.second << " | ";}
+   std::cout << std::endl;
    ++nbr_gen;
 }
 

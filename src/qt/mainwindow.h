@@ -22,7 +22,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void creer(unsigned int x, unsigned int y);
+    void creer();
 
     void paintEvent(QPaintEvent* event) override;
 
@@ -36,8 +36,6 @@ public:
 
     void keyReleaseEvent(QKeyEvent* event) override;
 
-    void charger_grille();
-
     void charger_calque();
 
 public slots:
@@ -48,7 +46,7 @@ public slots:
 
 
 private:
-    std::vector<std::vector<Cell_>> cells2;
+    std::vector<std::pair<size_t,size_t>> cells2;
     QLineEdit* x_;
     QLineEdit* y_;
     QPushButton* cree;
@@ -57,6 +55,8 @@ private:
     QPushButton* calque_mod;
     QPainter* paint;
     QLabel* pos_souris;
+    size_t nb_lines;
+    size_t nb_col;
     int x_current;
     int y_current;
     int x_first;
@@ -67,6 +67,8 @@ private:
     GameOfLife* ptr;
     motifs::calque calque;
     bool ctrl_on;
+    bool simul_on;
+    int state;
 };
 #endif // MAINWINDOW_H
 /* Ajouter le nombre de générations
