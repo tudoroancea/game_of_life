@@ -44,7 +44,7 @@ void GameOfLife::add_cell(std::pair<size_t,size_t> const& c) {
 	std::pair<size_t,size_t> c_translate({c.first+50,c.second+50});
 	if((!access(c_translate.first, c_translate.second)) && ((c_translate.first < L+100) && (c_translate.second < C+100))) {
 		vivantes.push_back(c_translate);
-		champ[c_translate.first+50][c_translate.second+50] = true;
+        champ[c_translate.first][c_translate.second] = true;
 	}
 }
 /*
@@ -65,14 +65,12 @@ void GameOfLife::suppr_cell(std::pair<size_t,size_t> const& c) {
  */
 void GameOfLife::inv_cell(std::pair<size_t,size_t> const& c) {
 	std::pair<size_t,size_t> c_translate({c.first+50,c.second+50});
-	if((!access(c_translate.first, c_translate.second)) && ((c_translate.first < L+100) && (c_translate.second < C+100))) {vivantes.push_back(c); champ[c.first][c.second] = true;}
+    bool in_(!access(c_translate.first, c_translate.second));
+    if((in_) && ((c_translate.first < L+100) && (c_translate.second < C+100))) {vivantes.push_back(c_translate); champ[c_translate.first][c_translate.second] = true;}
 	else if (in_) {
-		champ[c.first][c.second] = false;
-		std::vector<std::pair<size_t,size_t>>::iterator it(vivantes.begin());
-		while (*it != c && it != vivantes.end()) {
-			++it;
-		}
-		vivantes.erase(it);
+        champ[c_translate.first][c_translate.second] = false;
+        std::vector<std::pair<size_t,size_t>>::iterator it(std::find<std::vector<std::pair<size_t,size_t>>::iterator, std::pair<size_t,size_t>>(vivantes.begin(), vivantes.end(), c_translate));
+        if (it != vivantes.end()) vivantes.erase(it);
 	}
 }
 void GameOfLife::add_motif(motifs::Motif const& m) {
@@ -110,7 +108,7 @@ void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t im
 
 // Evolution de la simulation  ========================================================================================
 void GameOfLife::verif(size_t const& i, size_t const& j, std::vector<std::pair<size_t,size_t>>& v) {
-	if(!access(i,j) and find<std::vector<std::pair<size_t,size_t>>::iterator, std::pair<size_t,size_t>>(v.begin(),v.end(),{i,j}) != v.end()) if (next_state(i,j)) v.push_back({i,j});
+    if(!access(i,j) && std::find<std::vector<std::pair<size_t,size_t>>::iterator, std::pair<size_t,size_t>>(v.begin(),v.end(),{i,j}) == v.end()) if (next_state(i,j)) {v.push_back({i,j});}
 }
 
 void GameOfLife::evolve() {
@@ -140,9 +138,17 @@ void GameOfLife::evolve() {
 	for (auto a : vivantes) { std::cout << a.first << " " << a.second << " | ";}
 	std::cout << std::endl;
 	++nbr_gen;
+   // On enlève les anciennes cellules
+   for (auto const& el : vivantes) champ[el.first][el.second] = false;
+   // On rajoute les nouvelles
+   for (auto const& el : nouvelles) champ[el.first][el.second] = true;
+   // On update la liste des vivantes et le nombre de generatitons
+   vivantes = nouvelles;
+   ++nbr_gen;
+
 }
 
-std::vector<std::pair<size_t,size_t>> const& GameOfLife::life(std::ostream& out) {
+std::vector<std::pair<size_t,size_t>> GameOfLife::life(std::ostream& out) {
 	evolve();
 	std::vector<std::pair<size_t,size_t>> res;
 	for (auto const& el : vivantes) if (50 <= el.first && el.first < L+50 && 50 <= el.second && el.second < C+50) res.push_back({el.first-50, el.second-50});
