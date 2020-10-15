@@ -15,19 +15,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+INCLUDEPATH = src
+INCLUDEPATH = src/qt
+INCLUDEPATH = src/simulation
+
 SOURCES += \
-    cell_.cpp \
-    motifs.cpp \
-    game_of_life.cpp \
-    main.cpp \
-    mainwindow.cpp \
+    src/qt/cell_.cpp \
+    src/simulation/motifs.cpp \
+    src/simulation/game_of_life.cpp \
+    src/main.cpp \
+    src/qt/mainwindow.cpp \
 
 
 HEADERS += \
-    cell_.h \
-    motifs.h \
-    game_of_life.h \
-    mainwindow.h \
+    src/qt/cell_.h \
+    src/simulation/motifs.h \
+    src/simulation/game_of_life.h \
+    src/qt/mainwindow.h \
 
 
 # Default rules for deployment.
