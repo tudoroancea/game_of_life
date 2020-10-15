@@ -97,24 +97,26 @@ void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t im
 }
 
 // Evolution de la simulation  ========================================================================================
+void GameOfLife::verif(size_t const& i, size_t const& j, std::vector<std::pair<size_t,size_t>>& v) {
+	if (next_state(i,j)) v.push_back({i,j});
+}
+
 void GameOfLife::evolve() {
    // On crée une nouvelle liste qui contiendra les nouvelles vivantes
    std::vector<std::pair<size_t,size_t>> nouvelles;
 
    // On cheque chaque cellule déjà vivante pour voir si elle le restte
    for (std::vector<std::pair<size_t,size_t>>::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
-      if (next_state(it->first, it->second)) {
-         nouvelles.push_back(*it);
-      }
+      verif(it->first,it->second, nouvelles);
       // On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes
-      if (access(it->first - 1, it->second - 1)) if (next_state(it->first -1, it->second - 1)) nouvelles.push_back(*it);
-      if (access(it->first - 1, it->second)) if (next_state(it->first - 1, it->second)) nouvelles.push_back(*it);
-      if (access(it->first - 1, it->second + 1)) if (next_state(it->first - 1, it->second + 1)) nouvelles.push_back(*it);
-      if (access(it->first, it->second - 1)) if (next_state(it->first, it->second - 1)) nouvelles.push_back(*it);
-      if (access(it->first, it->second + 1)) if (next_state(it->first, it->second + 1)) nouvelles.push_back(*it);
-      if (access(it->first + 1, it->second - 1)) if (next_state(it->first + 1, it->second - 1)) nouvelles.push_back(*it);
-      if (access(it->first + 1, it->second)) if (next_state(it->first + 1, it->second)) nouvelles.push_back(*it);
-      if (access(it->first + 1, it->second + 1)) if (next_state(it->first + 1, it->second + 1)) nouvelles.push_back(*it);
+      if (!access(it->first - 1, it->second - 1)) verif(it->first - 1, it->second - 1, nouvelles);
+      if (!access(it->first - 1, it->second)) verif(it->first - 1,it->second, nouvelles);
+      if (!access(it->first - 1, it->second + 1)) verif(it->first - 1,it->second + 1, nouvelles);
+      if (!access(it->first, it->second - 1)) verif(it->first,it->second - 1, nouvelles);
+      if (!access(it->first, it->second + 1)) verif(it->first,it->second + 1, nouvelles);
+      if (!access(it->first + 1, it->second - 1)) verif(it->first + 1,it->second - 1, nouvelles);
+      if (!access(it->first + 1, it->second)) verif(it->first + 1,it->second, nouvelles);
+      if (!access(it->first + 1, it->second + 1)) verif(it->first - 1,it->second + 1, nouvelles);
    }
    // On enlève les anciennes cellules
    for (auto const& el : vivantes) champ[el.first][el.second] = false;

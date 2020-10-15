@@ -27,6 +27,7 @@ public :
     void suppr_motif(motifs::Motif const& m);
 
     // Evolution de la simulaitton
+    void verif(size_t const& i, size_t const& j, std::vector<std::pair<size_t,size_t>>& v);
     void evolve();
     std::vector<std::pair<size_t,size_t>> const& life(std::ostream& out = std::cout);
     std::vector<std::pair<size_t,size_t>> const& get_viv(std::ostream& out = std::cout) {return vivantes;}
