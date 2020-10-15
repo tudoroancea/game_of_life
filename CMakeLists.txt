@@ -13,20 +13,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 add_executable(main
-        main.cpp
-        cell_.h
-        game_of_life.h
-        mainwindow.h
-        motifs.h
-        cell_.cpp
-        game_of_life.cpp
-        mainwindow.cpp
-        motifs.cpp
+        src/main.cpp
+        src/qt/cell_.h
+        src/simulation/game_of_life.h
+        src/qt/mainwindow.h
+        src/simulation/motifs.h
+        src/qt/cell_.cpp
+        src/simulation/game_of_life.cpp
+        src/qt/mainwindow.cpp
+        src/simulation/motifs.cpp
 )
 add_executable(time_test
-        time_test.cpp
-        game_of_life.cpp game_of_life.h
-        motifs.h motifs.cpp
+        test/time_test.cpp
+        src/simulation/game_of_life.cpp src/simulation/game_of_life.h
+        src/simulation/motifs.h src/simulation/motifs.cpp
 )
 
 target_link_libraries(main PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)

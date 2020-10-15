@@ -30,7 +30,8 @@ public :
     std::vector<std::pair<size_t,size_t>> const& life(std::ostream& out = std::cout);
 
     // Gestion des motifs
-    void save_motif(std::string const& nom_motif, unsigned int const& L, unsigned int const& C) const;
+    void save_motif(std::string const& nom_motif) const;
+    void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax) const;
 
     // Affichage
     void print(std::ostream& out = std::cout) const;

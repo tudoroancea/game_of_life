@@ -20,7 +20,8 @@ namespace motifs {
         Motif(Motif const&) = default;
         Motif(std::initializer_list<std::pair<size_t,size_t>> L) : liste(L) {}
         Motif(vec L) : liste(L) {}
-
+        Motif(std::string const& ficher);
+        
         // Méthodes de modification
         void push_back(std::pair<size_t,size_t> const& p) {liste.push_back(p);}
         void rotate();      // 90° en sens horaire (anti trigo)
@@ -36,7 +37,7 @@ namespace motifs {
         vec::iterator end() {return liste.end();}
         vec::const_iterator cbegin() const {return liste.cbegin();}
         vec::const_iterator cend() const {return liste.cend();}
-    };   
+    };
     Motif operator+(Motif lhs, Motif const& rhs);
     Motif operator+(Motif lhs, std::pair<size_t,size_t> const& rhs);
 

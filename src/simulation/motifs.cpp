@@ -1,6 +1,21 @@
 #include "motifs.h"
+#include "rapidcsv.h"
+#include <utility>
 
 namespace motifs {
+    Motif::Motif(std::string const& fichier) {
+        rapidcsv::Document motif("../../data/"+fichier);
+        for (size_t i(0); i < motif.GetRowCount() ; ++i) {
+            const size_t zero(0), one(1);
+            const size_t j(i);
+        }
+            const size_t zero(0), one(1);
+            const size_t j(2);
+            std::string a(motif.GetCell(zero, j));
+            std::string b(motif.GetCell(one, j));
+            std::pair<size_t,size_t> p(a,b);
+            liste.push_back(p);
+    }
     size_t Motif::min_ligne() const {
         size_t min(liste.front().first);
         for (auto el : liste) {
@@ -105,4 +120,3 @@ namespace motifs {
         calque.translate = *(calque.alive.cbegin());
     }
 } // namespace motifs
-

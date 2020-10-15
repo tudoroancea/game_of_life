@@ -1,6 +1,10 @@
 #include "game_of_life.h"
 #include "motifs.h"
 
+#include <fstream>
+#include <vector>
+#include <array>
+
 bool GameOfLife::next_state(size_t i, size_t j) {
     int S(0);
     if (access(i - 1, j - 1)) ++S;
@@ -64,6 +68,19 @@ void GameOfLife::print(std::ostream& out) const {
       out << std::endl;
    }
       out << " Fin | Generation num " << nbr_gen << std::endl;
+}
+
+// Gestion des motifs ========================================================================================
+// On fera la gestion du nom (s'il existe dejà) en dehors, dans qt
+void GameOfLife::save_motif(std::string const& nom_motif) const {
+   std::ofstream out(nom_motif);
+   for (auto const& el : vivantes) out << el.first << ',' << el.second << '\n';
+   out.close();
+}
+void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax) const {
+   std::ofstream out(nom_motif);
+   for (auto const& el : vivantes) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
+   out.close();
 }
 
 // Evolution de la simulation  ========================================================================================
