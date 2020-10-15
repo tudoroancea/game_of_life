@@ -11,7 +11,7 @@ CTestTestfile.cmake
 _deps
 build
 .vscode
-# .gitignore
+.idea
 
 .qmake.stash
 *.o
