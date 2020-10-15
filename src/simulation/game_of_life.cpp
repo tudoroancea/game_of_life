@@ -35,7 +35,7 @@ bool GameOfLife::access(size_t i, size_t j) {
     else return champ[i][j];
 }
 void GameOfLife::add_cell(std::pair<size_t,size_t> const& c) {
-   if(!access(c.first, c.second) and c.first < L+100 and c.second < C+100) {
+   if((!access(c.first, c.second)) && ((c.first < L+100) && (c.second < C+100))) {
       vivantes.push_back(c);
       champ[c.first][c.second] = true;
    }
