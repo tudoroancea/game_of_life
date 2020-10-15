@@ -108,9 +108,9 @@ void GameOfLife::evolve() {
 
    // On cheque chaque cellule déjà vivante pour voir si elle le restte
    for (std::vector<std::pair<size_t,size_t>>::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
-      verif(it->first,it->second, nouvelles);
-      // On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes
+      if (next_state(it->first,it->second)) nouvelles.push_back(*it);
 
+      // On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes
 	  verif(it->first - 1, it->second - 1, nouvelles);
       verif(it->first - 1,it->second, nouvelles);
       verif(it->first - 1,it->second + 1, nouvelles);
