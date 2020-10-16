@@ -7,3 +7,9 @@
 - [ ] pouvoir accéder aux motifs déjà crées et les modifer (sans simulation)
 
 # UI :
+- [ ] taille des boutons (trop petits pour le texte contenu)
+- [ ] Pouvoir agrandir la fenetre et voir une plus grande partie de la grille (si elle est zoomee)
+
+# Ameliorations niveau projet :
+- [ ] test unitaires
+- [x] documentation methodes
