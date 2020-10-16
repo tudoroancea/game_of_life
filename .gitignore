@@ -12,6 +12,7 @@ _deps
 build
 .vscode
 .idea
+cmake-build-debug
 
 .qmake.stash
 *.o

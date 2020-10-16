@@ -4,12 +4,15 @@
 #include <array>
 #include <vector>
 
-typedef std::vector<std::pair<size_t,size_t>> vec;
+typedef std::pair<size_t,size_t> coord;
+typedef std::vector<coord> liste;
 
 namespace motifs {
     class Motif {
     private :
-        vec liste;
+        liste cellules;
+
+        // Methodes utilitaires
         size_t min_ligne() const;
         size_t min_colonne() const;
         size_t max_ligne() const;
@@ -18,28 +21,30 @@ namespace motifs {
         // Constructeurs & Destructeurs
         Motif() = default;
         Motif(Motif const&) = default;
-        Motif(std::initializer_list<std::pair<size_t,size_t>> L) : liste(L) {}
-        Motif(vec L) : liste(L) {}
+        Motif(std::initializer_list<coord> L);
+        Motif(liste const& L);
         Motif(std::string const& ficher);
-        
-        // Méthodes de modification
-        void push_back(std::pair<size_t,size_t> const& p) {liste.push_back(p);}
-        void rotate();      // 90° en sens horaire (anti trigo)
 
+        // Méthodes de modification
+        void push_back(coord const& p) {cellules.push_back(p);}
+        /*
+         *  @brief  90° en sens horaire
+         */
+        void rotate();
         void rotate2();
         Motif& operator+=(Motif const& rhs);
-        Motif& operator+=(std::pair<size_t,size_t> const& p);
-        Motif& operator-=(std::pair<size_t,size_t> const& p);
-        Motif& recalibrate() {(*this)-={min_ligne(), min_colonne()}; return *this;}
+        Motif& operator+=(coord const& p);
+        Motif& operator-=(coord const& p);
+        Motif& recalibrate();
 
         // Getters
-        vec::iterator begin() {return liste.begin();}
-        vec::iterator end() {return liste.end();}
-        vec::const_iterator cbegin() const {return liste.cbegin();}
-        vec::const_iterator cend() const {return liste.cend();}
+        liste::iterator begin() {return cellules.begin();}
+        liste::iterator end() {return cellules.end();}
+        liste::const_iterator cbegin() const {return cellules.cbegin();}
+        liste::const_iterator cend() const {return cellules.cend();}
     };
     Motif operator+(Motif lhs, Motif const& rhs);
-    Motif operator+(Motif lhs, std::pair<size_t,size_t> const& rhs);
+    Motif operator+(Motif lhs, coord const& rhs);
 
     // Modèles déjà créés
     const Motif grenouille({{1,1},{1,2},{1,3},{2,0},{2,1},{2,2}});
