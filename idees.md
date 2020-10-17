@@ -13,3 +13,4 @@
 # Ameliorations niveau projet :
 - [ ] test unitaires
 - [x] documentation methodes
+- [ ] ajouter les sub_directory CMake

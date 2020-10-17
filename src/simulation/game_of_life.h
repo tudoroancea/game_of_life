@@ -56,6 +56,10 @@ public :
      */
     bool access(size_t i, size_t j);
     /*
+     *  @returns    La liste des cellules vivantes visibles avec coordonnees translatees dans [0,L]x[0,C]
+     */
+    liste const& get_viv() const;
+    /*
      *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
      *  @param   c  coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
      */

@@ -38,10 +38,10 @@ namespace motifs {
         Motif& recalibrate();
 
         // Getters
-        liste::iterator begin() {return cellules.begin();}
-        liste::iterator end() {return cellules.end();}
-        liste::const_iterator cbegin() const {return cellules.cbegin();}
-        liste::const_iterator cend() const {return cellules.cend();}
+        liste::iterator begin();
+        liste::iterator end();
+        liste::const_iterator cbegin() const;
+        liste::const_iterator cend() const;
     };
     Motif operator+(Motif lhs, Motif const& rhs);
     Motif operator+(Motif lhs, coord const& rhs);

@@ -49,7 +49,7 @@ bool GameOfLife::access(size_t i, size_t j) {
 	if (i>=L+100 || j>=C+100) return false;
 	else return champ[i][j];
 }
-
+liste const& GameOfLife::get_viv() const {return vivantes_visibles;}
 
 void GameOfLife::add_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
