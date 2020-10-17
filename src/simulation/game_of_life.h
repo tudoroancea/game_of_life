@@ -43,8 +43,10 @@ private :
     bool next_state(std::pair<size_t,size_t> const& c);
     /*
      *  @brief  Verifie que la cellule indiquee est morte et a l'interieur de la grille, et si elle doit devenir vivante, la rajoute au tableau donne en parametres et a vivantes_visibles si elle est entre les bonnes bornes (en la translatant au prealable)
+     *  @param  i,j coordoonnees (dans [0,L+100]x[0,C+100])
+     *  @param  v,v_visibles    liste de cellules vivantes a mettre a jour
      */
-    void verif(size_t const& i, size_t const& j, liste& v);
+    void verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles);
 public :
     // Constructeurs ========================================
     GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);

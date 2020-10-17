@@ -14,3 +14,4 @@
 - [ ] test unitaires
 - [x] documentation methodes
 - [ ] ajouter les sub_directory CMake
+- [ ] verifier la compatiblite avec la licence de 

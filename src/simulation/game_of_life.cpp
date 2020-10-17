@@ -20,11 +20,11 @@ bool GameOfLife::next_state(size_t i, size_t j) {
 	if (access(i + 1, j + 1)) ++S;
 	return (S==3) || (access(i, j) && S == 2);
 }
-void GameOfLife::verif(size_t const& i, size_t const& j, liste& v) {
+void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles) {
     if(!access(i,j) && std::find<liste::iterator, coord>(v.begin(),v.end(),{i,j}) == v.end()) {
 		if (next_state(i,j)) {
 			v.push_back({i,j});
-			if (50 <= i && i < L+50 && 50 <= j && j < C+50) vivantes_visibles.push_back({i-50,j-50});
+			if (50 <= i && i < L+50 && 50 <= j && j < C+50) v_visibles.push_back({i-50,j-50});
 		}
 	}
 }
@@ -106,23 +106,23 @@ void GameOfLife::print(std::ostream& out) const {
 void GameOfLife::evolve() {
 	// On crée une nouvelle liste qui contiendra les nouvelles vivantes
 	liste nouvelles;
-
+	liste nouvelles_visibles;
 	// On check chaque cellule déjà vivante pour voir si elle le reste
 	for (liste::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
 		if (next_state(it->first,it->second)) {
 			nouvelles.push_back(*it);
-			if (50 <= it->first && it->first < L+50 && 50 <= it->second && it->second < C+50) vivantes_visibles.push_back(*it);
+			if (50 <= it->first && it->first < L+50 && 50 <= it->second && it->second < C+50) nouvelles_visibles.push_back({it->first - 50, it->second - 50});
 		}
 
 		// On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes
-		verif(it->first - 1, it->second - 1, nouvelles);
-		verif(it->first - 1,it->second, nouvelles);
-		verif(it->first - 1,it->second + 1, nouvelles);
-		verif(it->first,it->second - 1, nouvelles);
-		verif(it->first,it->second + 1, nouvelles);
-		verif(it->first + 1,it->second - 1, nouvelles);
-		verif(it->first + 1,it->second, nouvelles);
-		verif(it->first - 1,it->second + 1, nouvelles);
+		verif(it->first - 1, it->second - 1, nouvelles, nouvelles_visibles);
+		verif(it->first - 1,it->second, nouvelles, nouvelles_visibles);
+		verif(it->first - 1,it->second + 1, nouvelles, nouvelles_visibles);
+		verif(it->first,it->second - 1, nouvelles, nouvelles_visibles);
+		verif(it->first,it->second + 1, nouvelles, nouvelles_visibles);
+		verif(it->first + 1,it->second - 1, nouvelles, nouvelles_visibles);
+		verif(it->first + 1,it->second, nouvelles, nouvelles_visibles);
+		verif(it->first - 1,it->second + 1, nouvelles, nouvelles_visibles);
 	}
 	// On enlève les anciennes cellules
 	for (auto const& el : vivantes) champ[el.first][el.second] = false;
@@ -130,6 +130,7 @@ void GameOfLife::evolve() {
 	for (auto const& el : nouvelles) champ[el.first][el.second] = true;
 	// On update la liste des vivantes et le nombre de generatitons
 	vivantes = nouvelles;
+	vivantes_visibles = nouvelles_visibles;
 	++nbr_gen;
 }
 
