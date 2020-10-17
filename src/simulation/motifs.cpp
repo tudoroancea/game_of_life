@@ -96,7 +96,7 @@ namespace motifs {
     liste::iterator Motif::end() {return cellules.end();}
     liste::const_iterator Motif::cbegin() const {return cellules.cbegin();}
     liste::const_iterator Motif::cend() const {return cellules.cend();}
-    
+
   // Construction de motifs géométriques
     Motif rectangle(size_t lignes, size_t colonnes) {
         Motif res;
@@ -121,3 +121,20 @@ namespace motifs {
         calque.translate = *(calque.alive.cbegin());
     }
 } // namespace motifs
+liste f(coord const& a, coord const& b) {
+    //double di(a.first-b.first), dj(a.second-b.second);
+    //double tx(dj/di);
+    liste res;
+    int x,y(a.first),dx(b.first-a.first),dy(b.second-a.second);
+    double e(0.0), efirst(dy/dx), esec(-1.0);
+    for (int x(a.first); x <= a.second; ++x) {
+        if (x >= 0 and y>= 0) res.push_back({size_t(x),size_t(y)});
+        e += efirst;
+        if (e >= 0.5) {
+            ++y;
+            e += esec;
+        }
+    }
+}
+
+liste

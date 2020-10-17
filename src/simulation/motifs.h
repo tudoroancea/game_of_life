@@ -68,5 +68,5 @@ namespace motifs {
     void translate(calque& calque);
 } // namespace motifs
 
-
+liste f(coord const& x, coord const& y);
 #endif // MOTIFS_H
