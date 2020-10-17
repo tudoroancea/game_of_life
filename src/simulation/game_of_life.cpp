@@ -22,9 +22,10 @@ bool GameOfLife::next_state(size_t i, size_t j) {
 }
 void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles) {
     if(!access(i,j) && std::find<liste::iterator, coord>(v.begin(),v.end(),{i,j}) == v.end()) {
-        if (next_state(i,j) && i<500 && j<500) {
+        if (next_state(i,j) && i<L+100 && j<C+100) {
 			v.push_back({i,j});
-			if (50 <= i && i < L+50 && 50 <= j && j < C+50) v_visibles.push_back({i-50,j-50});
+			size_t itranslate(i-50), jtranslate(j-50);
+			if (0 <= itranslate && itranslate < L && 0 <= jtranslate && jtranslate < C) v_visibles.push_back({itranslate, jtranslate});
 		}
 	}
 }
@@ -34,13 +35,17 @@ GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, un
 		for (size_t j(0); j < C+100; ++j) champ[i][j] = false;
 	}
 	for (liste::const_iterator it(a_marquer.cbegin()); it != a_marquer.cend(); ++it) {
-		champ[(it->first)+50][(it->second)+50] = true;
-		vivantes.push_back({it->first + 50, it->second + 50});
-		vivantes_visibles.push_back({it->first, it->second});
+		if (it->first < L+100 && it->second < C+100) {
+			champ[(it->first)+50][(it->second)+50] = true;
+			vivantes.push_back({it->first + 50, it->second + 50});
+			vivantes_visibles.push_back({it->first, it->second});
+		}
 	}
 }
 GameOfLife::GameOfLife(unsigned int const& C, unsigned int const& L) : C(C), L(L), nbr_gen(0) {
-	for (auto& ligne : champ) for (auto& el : ligne) el = false;
+	for (size_t i(0); i < L+100; ++i) {
+		for (size_t j(0); j < C+100; ++j) champ[i][j] = false;
+	}
 }
 
 // Getters & Setters ========================================================================================
@@ -53,7 +58,7 @@ liste const& GameOfLife::get_viv() const {return vivantes_visibles;}
 
 void GameOfLife::add_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
-	if((!access(c_translate.first, c_translate.second)) && ((c_translate.first < L+100) && (c_translate.second < C+100))) {
+	if((!access(c_translate.first, c_translate.second)) && ((c_translate.first < L+50) && (c_translate.second < C+50))) {
 		vivantes.push_back(c_translate);
 		vivantes_visibles.push_back(c);
         champ[c_translate.first][c_translate.second] = true;
@@ -116,13 +121,13 @@ void GameOfLife::evolve() {
 
 		// On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes
 		verif(it->first - 1, it->second - 1, nouvelles, nouvelles_visibles);
-		verif(it->first - 1,it->second, nouvelles, nouvelles_visibles);
-		verif(it->first - 1,it->second + 1, nouvelles, nouvelles_visibles);
-		verif(it->first,it->second - 1, nouvelles, nouvelles_visibles);
-		verif(it->first,it->second + 1, nouvelles, nouvelles_visibles);
-		verif(it->first + 1,it->second - 1, nouvelles, nouvelles_visibles);
-		verif(it->first + 1,it->second, nouvelles, nouvelles_visibles);
-		verif(it->first - 1,it->second + 1, nouvelles, nouvelles_visibles);
+		verif(it->first - 1, it->second, nouvelles, nouvelles_visibles);
+		verif(it->first - 1, it->second + 1, nouvelles, nouvelles_visibles);
+		verif(it->first, it->second - 1, nouvelles, nouvelles_visibles);
+		verif(it->first, it->second + 1, nouvelles, nouvelles_visibles);
+		verif(it->first + 1, it->second - 1, nouvelles, nouvelles_visibles);
+		verif(it->first + 1, it->second, nouvelles, nouvelles_visibles);
+		verif(it->first - 1, it->second + 1, nouvelles, nouvelles_visibles);
 	}
 	// On enlève les anciennes cellules
 	for (auto const& el : vivantes) champ[el.first][el.second] = false;
