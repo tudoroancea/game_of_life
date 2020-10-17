@@ -46,7 +46,7 @@ public slots:
 
 
 private:
-    std::vector<std::pair<size_t,size_t>> cells2;
+    liste const* cells2;
     QLineEdit* x_;
     QLineEdit* y_;
     QPushButton* cree;

@@ -9,7 +9,7 @@
 #include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr), ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0), nb_lines(0), simul_on(false)
+    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr), ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0), nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -39,6 +39,7 @@ void MainWindow::creer()
     pos_souris->move(480, 580);
     pos_souris->show();
     ptr = new GameOfLife(nb_lines, nb_col);
+    cells2 = &(ptr->get_viv());
 }
 
 void MainWindow::creer_s() { nb_lines = x_->text().toUInt(); nb_col = y_->text().toUInt(); this->creer(); state = 1;}
@@ -48,13 +49,12 @@ void MainWindow::paintEvent(QPaintEvent *event)
 {
     if (state == 1)
     {
-        cells2 = ptr->get_viv();
         Q_UNUSED(event);
         paint->begin(this);
         QRect rect(10, 90, 500, 500);
         paint->fillRect(rect, Qt::black);
         bool in(false);
-        for (auto a : cells2)
+        for (auto a : *cells2)
         {
             if (a.first < nb_lines && a.second < nb_col)
             {
@@ -133,7 +133,7 @@ void MainWindow::charger_calque()
         if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
         {
             motifs::calque temp;
-            for (auto a : cells2)
+            for (auto a : *cells2)
             {
                 if (a.first >= min_x && a.first <= max_x && a.second >= min_y && a.second <= max_y)
                 {
@@ -229,7 +229,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
     if (timer != 0)
     {
         Q_UNUSED(event);
-        cells2 = ptr->life();
+        ptr->evolve();
         this->update();
     }
 }

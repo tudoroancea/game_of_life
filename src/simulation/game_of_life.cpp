@@ -22,7 +22,7 @@ bool GameOfLife::next_state(size_t i, size_t j) {
 }
 void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles) {
     if(!access(i,j) && std::find<liste::iterator, coord>(v.begin(),v.end(),{i,j}) == v.end()) {
-		if (next_state(i,j)) {
+        if (next_state(i,j) && i<500 && j<500) {
 			v.push_back({i,j});
 			if (50 <= i && i < L+50 && 50 <= j && j < C+50) v_visibles.push_back({i-50,j-50});
 		}
@@ -126,6 +126,7 @@ void GameOfLife::evolve() {
 	}
 	// On enlève les anciennes cellules
 	for (auto const& el : vivantes) champ[el.first][el.second] = false;
+
 	// On rajoute les nouvelles
 	for (auto const& el : nouvelles) champ[el.first][el.second] = true;
 	// On update la liste des vivantes et le nombre de generatitons
