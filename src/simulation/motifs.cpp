@@ -128,13 +128,14 @@ liste f(coord const& a, coord const& b) {
     int y(a.first),dx(b.first-a.first),dy(b.second-a.second);
     double e(0.0), efirst(dy/dx), esec(-1.0);
     for (int x(a.first); x <= a.second; ++x) {
-        if (x >= 0 and y>= 0) res.push_back({size_t(x),size_t(y)});
+        if (x >= 0 && y>= 0) res.push_back({size_t(x),size_t(y)});
         e += efirst;
         if (e >= 0.5) {
             ++y;
             e += esec;
         }
     }
+    return res;
 }
 
 liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {

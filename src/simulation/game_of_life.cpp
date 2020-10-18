@@ -30,7 +30,7 @@ void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visi
 	}
 }
 // Constructeurs ========================================================================================
-GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : C(C), L(L), nbr_gen(0) {
+GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : nbr_gen(0), C(C), L(L) {
 	for (size_t i(0); i < L+100; ++i) {
 		for (size_t j(0); j < C+100; ++j) champ[i][j] = false;
 	}
