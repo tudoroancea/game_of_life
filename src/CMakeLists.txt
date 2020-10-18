@@ -12,10 +12,14 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
+#permet de trouver les bibliotheques
 add_subdirectory(qt)
 add_subdirectory(simulation)
+
+# Permet les includes sans prefix
+include_directories(simulation qt)
 
 add_executable(main main.cpp)
 target_link_libraries(main LINK_PUBLIC qt simulation)
 target_link_libraries(main PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
-target_include_directories(main PUBLIC simulation qt)
+#target_include_directories(main PUBLIC simulation qt)

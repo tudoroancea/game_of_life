@@ -205,7 +205,7 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                 //vecteur horizontal vers la droite
                 do {
                     res.push_back({x1,y1});
-                } while ((++x1) == x2);
+                } while ((++x1) != x2);
             }
         } else { // dx < 0
             dy = y2-y1;
@@ -272,7 +272,7 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                 // vecteur horizontal vers la gauche
                 do {
                     res.push_back({x1,y1});
-                } while ((--x1) == x2);
+                } while ((--x1) != x2);
             }
         }
     } else { // dx=0
@@ -281,12 +281,14 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                 // vecteur vertical croissant
                 do {
                     res.push_back({x1,y1});
-                } while ((+y1) == y2);
+                    std::cout << x1 << ' ' << y1 << std::endl;
+                } while ((++y1) < y2);
             } else { // dy<0 et dx=0
                 // vecteur vertical décroissant
                 do {
                     res.push_back({x1,y1});
-                } while ((--y1) == y2);
+                    std::cout << x1 << ' ' << y1 << std::endl;
+                } while ((--y1) > y2);
             }
         }
     }

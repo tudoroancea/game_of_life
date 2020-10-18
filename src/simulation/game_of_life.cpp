@@ -64,7 +64,7 @@ void GameOfLife::add_cell(coord const& c) {
         champ[c_translate.first][c_translate.second] = true;
 	}
 }
-
+void GameOfLife::add_cell(size_t const& i, size_t const& j) {add_cell({i,j});}
 void GameOfLife::suppr_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
 	if (access(c_translate.first, c_translate.second)) {
@@ -73,6 +73,7 @@ void GameOfLife::suppr_cell(coord const& c) {
 		vivantes_visibles.erase(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), c));
 	}
 }
+void GameOfLife::suppr_cell(size_t const& i, size_t const& j) {suppr_cell({i,j});}
 void GameOfLife::inv_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
     if (access(c_translate.first, c_translate.second)) {
@@ -87,6 +88,7 @@ void GameOfLife::inv_cell(coord const& c) {
 		}
 	}
 }
+void GameOfLife::inv_cell(size_t const& i, size_t const& j) {inv_cell({i,j});}
 void GameOfLife::add_motif(motifs::Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) add_cell(*it);
 }

@@ -67,15 +67,30 @@ public :
      */
     void add_cell(std::pair<size_t,size_t> const& c);
     /*
+     *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
+     *  @param   i,j    coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
+     */
+    void add_cell(size_t const& i, size_t const& j);
+    /*
      * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
      * @param   c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
     void suppr_cell(std::pair<size_t,size_t> const& c);
     /*
+     * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
+     * @param   i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
+     */
+    void suppr_cell(size_t const& i, size_t const& j);
+    /*
      *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
      *  @param  c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
     void inv_cell(std::pair<size_t,size_t> const& c);
+    /*
+     *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
+     *  @param  i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
+     */
+    void inv_cell(size_t const& i, size_t const& j);
     /*
      *  @brief  Ajoute un motif dans la grille a l'aide de add_cell()
      *  @param  m   Motif a rajouter

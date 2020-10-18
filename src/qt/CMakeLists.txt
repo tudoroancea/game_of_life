@@ -10,7 +10,8 @@ add_library(qt
     mainwindow.cpp cell_.cpp
 )
 
-target_include_directories(qt PUBLIC ../simulation)
+# permet les includes sans prefix
+include_directories(../simulation)
 
 target_link_libraries(qt LINK_PUBLIC simulation)
 target_link_libraries(qt PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)
