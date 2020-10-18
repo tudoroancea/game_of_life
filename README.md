@@ -3,7 +3,7 @@
 Based on John Conway's "Game of Life" cellular automaton
 
 ## Current Features :
-Simple "Game of Life" simulation on a grid of max dimension 500x500.
+Simple "Game of Life" simulation on a grid of max dimension 400x400.
 
 ## Future Features :
 Usage of pre-existing cell patterns.

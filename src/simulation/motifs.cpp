@@ -121,24 +121,8 @@ namespace motifs {
         calque.translate = *(calque.alive.cbegin());
     }
 } // namespace motifs
-liste f(coord const& a, coord const& b) {
-    //double di(a.first-b.first), dj(a.second-b.second);
-    //double tx(dj/di);
-    liste res;
-    int y(a.first),dx(b.first-a.first),dy(b.second-a.second);
-    double e(0.0), efirst(dy/dx), esec(-1.0);
-    for (int x(a.first); x <= a.second; ++x) {
-        if (x >= 0 && y>= 0) res.push_back({size_t(x),size_t(y)});
-        e += efirst;
-        if (e >= 0.5) {
-            ++y;
-            e += esec;
-        }
-    }
-    return res;
-}
 
-liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
+liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
     liste res;
     int dx(x2-x1), dy(y2-y1);
     if (dx != 0) {
@@ -296,4 +280,4 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
     return res;
 }
 
-liste f2coord(coord a, coord const& b) {return f2(a.first, a.second, b.first, b.second);}
+liste segment(coord a, coord const& b) {return segment(a.first, a.second, b.first, b.second);}

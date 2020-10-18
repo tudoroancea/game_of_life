@@ -68,7 +68,18 @@ namespace motifs {
     void translate(calque& calque);
 } // namespace motifs
 
-liste f(coord const& x, coord const& y);
-liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
-liste f2coord(coord a, coord const& b);
+/*
+ *  @brief  Renvoie les coordonnees d'un segment reliant 2 points en utilisant l'algorithme de Bresenham
+ *  @param x1,y1    coordonnees (dans [0,L]x[0,C]) du premier point
+ *  @param x2,y2    coordonnees (dans [0,L]x[0,C]) du second point
+ *  @returns    liste de coordonnees
+ */
+liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
+/*
+ *  @brief  Renvoie les coordonnees d'un segment reliant 2 points en utilisant l'algorithme de Bresenham
+ *  @param a    coordonnees (dans [0,L]x[0,C]) du premier point
+ *  @param b    coordonnees (dans [0,L]x[0,C]) du second point
+ *  @returns    liste de coordonnees
+ */
+liste segment(coord a, coord const& b);
 #endif // MOTIFS_H
