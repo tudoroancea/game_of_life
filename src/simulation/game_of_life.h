@@ -106,7 +106,7 @@ public :
     void save_motif(std::string const& nom_motif) const;
     /*
      *  @brief  Enregistre un fichier .csv contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
-     *  @param  imin,imax   Bornes sur les lignes (dans [0,L])
+     *  @param  imin,imax   Bornes sur les lignes (dans [0,L])é
      *  @param  jmin,jmax   Bornes sur les colonnes (dans [0,C])
      */
     void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax) const;

@@ -4,12 +4,16 @@
 #include <QPushButton>
 #include <array>
 #include <initializer_list>
+#include <QComboBox>
 #include "game_of_life.h"
 #include "motifs.h"
 #include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr), ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0), nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr)
+    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
+      ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
+      nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
+      y_prec(-1), pause(nullptr), calques(nullptr)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -155,6 +159,12 @@ void MainWindow::lancer_s()
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
     pause->show();
+    QAction* test_action = new QAction("abcd");
+    calques = new QMenu("menu_test", this);
+    calques->addAction("test1");
+    calques->addAction(test_action);
+    calques->move(10, 0);
+    calques->show();
     calque_mod = new QPushButton("calque_switch", this);
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
@@ -200,6 +210,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 }
             }
             else { ptr->inv_cell({(event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500});}
+            x_prec = x_current;
+            y_prec = y_current;
             x_current = (event->x()-10)*nb_lines/500;
             y_current = (event->y()-90)*nb_col/500;
             this->update();
@@ -215,8 +227,14 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         if (((event->x() >= 10) && (event->x() <= 510))&&
             ((event->y() >= 90) && (event->y() <= 590)))
         {
+            x_prec = x_current;
+            y_prec = y_current;
             x_current = (event->x()-10)*nb_lines/500;
             y_current = (event->y()-90)*nb_col/500;
+            if (event->buttons() == Qt::LeftButton && (x_prec != x_current || y_prec != y_current) && !simul_on)
+            {
+                ptr->inv_cell({x_current, y_current});
+            }
         }
         else {x_current = -1; y_current = -1;}
         this->update();
@@ -264,5 +282,6 @@ MainWindow::~MainWindow()
     delete pause;
     delete calque_mod;
     delete pos_souris;
+    delete calques;
 }
 

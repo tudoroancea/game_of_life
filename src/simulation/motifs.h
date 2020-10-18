@@ -23,7 +23,7 @@ namespace motifs {
         Motif(Motif const&) = default;
         Motif(std::initializer_list<coord> L);
         Motif(liste const& L);
-        Motif(std::string const& ficher);
+        Motif(std::string const& fichier);
 
         // Méthodes de modification
         void push_back(coord const& p) {cellules.push_back(p);}

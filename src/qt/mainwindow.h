@@ -10,7 +10,9 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QTime>
-#include <QFrame>
+#include <QComboBox>
+#include <QAction>
+#include <QMenu>
 #include "game_of_life.h"
 #include "motifs.h"
 
@@ -55,10 +57,13 @@ private:
     QPushButton* calque_mod;
     QPainter* paint;
     QLabel* pos_souris;
+    QMenu* calques;
     size_t nb_lines;
     size_t nb_col;
     int x_current;
     int y_current;
+    int x_prec;
+    int y_prec;
     int x_first;
     int y_first;
     int x_end;
