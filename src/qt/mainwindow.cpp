@@ -8,6 +8,27 @@
 #include "game_of_life.h"
 #include "motifs.h"
 #include <iostream>
+#include <QGraphicsOpacityEffect>
+#include <QAbstractItemView>
+
+Combobox::Combobox(QWidget* parent) : QComboBox(parent), pos_prec(-1), pos_now(-1)
+{
+    timer = new QTimer();
+    timer->start(10);
+    connect(timer, SIGNAL(timeout()), this, SLOT(time_event()));
+}
+
+void Combobox::time_event()
+{
+    timer->stop();
+    timer->start(10);
+    pos_now = this->view()->currentIndex().row();
+    if (pos_prec != pos_now && pos_prec != -1)
+    {
+        emit time_e();
+    }
+    pos_prec = pos_now;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
@@ -48,6 +69,10 @@ void MainWindow::creer()
 
 void MainWindow::creer_s() { nb_lines = x_->text().toUInt(); nb_col = y_->text().toUInt(); this->creer(); state = 1;}
 
+void MainWindow::combo_time()
+{
+    std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
+}
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
@@ -159,12 +184,24 @@ void MainWindow::lancer_s()
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
     pause->show();
-    QAction* test_action = new QAction("abcd");
-    calques = new QMenu("menu_test", this);
-    calques->addAction("test1");
-    calques->addAction(test_action);
+    calques = new Combobox(this);
+    calques->setParent(this);
+    calques->addItem("test1");
+    calques->addItem("test2");
     calques->move(10, 0);
+    calques->resize(100, 20);
     calques->show();
+    connect(calques, SIGNAL(time_e()), this, SLOT(combo_time()));
+    map = new QFrame();
+    map->resize(50, 50);
+    map->move(400, 400);
+    map->setWindowFlag(Qt::ToolTip, true);
+    map->setStyleSheet("background-color: red");
+    QGraphicsOpacityEffect op(map);
+    op.setOpacity(1.0);
+    map->setGraphicsEffect(&op);
+    map->setAutoFillBackground(true);
+    map->show();
     calque_mod = new QPushButton("calque_switch", this);
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
@@ -239,7 +276,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         else {x_current = -1; y_current = -1;}
         this->update();
     }
-    pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));
+    pos_souris->setText(QString::number(event->x()) + " " + QString::number(y_current));
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)
