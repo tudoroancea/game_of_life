@@ -137,4 +137,159 @@ liste f(coord const& a, coord const& b) {
     }
 }
 
-liste
+liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
+    liste res;
+    int dx(x2-x1), dy(y2-y1);
+    if (dx != 0) {
+        if (dx > 0) {
+            if (dy != 0) {
+                if (dy > 0) {
+                    // vecteur oblique 1er cadran
+                    if (dx >= dy) {
+                        //vecteur diagonal ou oblique proche de l'horizontale, dans le 1er octant
+                        int e(dx);
+                        dx = 2*e;
+                        dy *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if (++x1 == x2) break;
+                            if ( (e-=dy) < 0) {
+                                ++y1;
+                                e+=dx;
+                            }
+                        }
+                    } else {
+                        // vecteur oblique proche de la verticale dans le 2e octant
+                        int e(dy);
+                        dy = 2*e;
+                        dx *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((++y1) == y2) break;
+                            if((e-=dx) < 0) {
+                                ++x1;
+                                e += dy;
+                            }
+                        }
+                    }
+                } else { // dy<0 et dx > 0
+                    if (dx >= -dy) {
+                        //vecteur diagonal ou oblique proche de l'horizontale, dans le 8e octant
+                        int e(dx);
+                        dx = 2*e;
+                        dy *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((++x1) == x2);
+                            if ((e+=dy) < 0) {
+                                --y1;
+                                e += dx;
+                            }
+                        }
+                    } else {
+                        // vecteur oblique proche de la verticale, dans le 7e octant
+                        int e(dy);
+                        dy = 2*e;
+                        dx *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((--y1) == y2) {
+                                ++x1;
+                                e += dy;
+                            }
+                        }
+                    }
+                }
+            } else { // dy=0 et dx>0
+                //vecteur horizontal vers la droite
+                do {
+                    res.push_back({x1,y1});
+                } while ((++x1) == x2);
+            }
+        } else { // dx < 0
+            dy = y2-y1;
+            if (dy != 0) {
+                if (dy > 0) {
+                    // vecteur oblique dans le 2e cadran
+                    if (-dx >= dy) {
+                        //vecteur diagonale ou oblique proche de l'horizontale, dans le 4e octant
+                        int e(dx);
+                        dx = 2*e;
+                        dy *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((--x1) == x2);
+                            if ((e+=dy) >= 0) {
+                                ++y1;
+                                e += dx;
+                            }
+                        }
+                    } else {
+                        // vecteur oblique proche de la verticale, dans le 3e octant
+                        int e(dy);
+                        dy = 2*e;
+                        dx *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((++y1) == y2) break;
+                            if ((e+=dx) <= 0) {
+                                --x1;
+                                e += dy;
+                            }
+                        }
+                    }
+                } else { // dy<0 et dx>0
+                    // vecteur oblique dans le 3e cadran
+                    if (dx <= dy) {
+                        // vecteur diagonal ou obliquye proche de l'horizontale, dans le 5e octant
+                        int e(dx);
+                        dx = 2*e;
+                        dy *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((--x1) == x2) break;
+                            if ((e-=dy) >= 0) {
+                                --y1;
+                                e += dx;
+                            }
+                        }
+                    } else { // vecteur oblique de la verticale, dans le 6e octant
+                        int e(dy);
+                        dy = 2*e;
+                        dx *= 2;
+                        while (true) {
+                            res.push_back({x1,y1});
+                            if ((--y1) == y2) break;
+                            if ((e-=dx) >= 0) {
+                                --x1;
+                                e += dy;
+                            }
+                        }
+                    }
+                }
+            } else { // dy =0 et dx < 0
+                // vecteur horizontal vers la gauche
+                do {
+                    res.push_back({x1,y1});
+                } while ((--x1) == x2);
+            }
+        }
+    } else { // dx=0
+        if (dy != 0) {
+            if (dy > 0) {
+                // vecteur vertical croissant
+                do {
+                    res.push_back({x1,y1});
+                } while ((+y1) == y2);
+            } else { // dy<0 et dx=0
+                // vecteur vertical décroissant
+                do {
+                    res.push_back({x1,y1});
+                } while ((--y1) == y2);
+            }
+        }
+    }
+    res.push_back({x2,y2});
+}
+
+liste f2coord(coord a, coord const& b) {return f2(a.first, a.second, b.first, b.second);}

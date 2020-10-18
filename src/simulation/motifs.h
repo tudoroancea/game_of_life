@@ -69,4 +69,6 @@ namespace motifs {
 } // namespace motifs
 
 liste f(coord const& x, coord const& y);
+liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
+liste f2coord(coord a, coord const& b);
 #endif // MOTIFS_H
