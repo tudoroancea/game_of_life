@@ -125,7 +125,7 @@ liste f(coord const& a, coord const& b) {
     //double di(a.first-b.first), dj(a.second-b.second);
     //double tx(dj/di);
     liste res;
-    int x,y(a.first),dx(b.first-a.first),dy(b.second-a.second);
+    int y(a.first),dx(b.first-a.first),dy(b.second-a.second);
     double e(0.0), efirst(dy/dx), esec(-1.0);
     for (int x(a.first); x <= a.second; ++x) {
         if (x >= 0 and y>= 0) res.push_back({size_t(x),size_t(y)});
@@ -180,7 +180,7 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                         dy *= 2;
                         while (true) {
                             res.push_back({x1,y1});
-                            if ((++x1) == x2);
+                            if ((++x1) == x2) break;
                             if ((e+=dy) < 0) {
                                 --y1;
                                 e += dx;
@@ -218,7 +218,7 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                         dy *= 2;
                         while (true) {
                             res.push_back({x1,y1});
-                            if ((--x1) == x2);
+                            if ((--x1) == x2) break;
                             if ((e+=dy) >= 0) {
                                 ++y1;
                                 e += dx;
@@ -290,6 +290,7 @@ liste f2(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
         }
     }
     res.push_back({x2,y2});
+    return res;
 }
 
 liste f2coord(coord a, coord const& b) {return f2(a.first, a.second, b.first, b.second);}

@@ -9,9 +9,9 @@
 # UI :
 - [ ] taille des boutons (trop petits pour le texte contenu)
 - [ ] Pouvoir agrandir la fenetre et voir une plus grande partie de la grille (si elle est zoomee)
+- [ ] Adapter les grilles rectangulaires pour avoir des cellules carrees
 
 # Ameliorations niveau projet :
 - [ ] test unitaires
 - [x] documentation methodes
 - [ ] ajouter les sub_directory CMake
-- [ ] verifier la compatiblite avec la licence de 

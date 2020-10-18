@@ -8,7 +8,6 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 add_library(qt
     mainwindow.h cell_.h
     mainwindow.cpp cell_.cpp
-
 )
 
 target_include_directories(qt PUBLIC ../simulation)
