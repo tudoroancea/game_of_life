@@ -24,14 +24,14 @@ class Combobox : public QComboBox
     Q_OBJECT
 private:
     QTimer* timer;
-    int pos_prec;
-    int pos_now;
+    bool focus_on;
 public:
     Combobox(QWidget* parent = nullptr);
+    bool eventFilter(QObject* o, QEvent* e) override;
 public slots:
     void time_event();
 signals:
-    void time_e();
+    void time_e(QPoint, int i = 1);
 };
 
 class MainWindow : public QMainWindow
@@ -63,7 +63,7 @@ public slots:
     void lancer_s();
     void pause_s();
     void calque_switch_s() {calque.on_off = 1 - calque.on_off;}
-    void combo_time();
+    void combo_time(QPoint, int);
 
 
 private:

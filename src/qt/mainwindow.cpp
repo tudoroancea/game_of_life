@@ -11,23 +11,33 @@
 #include <QGraphicsOpacityEffect>
 #include <QAbstractItemView>
 
-Combobox::Combobox(QWidget* parent) : QComboBox(parent), pos_prec(-1), pos_now(-1)
+Combobox::Combobox(QWidget* parent) : QComboBox(parent), focus_on(false)
 {
     timer = new QTimer();
-    timer->start(10);
+    timer->start(20);
     connect(timer, SIGNAL(timeout()), this, SLOT(time_event()));
+    this->view()->installEventFilter(this);
+}
+
+bool Combobox::eventFilter(QObject *o, QEvent *e)
+{
+    Q_UNUSED(o);
+    if (e->type() == QEvent::Enter)
+    {
+        focus_on = true;
+    }
+    else if (e->type() == QEvent::Leave) {focus_on = false;}
+    return false;
 }
 
 void Combobox::time_event()
 {
     timer->stop();
-    timer->start(10);
-    pos_now = this->view()->currentIndex().row();
-    if (pos_prec != pos_now && pos_prec != -1)
+    timer->start(20);
+    if (focus_on)
     {
-        emit time_e();
+        emit time_e(QCursor::pos());
     }
-    pos_prec = pos_now;
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -69,9 +79,12 @@ void MainWindow::creer()
 
 void MainWindow::creer_s() { nb_lines = x_->text().toUInt(); nb_col = y_->text().toUInt(); this->creer(); state = 1;}
 
-void MainWindow::combo_time()
+void MainWindow::combo_time(QPoint mouse_pos, int i)
 {
     std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
+    map->move(mouse_pos);
+    map->raise();
+
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -191,7 +204,7 @@ void MainWindow::lancer_s()
     calques->move(10, 0);
     calques->resize(100, 20);
     calques->show();
-    connect(calques, SIGNAL(time_e()), this, SLOT(combo_time()));
+    connect(calques, SIGNAL(time_e(QPoint, int)), this, SLOT(combo_time(QPoint, int)));
     map = new QFrame();
     map->resize(50, 50);
     map->move(400, 400);
