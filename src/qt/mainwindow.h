@@ -92,12 +92,14 @@ private:
     int y_end;
     int timer;
     GameOfLife* ptr;
-    motifs::calque calque;
+    Calque calque;
     bool ctrl_on;
     bool simul_on;
     int state;
     bool frame_on;
 };
+
+void load(QFrame* m, QString const& s);
 #endif // MAINWINDOW_H
 /* Ajouter le nombre de générations
  * Ajouter la sauvegarde dans un fichier
