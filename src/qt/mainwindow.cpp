@@ -11,40 +11,38 @@
 #include <QGraphicsOpacityEffect>
 #include <QAbstractItemView>
 
-Combobox::Combobox(QWidget* parent) : QComboBox(parent), focus_on(false)
+Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
     timer = new QTimer();
-    timer->start(20);
+    timer->start(10);
     connect(timer, SIGNAL(timeout()), this, SLOT(time_event()));
     this->view()->installEventFilter(this);
 }
 
-bool Combobox::eventFilter(QObject *o, QEvent *e)
+void Combobox::showPopup()
 {
-    Q_UNUSED(o);
-    if (e->type() == QEvent::Enter)
-    {
-        focus_on = true;
-    }
-    else if (e->type() == QEvent::Leave) {focus_on = false;}
-    return false;
+    emit focus(true);
+    QComboBox::showPopup();
+}
+
+void Combobox::hidePopup()
+{
+    emit focus(false);
+    QComboBox::hidePopup();
 }
 
 void Combobox::time_event()
 {
     timer->stop();
-    timer->start(20);
-    if (focus_on)
-    {
-        emit time_e(QCursor::pos());
-    }
+    timer->start(10);
+    emit time_e();
 }
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
       ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
       nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
-      y_prec(-1), pause(nullptr), calques(nullptr)
+      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -79,12 +77,22 @@ void MainWindow::creer()
 
 void MainWindow::creer_s() { nb_lines = x_->text().toUInt(); nb_col = y_->text().toUInt(); this->creer(); state = 1;}
 
-void MainWindow::combo_time(QPoint mouse_pos, int i)
-{
-    std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
-    map->move(mouse_pos);
-    map->raise();
+void MainWindow::focus_frame(bool b) {frame_on = b;}
 
+void MainWindow::combo_time(int i)
+{
+    //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
+    if (calques->itemText(calques->view()->currentIndex().row()) == "test1")
+    {
+        map->setStyleSheet("background-color: green");
+    }
+    else if (calques->itemText(calques->view()->currentIndex().row()) == "test2")
+    {
+        map->setStyleSheet("background-color: red");
+    }
+    map->move(QCursor::pos());
+    if (frame_on) {map->show(); map->raise(); }
+    else {map->hide();}
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -204,7 +212,8 @@ void MainWindow::lancer_s()
     calques->move(10, 0);
     calques->resize(100, 20);
     calques->show();
-    connect(calques, SIGNAL(time_e(QPoint, int)), this, SLOT(combo_time(QPoint, int)));
+    connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
+    connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
     map = new QFrame();
     map->resize(50, 50);
     map->move(400, 400);
@@ -214,7 +223,7 @@ void MainWindow::lancer_s()
     op.setOpacity(1.0);
     map->setGraphicsEffect(&op);
     map->setAutoFillBackground(true);
-    map->show();
+    map->hide();
     calque_mod = new QPushButton("calque_switch", this);
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
