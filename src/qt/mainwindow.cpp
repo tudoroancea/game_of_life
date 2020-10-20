@@ -229,7 +229,7 @@ void MainWindow::lancer_s()
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
     calque_mod->show();
-    calque.alive = grenouille;
+    calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
     translate(calque);
     simul_on = true;
 }
