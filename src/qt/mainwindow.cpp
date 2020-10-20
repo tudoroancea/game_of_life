@@ -81,6 +81,7 @@ void MainWindow::focus_frame(bool b) {frame_on = b;}
 
 void MainWindow::combo_time(int i)
 {
+    Q_UNUSED(i);
     //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
     if (calques->itemText(calques->view()->currentIndex().row()) == "test1")
     {
@@ -90,6 +91,7 @@ void MainWindow::combo_time(int i)
     {
         map->setStyleSheet("background-color: red");
     }
+    //load(map, calques->itemText(calques->view()->currentIndex().row()));
     map->move(QCursor::pos());
     if (frame_on) {map->show(); map->raise(); }
     else {map->hide();}
@@ -165,7 +167,6 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 }
             }
         }
-
         paint->end();
     }
 }
@@ -182,7 +183,7 @@ void MainWindow::charger_calque()
         else {max_y = y_first; min_y = y_end;}
         if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
         {
-            motifs::calque temp;
+            Calque temp;
             for (auto a : *cells2)
             {
                 if (a.first >= min_x && a.first <= max_x && a.second >= min_y && a.second <= max_y)
@@ -190,7 +191,7 @@ void MainWindow::charger_calque()
                     temp.alive.push_back(a);
                 }
             }
-            motifs::translate(temp);
+            translate(temp);
             calque.alive = temp.alive;//voué à changer
             calque.translate = temp.translate;
         }
@@ -228,8 +229,8 @@ void MainWindow::lancer_s()
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
     calque_mod->show();
-    calque.alive = motifs::grenouille;
-    motifs::translate(calque);
+    calque.alive = grenouille;
+    translate(calque);
     simul_on = true;
 }
 
@@ -342,5 +343,10 @@ MainWindow::~MainWindow()
     delete calque_mod;
     delete pos_souris;
     delete calques;
+}
+
+void load(QFrame* m, QString const& s)
+{
+
 }
 
