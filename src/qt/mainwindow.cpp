@@ -324,6 +324,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
     }
     if (event->key() == Qt::Key_C) {this->charger_calque();}
+    if (event->key() == Qt::Key_R && calque.on_off) {calque.alive.rotate();}
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event)
