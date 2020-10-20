@@ -23,16 +23,16 @@ public :
     Motif(std::initializer_list<coord> L);
     Motif(liste const& L);
     /*
-        *  @brief  Construit à partir un Motif enregistré sous la forme d'un fichier .csv
-        *  @param  fichier nom du fichier sans extension
-        */
+     *  @brief  Construit à partir un Motif enregistré sous la forme d'un fichier .csv
+     *  @param  fichier nom du fichier sans extension
+     */
     Motif(std::string const& fichier);
 
     // Méthodes de modification
     void push_back(coord const& p) {cellules.push_back(p);}
     /*
-        *  @brief  90° en sens horaire
-        */
+     *  @brief  90° en sens horaire
+     */
     void rotate();
     void rotate2();
     Motif& operator+=(Motif const& rhs);

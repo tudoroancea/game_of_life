@@ -50,8 +50,8 @@ private :
 public :
     // Constructeurs ========================================
     GameOfLife(Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);
+    // modulos pour gérer les cas supérieurs à 400
     GameOfLife(unsigned int const& C = 50, unsigned int const& L = 50);
-
     // Getter & setters ========================================
     /*
      *  @returns	L'etat de la cellule si elle existe, et false sinon
@@ -111,7 +111,7 @@ public :
      *  @brief  Fait appel a la methode evolve() et retourne les ceulles vivantes et visibles dans les bonnes coordonnees
      *  @returns vivantes_visibles
      */
-    liste const& life();
+    liste const& life(unsigned int const& nbr_gen);
 
     // Gestion des motifs ==============================
     /*
