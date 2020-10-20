@@ -38,7 +38,7 @@ namespace motifs {
     Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
     Motif::Motif(liste const& L) : cellules(L) {}
     Motif::Motif(std::string const& fichier) {
-        rapidcsv::Document motif("../../data/"+fichier);
+        rapidcsv::Document motif("../../data/"+fichier+".csv");
         for (size_t i(0); i < motif.GetRowCount() ; ++i) {
             cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
         }
@@ -67,14 +67,14 @@ namespace motifs {
        for (auto const& el : rhs.cellules) cellules.push_back(el);
        return *this;
     }
-    Motif& Motif::operator+=(std::pair<size_t,size_t> const& p) {
+    Motif& Motif::operator+=(coord const& p) {
        for (auto& el : cellules) {
              el.first += p.first;
              el.second += p.second;
        }
        return *this;
     }
-    Motif& Motif::operator-=(std::pair<size_t,size_t> const& p) {
+    Motif& Motif::operator-=(coord const& p) {
        size_t l(min_ligne()), c(min_colonne());
        if (p.first>l) {
              for (auto& el : cellules) el.first -= l;
@@ -89,7 +89,7 @@ namespace motifs {
        return *this;
     }
     Motif operator+(Motif lhs, Motif const& rhs) {return lhs+=rhs;}
-    Motif operator+(Motif lhs, std::pair<size_t,size_t> const& rhs) {return lhs+=rhs;}
+    Motif operator+(Motif lhs, coord const& rhs) {return lhs+=rhs;}
     Motif& Motif::recalibrate() {(*this)-={min_ligne(), min_colonne()}; return *this;}
     // Getters
     liste::iterator Motif::begin() {return cellules.begin();}
@@ -116,7 +116,7 @@ namespace motifs {
         return res;
     }
 
-    void translate(calque& calque)
+    void translate(Calque& calque)
     {
         calque.translate = *(calque.alive.cbegin());
     }

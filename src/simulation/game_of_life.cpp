@@ -30,7 +30,7 @@ void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visi
 	}
 }
 // Constructeurs ========================================================================================
-GameOfLife::GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : C(C), L(L), nbr_gen(0) {
+GameOfLife::GameOfLife(Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : C(C), L(L), nbr_gen(0) {
 	for (size_t i(0); i < L+100; ++i) {
 		for (size_t j(0); j < C+100; ++j) champ[i][j] = false;
 	}
@@ -89,10 +89,10 @@ void GameOfLife::inv_cell(coord const& c) {
 	}
 }
 void GameOfLife::inv_cell(size_t const& i, size_t const& j) {inv_cell({i,j});}
-void GameOfLife::add_motif(motifs::Motif const& m) {
+void GameOfLife::add_motif(Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) add_cell(*it);
 }
-void GameOfLife::suppr_motif(motifs::Motif const& m) {
+void GameOfLife::suppr_motif(Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) suppr_cell(*it);
 }
 
@@ -149,7 +149,6 @@ liste const& GameOfLife::life() {
 
 
 // Gestion des motifs ========================================================================================
-// On fera la gestion du nom (s'il existe dejà) en dehors, dans qt
 void GameOfLife::save_motif(std::string const& nom_motif) const {
 	std::ofstream out("../../data/"+nom_motif+".csv");
 	for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';

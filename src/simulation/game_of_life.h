@@ -40,7 +40,7 @@ private :
      *  @param c coordonnees de la cellule
      *  @returns true si la cellule doit devenir vivante ou false si elle ne doit pas ou si elle est en dehors de la zone a faire evoluer
      */
-    bool next_state(std::pair<size_t,size_t> const& c);
+    bool next_state(coord const& c);
     /*
      *  @brief  Verifie que la cellule indiquee est morte et a l'interieur de la grille, et si elle doit devenir vivante, la rajoute au tableau donne en parametres et a vivantes_visibles si elle est entre les bonnes bornes (en la translatant au prealable)
      *  @param  i,j coordoonnees (dans [0,L+100]x[0,C+100])
@@ -49,7 +49,7 @@ private :
     void verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles);
 public :
     // Constructeurs ========================================
-    GameOfLife(motifs::Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);
+    GameOfLife(Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);
     GameOfLife(unsigned int const& C = 50, unsigned int const& L = 50);
 
     // Getter & setters ========================================
@@ -65,7 +65,7 @@ public :
      *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
      *  @param   c  coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
      */
-    void add_cell(std::pair<size_t,size_t> const& c);
+    void add_cell(coord const& c);
     /*
      *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
      *  @param   i,j    coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
@@ -75,7 +75,7 @@ public :
      * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
      * @param   c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void suppr_cell(std::pair<size_t,size_t> const& c);
+    void suppr_cell(coord const& c);
     /*
      * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
      * @param   i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
@@ -85,7 +85,7 @@ public :
      *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
      *  @param  c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void inv_cell(std::pair<size_t,size_t> const& c);
+    void inv_cell(coord const& c);
     /*
      *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
      *  @param  i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
@@ -95,12 +95,12 @@ public :
      *  @brief  Ajoute un motif dans la grille a l'aide de add_cell()
      *  @param  m   Motif a rajouter
      */
-    void add_motif(motifs::Motif const& m);
+    void add_motif(Motif const& m);
     /*
      *  @brief  Supprime les cellules de la grille contenues dans un motif a l'aide de suppr_cell()
      *  @param  m   Motif a enlever
      */
-    void suppr_motif(motifs::Motif const& m);
+    void suppr_motif(Motif const& m);
 
     // Evolution de la simulaitton ==============================
     /*
@@ -115,7 +115,7 @@ public :
 
     // Gestion des motifs ==============================
     /*
-	 *  @brief	Enregistre un fichier .csv contenant les coordonnees du motif formé de toutes les cellules visibles dans la grille
+	 *  @brief	Enregistre un fichier .csv contenant les coordonnees du motif formé de toutes les cellules visibles dans la grille. Si un fichier du meme nom existe deja, l'ecrase
 	 *  @param	nom_motif	Nom du fichier à créer
      */
     void save_motif(std::string const& nom_motif) const;
