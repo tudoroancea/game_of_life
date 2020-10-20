@@ -47,20 +47,20 @@ Motif::Motif(std::string const& fichier) {
 void Motif::rotate() {
     size_t max(max_ligne()), tpr(0);
     for (auto& el : cellules) {
-            tpr = max-el.first;
-            el.first = el.second;
-            el.second = tpr;
+        tpr = max-el.first;
+        el.first = el.second;
+        el.second = tpr;
     }
 }
 void Motif::rotate2() {
     if (min_ligne()-max_colonne()>=0) {
-            size_t ibis(0),jbis(0),l(min_ligne()),c(min_colonne());
-            for (auto& el : cellules) {
+        size_t ibis(0),jbis(0),l(min_ligne()),c(min_colonne());
+        for (auto& el : cellules) {
             jbis = c+el.first;
             ibis = l-el.second;
             el.first = ibis;
             el.second = jbis;
-            }
+        }
     }
 }
 Motif& Motif::operator+=(Motif const& rhs) {
@@ -69,22 +69,22 @@ Motif& Motif::operator+=(Motif const& rhs) {
 }
 Motif& Motif::operator+=(coord const& p) {
     for (auto& el : cellules) {
-            el.first += p.first;
-            el.second += p.second;
+        el.first += p.first;
+        el.second += p.second;
     }
     return *this;
 }
 Motif& Motif::operator-=(coord const& p) {
     size_t l(min_ligne()), c(min_colonne());
     if (p.first>l) {
-            for (auto& el : cellules) el.first -= l;
+        for (auto& el : cellules) el.first -= l;
     } else {
-            for (auto& el : cellules) el.first -= p.first;
+        for (auto& el : cellules) el.first -= p.first;
     }
     if (p.second>c) {
-            for (auto& el : cellules) el.second -= c;
+        for (auto& el : cellules) el.second -= c;
     } else {
-            for (auto& el : cellules) el.second -= p.second;
+        for (auto& el : cellules) el.second -= p.second;
     }
     return *this;
 }
@@ -116,8 +116,7 @@ Motif lignev(size_t longueur) {
     return res;
 }
 
-void translate(Calque& calque)
-{
+void translate(Calque& calque) {
     calque.translate = *(calque.alive.cbegin());
 }
 
