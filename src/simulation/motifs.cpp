@@ -38,7 +38,7 @@ size_t Motif::max_colonne() const {
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
 Motif::Motif(std::string const& fichier) {
-    rapidcsv::Document motif("../../data/"+fichier+".csv");
+    rapidcsv::Document motif("../../data/presaved/motifs/"+fichier+".csv");
     for (size_t i(0); i < motif.GetRowCount() ; ++i) {
         cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
     }

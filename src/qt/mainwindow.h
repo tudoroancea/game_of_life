@@ -35,6 +35,18 @@ signals:
     void focus(bool);
 };
 
+class Frame : public QFrame
+{
+    Q_OBJECT
+private:
+    Motif a_dessiner;
+public:
+    Frame(QWidget *parent = nullptr);
+    ~Frame();
+    void load(std::string s);
+    void paintEvent(QPaintEvent * event) override;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -79,7 +91,7 @@ private:
     QPainter* paint;
     QLabel* pos_souris;
     Combobox* calques;
-    QFrame* map;
+    Frame* map;
     size_t nb_lines;
     size_t nb_col;
     int x_current;

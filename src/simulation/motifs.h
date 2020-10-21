@@ -14,8 +14,6 @@ private :
     // Methodes utilitaires
     size_t min_ligne() const;
     size_t min_colonne() const;
-    size_t max_ligne() const;
-    size_t max_colonne() const;
 public :
     // Constructeurs & Destructeurs
     Motif() = default;
@@ -45,6 +43,8 @@ public :
     liste::iterator end();
     liste::const_iterator cbegin() const;
     liste::const_iterator cend() const;
+    size_t max_ligne() const;
+    size_t max_colonne() const;
 };
 Motif operator+(Motif lhs, Motif const& rhs);
 Motif operator+(Motif lhs, coord const& rhs);

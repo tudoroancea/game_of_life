@@ -142,11 +142,6 @@ void GameOfLife::evolve() {
 	++nbr_gen;
 }
 
-liste const& GameOfLife::life() {
-	evolve();
-	return vivantes_visibles;
-}
-
 
 // Gestion des motifs ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif) const {

@@ -10,6 +10,8 @@
 #include <iostream>
 #include <QGraphicsOpacityEffect>
 #include <QAbstractItemView>
+#include <fstream>
+#include <string>
 
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
@@ -38,6 +40,37 @@ void Combobox::time_event()
     emit time_e();
 }
 
+Frame::Frame(QWidget* parent) : QFrame(parent) {}
+
+void Frame::load(std::string s)
+{
+    if (s == "ligne_3" || s == "ligne-oblique")
+    {
+        a_dessiner = Motif(s);
+        a_dessiner.recalibrate();
+        this->resize((a_dessiner.max_ligne()+1)*10, (a_dessiner.max_colonne()+1)*10);
+    }
+}
+
+void Frame::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event);
+    if (this->isVisible())
+    {
+        QPainter paint(this);
+        for (auto a : a_dessiner)
+        {
+            QRect rect((a.first)*10, (a.second)*10, 10, 10);
+            paint.fillRect(rect, QColor(128,128,128,180));
+        }
+    }
+}
+
+Frame::~Frame()
+{
+
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
       ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
@@ -57,8 +90,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(cree, SIGNAL (clicked()), this, SLOT (creer_s()));
     paint = new QPainter(this);
     this->update();
-   std::cout << "End_build" << std::endl;
-   state = 0;
+    std::cout << "End_build" << std::endl;
+    state = 0;
 }
 
 void MainWindow::creer()
@@ -83,6 +116,7 @@ void MainWindow::combo_time(int i)
 {
     Q_UNUSED(i);
     //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
+    /*
     if (calques->itemText(calques->view()->currentIndex().row()) == "test1")
     {
         map->setStyleSheet("background-color: green");
@@ -91,9 +125,15 @@ void MainWindow::combo_time(int i)
     {
         map->setStyleSheet("background-color: red");
     }
-    //load(map, calques->itemText(calques->view()->currentIndex().row()));
-    map->move(QCursor::pos());
-    if (frame_on) {map->show(); map->raise(); }
+    */
+    //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
+    if (frame_on)
+    {
+        map->show();
+        map->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
+        map->move(QCursor::pos());
+        map->raise();
+    }
     else {map->hide();}
 }
 
@@ -208,22 +248,19 @@ void MainWindow::lancer_s()
     pause->show();
     calques = new Combobox(this);
     calques->setParent(this);
-    calques->addItem("test1");
-    calques->addItem("test2");
+    calques->addItem("ligne_3");
+    calques->addItem("ligne-oblique");
     calques->move(10, 0);
     calques->resize(100, 20);
     calques->show();
     connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
     connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
-    map = new QFrame();
+    map = new Frame();
     map->resize(50, 50);
     map->move(400, 400);
     map->setWindowFlag(Qt::ToolTip, true);
-    map->setStyleSheet("background-color: red");
-    QGraphicsOpacityEffect op(map);
-    op.setOpacity(1.0);
-    map->setGraphicsEffect(&op);
-    map->setAutoFillBackground(true);
+    map->setStyleSheet("background-color: white");
+    this->setUpdatesEnabled(true);
     map->hide();
     calque_mod = new QPushButton("calque_switch", this);
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
@@ -348,6 +385,19 @@ MainWindow::~MainWindow()
 
 void load(QFrame* m, QString const& s)
 {
-
+    /*
+    QPainter* paint = new QPainter();
+    paint->begin(m);
+    Motif calque_choisi("ligne-oblique");
+    calque_choisi.recalibrate();
+    m->resize(calque_choisi.max_ligne()*4, calque_choisi.max_colonne()*4);
+    for (auto a : calque_choisi)
+    {
+        QRect rect((a.first)*4, (a.second)*4, 4, 4);
+        paint->fillRect(rect, QColor(128,128,128,180));
+    }
+    paint->end();
+    delete paint;
+    */
 }
 
