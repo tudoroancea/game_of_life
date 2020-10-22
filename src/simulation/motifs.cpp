@@ -8,13 +8,18 @@
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
-Motif::Motif(std::string const& fichier) {
-    rapidcsv::Document motif("../../data/local/motifs/"+fichier+".csv");
-    for (size_t i(0); i < motif.GetRowCount() ; ++i) {
-        cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
+Motif::Motif(std::string const& fichier, std::string const& categorie) {
+    std::string chemin("");
+    if (categorie != "local") chemin = "../../data/presaved/motifs/"+fichier+".csv";
+    else chemin = "../../data/local/motifs/"+fichier+".csv";
+    if(std::filesystem::exists(std::filesystem::path(chemin))) {
+        rapidcsv::Document motif(chemin);
+        for (size_t i(0); i < motif.GetRowCount() ; ++i) {
+            cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
+        }
     }
-    recalibrate();
 }
+
 // Méthodes de modification
 Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
 Motif& Motif::rotate() {
@@ -27,39 +32,24 @@ Motif& Motif::rotate() {
     return *this;
 }
 Motif& Motif::rotate2(int const& angle) {
-
     switch (angle%4) {
-        case 0: {
-
-            break;
-        }
         case -3:
-        case 1: {
-            if ((max_colonne()-min_colonne())/2 > 0)
+        case 1: { // Rotation de 90° en sens trigo
+            if ((max_colonne()-min_colonne())/2 <= (min_ligne()+max_ligne())/2)
             break;
         }
         case -2:
-        case 2: {
+        case 2: { // Rotation de 180° en sens trigo
 
             break;
         }
         case -1:
-        case 3: {
+        case 3: { // Rotation de 270° en sens trigo
 
             break;
         }
         default:
             break;
-    }
-
-    if (min_ligne()-max_colonne()>=0) {
-        size_t ibis(0),jbis(0),l(min_ligne()),c(min_colonne());
-        for (auto& el : cellules) {
-            jbis = c+el.first;
-            ibis = l-el.second;
-            el.first = ibis;
-            el.second = jbis;
-        }
     }
     return *this;
 }
@@ -122,8 +112,7 @@ std::vector<std::string> existing_local_motifs() {
     std::vector<std::string> res;
     std::filesystem::path local_motifs("../../data/local/motifs");
     for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-        if (file.path().extension() == ".csv")
-        {
+        if (file.path().extension() == ".csv") {
             res.push_back(file.path().stem().string());
         }
     }
@@ -133,8 +122,7 @@ std::vector<std::string> existing_presaved_motifs() {
     std::vector<std::string> res;
     std::filesystem::path local_motifs("../../data/presaved/motifs");
     for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-        if (file.path().extension() == ".csv")
-        {
+        if (file.path().extension() == ".csv") {
             res.push_back(file.path().stem().string());
         }
     }

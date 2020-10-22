@@ -146,13 +146,17 @@ void GameOfLife::life(unsigned int const& nbr_gen) {
 	for (size_t i(0); i < nbr_gen ; ++i) evolve();
 }
 // Gestion des motifs ========================================================================================
-void GameOfLife::save_motif(std::string const& nom_motif) const {
-	std::ofstream out("../../data/local/motifs/"+nom_motif+".csv");
+void GameOfLife::save_motif(std::string const& nom_motif, std::string const& dossier) const {
+	std::ofstream out;
+	if (dossier != "local") out = std::ofstream("../../data/presaved/motifs/"+nom_motif+".csv");
+	else out = std::ofstream("../../data/local/motifs/"+nom_motif+".csv");
 	for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 	out.close();
 }
-void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax) const {
-	std::ofstream out(nom_motif);
+void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier) const {
+	std::ofstream out;
+	if (dossier != "local") out = std::ofstream("../../data/presaved/motifs/"+nom_motif+".csv");
+	else out = std::ofstream("../../data/local/motifs/"+nom_motif+".csv");
 	for (auto const& el : vivantes_visibles) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
 	out.close();
 }

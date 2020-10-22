@@ -117,14 +117,16 @@ public :
     /*
 	 *  @brief	Enregistre un fichier .csv contenant les coordonnees du motif formé de toutes les cellules visibles dans la grille. Si un fichier du meme nom existe deja, l'ecrase
 	 *  @param	nom_motif	Nom du fichier à créer
+     *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
-    void save_motif(std::string const& nom_motif) const;
+    void save_motif(std::string const& nom_motif, std::string const& dossier = "local") const;
     /*
-     *  @brief  Enregistre un fichier .csv contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
+     *  @brief  Enregistre un fichier .csv local contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
      *  @param  imin,imax   Bornes sur les lignes (dans [0,L])é
      *  @param  jmin,jmax   Bornes sur les colonnes (dans [0,C])
+     *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
-    void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax) const;
+    void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier = "local") const;
 
     // Affichage ========================================
     /*
