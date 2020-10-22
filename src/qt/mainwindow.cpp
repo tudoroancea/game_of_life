@@ -44,7 +44,7 @@ Frame::Frame(QWidget* parent) : QFrame(parent) {}
 
 void Frame::load(std::string s)
 {
-    if (s == "ligne_3" || s == "ligne-oblique")
+    if (s != "")
     {
         a_dessiner = Motif(s);
         a_dessiner.recalibrate();
@@ -252,8 +252,8 @@ void MainWindow::lancer_s()
     pause->show();
     calques = new Combobox(this);
     calques->setParent(this);
-    calques->addItem("ligne_3");
-    calques->addItem("ligne-oblique");
+    std::vector<std::string> motifs_locaux(existing_local_motifs());
+    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
     calques->move(10, 0);
     calques->resize(100, 20);
     calques->show();
@@ -293,7 +293,7 @@ void MainWindow::pause_s()
 
 void MainWindow::item_changed_s(QString const& entree)
 {
-    if (entree == "ligne_3" || entree == "ligne-oblique")
+    if (entree != "")
     {
         calque.alive = Motif(entree.toStdString());
         translate(calque);

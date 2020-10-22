@@ -122,7 +122,10 @@ std::vector<std::string> existing_local_motifs() {
     std::vector<std::string> res;
     std::filesystem::path local_motifs("../../data/local/motifs");
     for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-        res.push_back(file.path().stem().string());
+        if (file.path().extension() == ".csv")
+        {
+            res.push_back(file.path().stem().string());
+        }
     }
     return res;
 }
@@ -130,7 +133,10 @@ std::vector<std::string> existing_presaved_motifs() {
     std::vector<std::string> res;
     std::filesystem::path local_motifs("../../data/presaved/motifs");
     for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-        res.push_back(file.path().stem().string());
+        if (file.path().extension() == ".csv")
+        {
+            res.push_back(file.path().stem().string());
+        }
     }
     return res;
 }
