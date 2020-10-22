@@ -78,6 +78,7 @@ public slots:
     void calque_switch_s() {calque.on_off = 1 - calque.on_off;}
     void combo_time(int);
     void focus_frame(bool);
+    void item_changed_s(const QString&);
 
 
 private:
