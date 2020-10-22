@@ -142,7 +142,9 @@ void GameOfLife::evolve() {
 	++nbr_gen;
 }
 
-
+void GameOfLife::life(unsigned int const& nbr_gen) {
+	for (size_t i(0); i < nbr_gen ; ++i) evolve();
+}
 // Gestion des motifs ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif) const {
 	std::ofstream out("../../data/"+nom_motif+".csv");

@@ -108,10 +108,10 @@ public :
      */
     void evolve();
     /*
-     *  @brief  Fait appel a la methode evolve() et retourne les ceulles vivantes et visibles dans les bonnes coordonnees
-     *  @returns vivantes_visibles
+     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations
+     *  @param  nbr_gen nombre de generations a simuler
      */
-    liste const& life(unsigned int const& nbr_gen);
+    void life(unsigned int const& nbr_gen);
 
     // Gestion des motifs ==============================
     /*

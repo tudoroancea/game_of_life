@@ -9,45 +9,106 @@ typedef std::vector<coord> liste;
 
 class Motif {
 private :
+    /*
+     *  @brief  liste des cellules vivantes composant le motif (dans une grille potentiellement inifnie)
+     */
     liste cellules;
 
-    // Methodes utilitaires
-    size_t min_ligne() const;
-    size_t min_colonne() const;
 public :
     // Constructeurs & Destructeurs
+    /*
+     *  @brief  cree un motif vide
+     */
     Motif() = default;
     Motif(Motif const&) = default;
+    /*
+     *  @brief  cree un motif compose des coordonnees donnees en argument
+     */
     Motif(std::initializer_list<coord> L);
+    /*
+     *  @brief  cree un motif compose des coordonnees donnees en argument
+     */
     Motif(liste const& L);
     /*
-     *  @brief  Construit à partir un Motif enregistré sous la forme d'un fichier .csv
+     *  @brief  Construit à partir un Motif enregistré sous la forme d'un fichier .csv. Si ce fichier n'exitse pas, construit un motif vide
      *  @param  fichier nom du fichier sans extension
      */
     Motif(std::string const& fichier);
 
     // Méthodes de modification
-    void push_back(coord const& p) {cellules.push_back(p);}
     /*
-     *  @brief  90° en sens horaire
+     *  @brief  Rotation de 90° en sens horaire, autour du point (0,0)
+     *  @returns    reference sur l'instance courante
      */
     void rotate();
+    /*
+     *  @brief  En construction
+     *  @returns    reference sur l'instance courante
+     */
     void rotate2();
-    Motif& operator+=(Motif const& rhs);
-    Motif& operator+=(coord const& p);
-    Motif& operator-=(coord const& p);
+    /*
+     *  @brief  rajoute une cellule au motif
+     *  @param  p   cellule a rajouter
+     */
+    void push_back(coord const& p);
+    /*
+     *  @brief  Concatene la listes d'un autre motif
+     *  @param  autre  motif a ajouter
+     *  @returns    retourne une reference sur l'instance courante
+     */
+    Motif& append(Motif const& autre);
+    /*
+     *  @brief  Translate le motif. Si le resultat doit avoir des coordonnees positives, reduit la translation
+     *  @param  x,y coordonnees du vecteur par lequel on translate
+     *  @returns    retourne une reference sur l'instance courante
+     */
+    Motif& translate(int const& x, int const& y);
+    /*
+     *  @brief  Translate le motif. Si le resultat doit avoir des coordonnees positives, reduit la translation
+     *  @param  p   vecteur de translation
+     *  @returns    retourne une reference sur l'instance courante
+     */
+    Motif& translate(std::pair<int,int> const& p);
+    /*
+     *  @brief  Translate le motif pour le rapprocher le plus possible de l'origine
+     *  @returns    retourne une reference sur l'instance courante
+     */
     Motif& recalibrate();
 
     // Getters
+    /*
+     *  @returns    Iterateur pointant sur le premier element cellule du motif
+     */
     liste::iterator begin();
+    /*
+     *  @returns    Iterateur pointant sur le dernier element cellule du motif
+     */
     liste::iterator end();
+    /*
+     *  @returns    Iterateur constant pointant sur le premier element cellule du motif
+     */
     liste::const_iterator cbegin() const;
+    /*
+     *  @returns    Iterateur constant pointant sur le dernier element cellule du motif
+     */
     liste::const_iterator cend() const;
+    /*
+     *  @returns    la plus petite ligne d'une cellule du motif
+     */
+    size_t min_ligne() const;
+    /*
+     *  @returns    la plus petite colonne d'une cellule du motif
+     */
+    size_t min_colonne() const;
+    /*
+     *  @returns    la plus grande ligne d'une cellule du motif
+     */
     size_t max_ligne() const;
+    /*
+     *  @returns    la plus grande colonne d'une cellule du motif
+     */
     size_t max_colonne() const;
 };
-Motif operator+(Motif lhs, Motif const& rhs);
-Motif operator+(Motif lhs, coord const& rhs);
 
 
 
