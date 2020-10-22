@@ -13,7 +13,7 @@ int main() {
     /* std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
     for (auto D : tailles) {
         start = std::chrono::high_resolution_clock::now();
-        GameOfLife G(motifs::grenouille,D,D);
+        GameOfLife G(grenouille,D,D);
         stop = std::chrono::high_resolution_clock::now();
         cout << "Temps d'instanciation pour grille de " << D << " : " << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << endl;
 
@@ -29,7 +29,7 @@ int main() {
     std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
     for (size_t i(0); i < 200 ; ++i) {
         start = std::chrono::high_resolution_clock::now();
-        GameOfLife G(motifs::grenouille, L, C);
+        GameOfLife G(Motif(), L, C);
         stop = std::chrono::high_resolution_clock::now();
         instanciation += std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count();
         if(i%10 == 0) cout << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << endl;

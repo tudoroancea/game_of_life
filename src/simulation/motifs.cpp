@@ -3,16 +3,17 @@
 #include <utility>
 #include <algorithm> // pour std::min, std::max
 #include <cmath> // pour std::abs
-
+#include <filesystem> // Pour trouver la liste des fichiers
 
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
 Motif::Motif(std::string const& fichier) {
-    rapidcsv::Document motif("../../data/presaved/motifs/"+fichier+".csv");
+    rapidcsv::Document motif("../../data/local/motifs/"+fichier+".csv");
     for (size_t i(0); i < motif.GetRowCount() ; ++i) {
         cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
     }
+    recalibrate();
 }
 // Méthodes de modification
 Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
@@ -25,7 +26,32 @@ Motif& Motif::rotate() {
     }
     return *this;
 }
-Motif& Motif::rotate2() {
+Motif& Motif::rotate2(int const& angle) {
+
+    switch (angle%4) {
+        case 0: {
+
+            break;
+        }
+        case -3:
+        case 1: {
+            if ((max_colonne()-min_colonne())/2 > 0)
+            break;
+        }
+        case -2:
+        case 2: {
+
+            break;
+        }
+        case -1:
+        case 3: {
+
+            break;
+        }
+        default:
+            break;
+    }
+
     if (min_ligne()-max_colonne()>=0) {
         size_t ibis(0),jbis(0),l(min_ligne()),c(min_colonne());
         for (auto& el : cellules) {
@@ -90,30 +116,32 @@ size_t Motif::max_colonne() const {
     }
     return max;
 }
-// Construction de motifs géométriques
-Motif rectangle(size_t lignes, size_t colonnes) {
-    Motif res;
-    for (size_t i(0); i < lignes ; ++i) {
-        for (size_t j(0); j < colonnes ; ++j) res.push_back({i,j});
+
+// Gestion des motifs enregsitres
+std::vector<std::string> existing_local_motifs() {
+    std::vector<std::string> res;
+    std::filesystem::path local_motifs("../../data/local/motifs");
+    for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
+        res.push_back(file.path().stem().string());
     }
     return res;
 }
-Motif ligneh(size_t longueur) {
-    Motif res;
-    for (size_t i(0); i < longueur ; ++i) res.push_back({i,0});
-    return res;
-}
-Motif lignev(size_t longueur) {
-    Motif res;
-    for (size_t j(0); j < longueur ; ++j) res.push_back({0,j});
+std::vector<std::string> existing_presaved_motifs() {
+    std::vector<std::string> res;
+    std::filesystem::path local_motifs("../../data/presaved/motifs");
+    for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
+        res.push_back(file.path().stem().string());
+    }
     return res;
 }
 
+// Calques Qt
 void translate(Calque& calque) {
     calque.translate = *(calque.alive.cbegin());
 }
 
 
+// Construction de motifs géométriques
 liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
     liste res;
     int dx(x2-x1), dy(y2-y1);

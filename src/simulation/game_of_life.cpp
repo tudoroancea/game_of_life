@@ -147,7 +147,7 @@ void GameOfLife::life(unsigned int const& nbr_gen) {
 }
 // Gestion des motifs ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif) const {
-	std::ofstream out("../../data/"+nom_motif+".csv");
+	std::ofstream out("../../data/local/motifs/"+nom_motif+".csv");
 	for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 	out.close();
 }

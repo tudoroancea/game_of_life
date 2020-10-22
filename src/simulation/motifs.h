@@ -45,7 +45,7 @@ public :
      *  @brief  En construction
      *  @returns    reference sur l'instance courante
      */
-    Motif& rotate2();
+    Motif& rotate2(int const& angle);
     /*
      *  @brief  rajoute une cellule au motif
      *  @param  p   cellule a rajouter
@@ -110,8 +110,17 @@ public :
     size_t max_colonne() const;
 };
 
+// Gestion des motifs enregsitres
+/*
+ *  @returns    Liste des fichiers (sans extension) de motifs enregistres localement
+ */
+std::vector<std::string> existing_local_motifs();
+/*
+ *  @returns    Liste des fichiers (sans extension) de motifs pre-enregistres
+ */
+std::vector<std::string> existing_presaved_motifs();
 
-
+// Calques Qt
 struct Calque {
     Motif alive;
     std::pair<size_t, size_t> translate = {0,0};
@@ -119,7 +128,7 @@ struct Calque {
 };
 void translate(Calque& calque);
 
-
+// Construction de motifs géométriques
 /*
  *  @brief  Renvoie les coordonnees d'un segment reliant 2 points en utilisant l'algorithme de Bresenham
  *  @param x1,y1    coordonnees (dans [0,L]x[0,C]) du premier point
@@ -134,4 +143,5 @@ liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
  *  @returns    liste de coordonnees
  */
 liste segment(coord a, coord const& b);
+
 #endif // MOTIFS_H
