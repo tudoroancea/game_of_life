@@ -127,12 +127,16 @@ void MainWindow::combo_time(int i)
     }
     */
     //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
-    if (frame_on)
+    if (frame_on &&
+        QCursor::pos().x() >= calques->mapToGlobal(calques->view()->pos()).x()                            &&
+        QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()                             &&
+        QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
+        QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
     {
-        map->show();
-        map->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
-        map->move(QCursor::pos());
-        map->raise();
+            map->show();
+            map->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
+            map->move(QCursor::pos());
+            map->raise();
     }
     else {map->hide();}
 }
@@ -255,6 +259,7 @@ void MainWindow::lancer_s()
     calques->show();
     connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
     connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
+    connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
     map = new Frame();
     map->resize(50, 50);
     map->move(400, 400);
@@ -283,6 +288,15 @@ void MainWindow::pause_s()
         timer = 0;
         pause->setText("play");
         simul_on = false;
+    }
+}
+
+void MainWindow::item_changed_s(QString const& entree)
+{
+    if (entree == "ligne_3" || entree == "ligne-oblique")
+    {
+        calque.alive = Motif(entree.toStdString());
+        translate(calque);
     }
 }
 
