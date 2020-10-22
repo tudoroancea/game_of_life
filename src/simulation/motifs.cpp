@@ -15,16 +15,17 @@ Motif::Motif(std::string const& fichier) {
     }
 }
 // Méthodes de modification
-void Motif::push_back(coord const& p) {cellules.push_back(p);}
-void Motif::rotate() {
+Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
+Motif& Motif::rotate() {
     size_t max(max_ligne()), tpr(0);
     for (auto& el : cellules) {
         tpr = max-el.first;
         el.first = el.second;
         el.second = tpr;
     }
+    return *this;
 }
-void Motif::rotate2() {
+Motif& Motif::rotate2() {
     if (min_ligne()-max_colonne()>=0) {
         size_t ibis(0),jbis(0),l(min_ligne()),c(min_colonne());
         for (auto& el : cellules) {
@@ -34,6 +35,7 @@ void Motif::rotate2() {
             el.second = jbis;
         }
     }
+    return *this;
 }
 Motif& Motif::append(Motif const& autre) {
     for (auto const& el : autre.cellules) cellules.push_back(el);
@@ -49,9 +51,10 @@ Motif& Motif::translate(int const& x, int const& y) {
         if (ybis != 0) el.second -= ybis;
         else el.second += y;
     }
+    return *this;
 }
-Motif& Motif::translate(std::pair<int,int> const& p) {translate(p.first, p.second);}
-Motif& Motif::recalibrate() {translate(-min_ligne(), -min_colonne());}
+Motif& Motif::translate(std::pair<int,int> const& p) {return translate(p.first, p.second);}
+Motif& Motif::recalibrate() {translate(-min_ligne(), -min_colonne()); return *this;}
 // Getters
 liste::iterator Motif::begin() {return cellules.begin();}
 liste::iterator Motif::end() {return cellules.end();}

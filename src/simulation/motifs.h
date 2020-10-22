@@ -40,17 +40,17 @@ public :
      *  @brief  Rotation de 90° en sens horaire, autour du point (0,0)
      *  @returns    reference sur l'instance courante
      */
-    void rotate();
+    Motif& rotate();
     /*
      *  @brief  En construction
      *  @returns    reference sur l'instance courante
      */
-    void rotate2();
+    Motif& rotate2();
     /*
      *  @brief  rajoute une cellule au motif
      *  @param  p   cellule a rajouter
      */
-    void push_back(coord const& p);
+    Motif& push_back(coord const& p);
     /*
      *  @brief  Concatene la listes d'un autre motif
      *  @param  autre  motif a ajouter
