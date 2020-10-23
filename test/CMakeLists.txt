@@ -5,7 +5,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #include(GoogleTest)
 #add_subdirectory(googletest)
 
-include_directories(../src/simulation ../src/qt)
+include_directories(../src/simulation ../src/qt ../src/cli)
 
 add_executable(time_test time_test.cpp)
 target_link_libraries(time_test LINK_PUBLIC qt simulation)
@@ -18,4 +18,8 @@ target_link_libraries(test_save_motif LINK_PUBLIC simulation)
 
 add_executable(unittest unittest.cpp)
 target_link_libraries(unittest LINK_PUBLIC simulation)
-#target_link_libraries(unittest ${GTEST_BOTH_LIBRARIES} pthread)
+
+if(${CMAKE_CXX_COMPILER} MATCHES ${Clang} OR ${CMAKE_CXX_COMPILER} MATCHES ${Linux})
+    add_executable(test_cli test_cli.cpp)
+    target_link_libraries(test_cli LINK_PUBLIC simulation cli)
+endif()

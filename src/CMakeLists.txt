@@ -15,9 +15,10 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 #permet de trouver les bibliotheques
 add_subdirectory(qt)
 add_subdirectory(simulation)
+add_subdirectory(cli)
 
 # Permet les includes sans prefix
-include_directories(simulation qt)
+include_directories(simulation qt cli)
 
 add_executable(main main.cpp)
 target_link_libraries(main LINK_PUBLIC qt simulation)

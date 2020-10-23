@@ -108,10 +108,13 @@ public :
      */
     void evolve();
     /*
-     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations
+     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
+     *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
      *  @param  nbr_gen nombre de generations a simuler
+     *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
+     *  @returns    true si
      */
-    void life(unsigned int const& nbr_gen);
+    bool life(std::string const& nom_simulation, unsigned int const& nbr_gen, std::string const& categorie = "local");
 
     // Gestion des motifs ==============================
     /*
@@ -122,7 +125,7 @@ public :
     void save_motif(std::string const& nom_motif, std::string const& dossier = "local") const;
     /*
      *  @brief  Enregistre un fichier .csv local contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
-     *  @param  imin,imax   Bornes sur les lignes (dans [0,L])é
+     *  @param  imin,imax   Bornes sur les lignes (dans [0,L])
      *  @param  jmin,jmax   Bornes sur les colonnes (dans [0,C])
      *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
@@ -135,5 +138,12 @@ public :
      */
     void print(std::ostream& out = std::cout) const;
 };
+
+// Gestion des simulations enregistrees
+/*
+ *  @returns    Liste des simulations (sans extension) de motifs enregistres localement
+ */
+std::vector<std::string> existing_local_sims();
+std::vector<std::string> existing_presaved_sims();
 
 #endif // GAME_OF_LIFE_H

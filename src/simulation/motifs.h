@@ -3,6 +3,7 @@
 #define MOTIFS_H
 #include <array>
 #include <vector>
+#include <string>
 
 typedef std::pair<size_t,size_t> coord;
 typedef std::vector<coord> liste;
@@ -34,7 +35,7 @@ public :
      *  @param  fichier nom du fichier sans extension
      *  @param  categorie   Dossier dans lequel chercher. Si different de local, on cherche dans presaved
      */
-    Motif(std::string const& fichier, std::string const& categorie = "local");
+    Motif(std::string const& fichier, std::string const& categorie = std::string("local"));
 
     // Méthodes de modification
     /*

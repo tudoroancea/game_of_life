@@ -1,11 +1,11 @@
 #include "game_of_life.h"
 #include "motifs.h"
-
+#include <string>
 #include <fstream>
 #include <vector>
 #include <array>
-#include <algorithm>
-
+#include <algorithm> //
+#include <filesystem> // pour trouver les simulations existantes
 
 // Methodes utilitaies  ========================================================================================
 bool GameOfLife::next_state(size_t i, size_t j) {
@@ -30,7 +30,7 @@ void GameOfLife::verif(size_t const& i, size_t const& j, liste& v, liste& v_visi
 	}
 }
 // Constructeurs ========================================================================================
-GameOfLife::GameOfLife(Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : C(C), L(L), nbr_gen(0) {
+GameOfLife::GameOfLife(Motif const& a_marquer, unsigned int const& C, unsigned int const& L) : C(C%401), L(L%401), nbr_gen(0) {
 	for (size_t i(0); i < L+100; ++i) {
 		for (size_t j(0); j < C+100; ++j) champ[i][j] = false;
 	}
@@ -141,9 +141,46 @@ void GameOfLife::evolve() {
 	vivantes_visibles = nouvelles_visibles;
 	++nbr_gen;
 }
+std::vector<std::string> existing_local_sims() {
+    std::vector<std::string> res;
+    std::filesystem::path sims("../../data/local/sims");
+    for (auto const& entry : std::filesystem::directory_iterator(sims)) {
+        if (entry.is_directory()) {
+            res.push_back(entry.path().stem().string());
+        }
+    }
+    return res;
+}
+std::vector<std::string> existing_presaved_sims() {
+    std::vector<std::string> res;
+    std::filesystem::path sims("../../data/presaved/sims");
+    for (auto const& entry : std::filesystem::directory_iterator(sims)) {
+        if (entry.is_directory()) {
+            res.push_back(entry.path().stem().string());
+        }
+    }
+    return res;
+}
 
-void GameOfLife::life(unsigned int const& nbr_gen) {
-	for (size_t i(0); i < nbr_gen ; ++i) evolve();
+bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& nbr_gen, std::string const& categorie) {
+	std::filesystem::path chemin;
+	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
+    else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
+	if (!std::filesystem::exists(chemin)) {
+		std::filesystem::create_directory(chemin);
+		//std::filesystem::path chemin_cree(chemin.string())
+		std::ofstream out;
+		out.open(chemin.string()+"/"+nom_simulation+"0.csv");
+		for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
+		out.close();
+		for (size_t i(0); i < nbr_gen ; ++i) {
+			evolve();
+			out.open(chemin.string()+"/"+nom_simulation+std::to_string(this->nbr_gen)+".csv");
+			for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
+			out.close();
+		}
+		return true;
+	} else return false;
 }
 // Gestion des motifs ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif, std::string const& dossier) const {

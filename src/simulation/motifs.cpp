@@ -24,28 +24,59 @@ Motif::Motif(std::string const& fichier, std::string const& categorie) {
 Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
 Motif& Motif::rotate() {
     size_t max(max_ligne()), tpr(0);
+    coord centre({4,4});
     for (auto& el : cellules) {
-        tpr = max-el.first;
-        el.first = el.second;
-        el.second = tpr;
+        //tpr = max-el.first;
+        //el.first = el.second;
+        //el.second = tpr;
+        tpr = el.first;
+        el.first = -el.second + centre.second + centre.first;
+        el.second = tpr - centre.first + centre.second;
     }
     return *this;
+    //xprime = -y + b + a;
+    //yprime = x - a + b
+
 }
 Motif& Motif::rotate2(int const& angle) {
+    coord centre({(max_ligne()-min_ligne())/2,(max_colonne()-min_colonne())/2});
     switch (angle%4) {
         case -3:
         case 1: { // Rotation de 90° en sens trigo
-            if ((max_colonne()-min_colonne())/2 <= (min_ligne()+max_ligne())/2)
+            if (max_colonne()-centre.second <= centre.first && centre.first-min_ligne() <= centre.second) {
+                size_t tpr(0);
+                for (auto& el : cellules) {
+                    tpr = el.first;
+                    el.first = centre.second + centre.first - el.second;
+                    el.second = tpr - centre.first + centre.second;
+                }
+            }
             break;
         }
         case -2:
         case 2: { // Rotation de 180° en sens trigo
-
+            // xprime = -x + 2a
+            // prime = -y +2b
+            if (max_colonne()-centre.second <= centre.second && max_ligne()-centre.first <= centre.first) {
+                for (auto& el : cellules) {
+                    el.first = 2*centre.first - el.first;
+                    el.second = 2*centre.second - el.second;
+                }
+            }
             break;
         }
         case -1:
         case 3: { // Rotation de 270° en sens trigo
-
+            // xprime = y - b + a
+            // yprime = -x + a + b
+            if (max_ligne()-centre.first <= centre.second && centre.second-min_colonne() <= centre.first) {
+                size_t tpr(0);
+                for (auto& el : cellules) {
+                    tpr = el.first;
+                    el.first = el.second - centre.second + centre.first;
+                    el.second = centre.first + centre.second - tpr;
+                }
+            }
             break;
         }
         default:
