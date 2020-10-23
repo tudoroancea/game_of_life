@@ -40,6 +40,11 @@ void Combobox::time_event()
     emit time_e();
 }
 
+Combobox::~Combobox()
+{
+    delete timer;
+}
+
 Frame::Frame(QWidget* parent) : QFrame(parent) {}
 
 void Frame::load(std::string s)
@@ -115,30 +120,18 @@ void MainWindow::focus_frame(bool b) {frame_on = b;}
 void MainWindow::combo_time(int i)
 {
     Q_UNUSED(i);
-    //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
-    /*
-    if (calques->itemText(calques->view()->currentIndex().row()) == "test1")
-    {
-        map->setStyleSheet("background-color: green");
-    }
-    else if (calques->itemText(calques->view()->currentIndex().row()) == "test2")
-    {
-        map->setStyleSheet("background-color: red");
-    }
-    */
-    //std::cout << calques->itemText(calques->view()->currentIndex().row()).toStdString() << std::endl;
     if (frame_on &&
         QCursor::pos().x() >= calques->mapToGlobal(calques->view()->pos()).x()                            &&
         QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()                             &&
         QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
         QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
     {
-            map->show();
-            map->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
-            map->move(QCursor::pos());
-            map->raise();
+            detail_selectionne->show();
+            detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
+            detail_selectionne->move(QCursor::pos());
+            detail_selectionne->raise();
     }
-    else {map->hide();}
+    else {detail_selectionne->hide();}
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -260,13 +253,13 @@ void MainWindow::lancer_s()
     connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
     connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
     connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
-    map = new Frame();
-    map->resize(50, 50);
-    map->move(400, 400);
-    map->setWindowFlag(Qt::ToolTip, true);
-    map->setStyleSheet("background-color: white");
+    detail_selectionne = new Frame();
+    detail_selectionne->resize(50, 50);
+    detail_selectionne->move(400, 400);
+    detail_selectionne->setWindowFlag(Qt::ToolTip, true);
+    detail_selectionne->setStyleSheet("background-color: white");
     this->setUpdatesEnabled(true);
-    map->hide();
+    detail_selectionne->hide();
     calque_mod = new QPushButton("calque_switch", this);
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(225, 0);
@@ -344,6 +337,12 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             y_current = (event->y()-90)*nb_col/500;
             if (event->buttons() == Qt::LeftButton && (x_prec != x_current || y_prec != y_current) && !simul_on)
             {
+                liste a_inverser(segment({x_prec, y_prec}, {x_current, y_current}));
+                for (auto const& a : a_inverser)
+                {
+                    //std::cout << "\\" << a.first << " " << a.second << std::endl;
+                    ptr->inv_cell(a);
+                }
                 ptr->inv_cell({x_current, y_current});
             }
         }
@@ -397,21 +396,4 @@ MainWindow::~MainWindow()
     delete calques;
 }
 
-void load(QFrame* m, QString const& s)
-{
-    /*
-    QPainter* paint = new QPainter();
-    paint->begin(m);
-    Motif calque_choisi("ligne-oblique");
-    calque_choisi.recalibrate();
-    m->resize(calque_choisi.max_ligne()*4, calque_choisi.max_colonne()*4);
-    for (auto a : calque_choisi)
-    {
-        QRect rect((a.first)*4, (a.second)*4, 4, 4);
-        paint->fillRect(rect, QColor(128,128,128,180));
-    }
-    paint->end();
-    delete paint;
-    */
-}
 
