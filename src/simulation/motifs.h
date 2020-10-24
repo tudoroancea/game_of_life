@@ -37,6 +37,10 @@ public :
      *  @param  categorie   Dossier dans lequel chercher. Si different de local, on cherche dans presaved
      */
     Motif(std::string const& fichier, std::string const& categorie = std::string("local"));
+    /*
+     *  @brief  Construit à partir un Motif enregistré sous la forme d'un fichier .csv. Si ce fichier n'exitse pas, construit un motif vide
+     *  @param  chemin  path du fichier sans extension
+     */
     Motif(std::filesystem::path const& chemin);
 
     // Méthodes de modification

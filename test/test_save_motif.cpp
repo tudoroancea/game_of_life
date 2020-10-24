@@ -4,13 +4,14 @@
 
 int main() {
     Motif M;
-    M.append({{0,1},{1,1},{1,2},{2,0},{2,1}});
-    GameOfLife* G(new GameOfLife(M, 10,10));
+    GameOfLife* G(new GameOfLife(M.append({{0,1},{1,1},{1,2},{2,0},{2,1}}), 10,10));
     G->print();
     G->save_motif("pentominoR", 0, 10, 0, 10);
     delete G;
-    G = new GameOfLife(Motif("pentominoR", "local"),10,10);
-    G->print();
-    delete G;
+
+    //M = Motif();
+    //G  = new GameOfLife(M.append({{}}),10,10);
+    //G->print();
+    //delete G;
     return 0;
 }

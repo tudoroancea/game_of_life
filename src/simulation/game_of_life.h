@@ -116,7 +116,7 @@ public :
      *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
      *  @param  duree_sim nombre de generations a simuler
      *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
-     *  @returns    true si
+     *  @returns    true si la simulation a pu être créée, false sinon
      */
     bool life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
 

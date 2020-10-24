@@ -185,14 +185,14 @@ bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& dur
 		out << L << ',' << C << '\n' << duree_sim << ",\n";
 		out.close();
 		// On cree un premier fichier pour la config au depart (avant lacement de la simulation)
-		out.open(chemin.string()+"/"+nom_simulation+"0.csv");
+		out.open(chemin.string()+"/"+nom_simulation+"-0.csv");
 		for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 		out.close();
 
 		// On enregistre un nouveau fichier pour chaque nouvelle generation
 		for (size_t i(0); i < duree_sim ; ++i) {
 			evolve();
-			out.open(chemin.string()+"/"+nom_simulation+std::to_string(this->nbr_gen)+".csv");
+			out.open(chemin.string()+"/"+nom_simulation+"-"+std::to_string(this->nbr_gen)+".csv");
 			for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 			out.close();
 		}
@@ -207,6 +207,7 @@ void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t im
 	std::ofstream out;
 	if (dossier != "local") out = std::ofstream("../../data/presaved/motifs/"+nom_motif+".csv");
 	else out = std::ofstream("../../data/local/motifs/"+nom_motif+".csv");
+	out << "ligne,colonne\n";
 	for (auto const& el : vivantes_visibles) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
 	out.close();
 }
