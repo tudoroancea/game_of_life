@@ -230,7 +230,8 @@ void MainWindow::charger_calque()
             }
             translate(temp);
             calque.alive = temp.alive;//voué à changer
-            calque.translate = temp.translate;
+            calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+            translate(calque);
         }
     }
 }
@@ -265,6 +266,7 @@ void MainWindow::lancer_s()
     calque_mod->move(225, 0);
     calque_mod->show();
     calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
+    calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     translate(calque);
     simul_on = true;
 }
@@ -289,7 +291,9 @@ void MainWindow::item_changed_s(QString const& entree)
     if (entree != "")
     {
         calque.alive = Motif(entree.toStdString());
+        calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
         translate(calque);
+        this->setFocus();
     }
 }
 
@@ -374,7 +378,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
     }
     if (event->key() == Qt::Key_C) {this->charger_calque();}
-    if (event->key() == Qt::Key_R && calque.on_off) {calque.alive.rotate();}
+    if (event->key() == Qt::Key_R && calque.on_off)
+    {
+        calque.alive.rotate(90, *(calque.alive.cbegin()));
+        translate(calque);
+        update();
+    }
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event)
