@@ -95,6 +95,13 @@ void GameOfLife::add_motif(Motif const& m) {
 void GameOfLife::suppr_motif(Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) suppr_cell(*it);
 }
+void GameOfLife::wipe() {
+	for (liste::iterator it(vivantes.begin()); it!= vivantes.end();) {
+		champ[it->first][it->second] = false;
+		vivantes.erase(it);
+	}
+	vivantes_visibles.erase(vivantes_visibles.begin(), vivantes_visibles.end());
+}
 
 // Affichage ========================================================================================
 void GameOfLife::print(std::ostream& out) const {
@@ -102,7 +109,7 @@ void GameOfLife::print(std::ostream& out) const {
 	for (size_t i(50); i < L+50; ++i) {
 		for (size_t j(50); j < C+50; ++j) {
 			if (champ[i][j]) out << 0;
-			else out << ' ';
+			else out << '-';
 		}
 		out << std::endl;
 	}

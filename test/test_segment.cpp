@@ -27,17 +27,5 @@ int main() {
     M.append(segment(25,25,13,0));
     G.add_motif(M);
     G.print();
-    //Motif M(segment(4,0,4,4));
-    //M.append(segment(4,6,4,9));
-
-    //G.add_motif(M);
-    //std::system("clear");
-    //G.print();
-    //G.suppr_motif(M);
-    //M.rotate();
-    //G.add_motif(M);
-    //std::this_thread::sleep_for(3s);
-    //std::system("clear");
-    //G.print();
     return 0;
 }

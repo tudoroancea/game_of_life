@@ -101,6 +101,10 @@ public :
      *  @param  m   Motif a enlever
      */
     void suppr_motif(Motif const& m);
+    /*
+     *  @brief  Efface toute la grille
+     */
+    void wipe();
 
     // Evolution de la simulaitton ==============================
     /*
