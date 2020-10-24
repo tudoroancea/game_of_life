@@ -39,15 +39,18 @@ public :
 
     // Méthodes de modification
     /*
-     *  @brief  Rotation de 90° en sens horaire, autour du point (0,0)
+     *  @brief  Tourne un motif d'un multiple de 90° autour d'un point specifie
+     *  @param  angle   nombre de 1/4 de tours a faire (positif = sens trigo, negatif = sens horaire)
+     *  @param  centre  coordonnees du centre de la rotation
      *  @returns    reference sur l'instance courante
      */
-    Motif& rotate();
+    Motif& rotate(int const& angle, coord const& centre);
     /*
-     *  @brief  En construction
+     *  @brief  Tourne un motif d'un multiple de 90° autour du centre de gravite du plus petit rectangle contenant le motif
+     *  @param  angle   nombre de 1/4 de tours a faire (positif = sens trigo, negatif = sens horaire)
      *  @returns    reference sur l'instance courante
      */
-    Motif& rotate2(int const& angle);
+    Motif& rotate(int const& angle);
     /*
      *  @brief  rajoute une cellule au motif
      *  @param  p   cellule a rajouter
