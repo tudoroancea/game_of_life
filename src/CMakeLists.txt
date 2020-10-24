@@ -12,6 +12,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
+add_definitions( -DSRC_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 #permet de trouver les bibliotheques
 add_subdirectory(qt)
 add_subdirectory(simulation)

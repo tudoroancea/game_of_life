@@ -1,5 +1,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_definitions( -DTEST_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
+#add_definitions( -DGLOBAL_PATH="${CMAKE_SOURCE_DIR}")
+message(${CMAKE_SOURCE_DIR})
 
 # Google Test
 #include(GoogleTest)
