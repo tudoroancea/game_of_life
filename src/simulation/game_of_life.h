@@ -110,11 +110,11 @@ public :
     /*
      *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
      *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
-     *  @param  nbr_gen nombre de generations a simuler
+     *  @param  duree_sim nombre de generations a simuler
      *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
      *  @returns    true si
      */
-    bool life(std::string const& nom_simulation, unsigned int const& nbr_gen, std::string const& categorie = "local");
+    bool life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
 
     // Gestion des motifs ==============================
     /*

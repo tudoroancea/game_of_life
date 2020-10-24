@@ -162,7 +162,7 @@ std::vector<std::string> existing_presaved_sims() {
     return res;
 }
 
-bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& nbr_gen, std::string const& categorie) {
+bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
 	std::filesystem::path chemin;
 	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
     else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
@@ -173,7 +173,7 @@ bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& nbr
 		out.open(chemin.string()+"/"+nom_simulation+"0.csv");
 		for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 		out.close();
-		for (size_t i(0); i < nbr_gen ; ++i) {
+		for (size_t i(0); i < duree_sim ; ++i) {
 			evolve();
 			out.open(chemin.string()+"/"+nom_simulation+std::to_string(this->nbr_gen)+".csv");
 			for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';

@@ -60,6 +60,12 @@ public :
      */
     Motif& append(Motif const& autre);
     /*
+     *  @brief  Concatene une liste de cellules
+     *  @param  autre  liste de cellules a rajouter
+     *  @returns    retourne une reference sur l'instance courante
+     */
+    Motif& append(liste const& autre);
+    /*
      *  @brief  Translate le motif. Si le resultat doit avoir des coordonnees positives, reduit la translation
      *  @param  x,y coordonnees du vecteur par lequel on translate
      *  @returns    retourne une reference sur l'instance courante

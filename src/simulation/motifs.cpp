@@ -23,7 +23,7 @@ Motif::Motif(std::string const& fichier, std::string const& categorie) {
 // Méthodes de modification
 Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
 Motif& Motif::rotate() {
-    size_t max(max_ligne()), tpr(0);
+    size_t tpr(0);
     coord centre({4,4});
     for (auto& el : cellules) {
         //tpr = max-el.first;
@@ -86,6 +86,10 @@ Motif& Motif::rotate2(int const& angle) {
 }
 Motif& Motif::append(Motif const& autre) {
     for (auto const& el : autre.cellules) cellules.push_back(el);
+    return *this;
+}
+Motif& Motif::append(liste const& autre) {
+    for (auto const& el : autre) cellules.push_back(el);
     return *this;
 }
 Motif& Motif::translate(int const& x, int const& y) {
@@ -223,7 +227,8 @@ liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
                         dx *= 2;
                         while (true) {
                             res.push_back({x1,y1});
-                            if ((--y1) == y2) {
+                            if ((--y1) == y2) break;
+                            if ((e += dx) > 0) {
                                 ++x1;
                                 e += dy;
                             }
