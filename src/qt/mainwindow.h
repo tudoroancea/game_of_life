@@ -28,6 +28,7 @@ public:
     Combobox(QWidget* parent = nullptr);
     void showPopup() override;
     void hidePopup() override;
+    ~Combobox();
 public slots:
     void time_event();
 signals:
@@ -92,7 +93,7 @@ private:
     QPainter* paint;
     QLabel* pos_souris;
     Combobox* calques;
-    Frame* map;
+    Frame* detail_selectionne;
     size_t nb_lines;
     size_t nb_col;
     int x_current;
@@ -112,7 +113,6 @@ private:
     bool frame_on;
 };
 
-void load(QFrame* m, QString const& s);
 #endif // MAINWINDOW_H
 /* Ajouter le nombre de générations
  * Ajouter la sauvegarde dans un fichier
