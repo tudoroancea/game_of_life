@@ -19,6 +19,14 @@ Motif::Motif(std::string const& fichier, std::string const& categorie) {
 		}
 	}
 }
+Motif::Motif(std::filesystem::path const& chemin) {
+	if (std::filesystem::exists(chemin)) {
+		rapidcsv::Document motif(chemin.string());
+		for (size_t i(0); i < motif.GetRowCount() ; ++i) {
+			cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
+		}
+	}
+}
 
 // Méthodes de modification
 Motif& Motif::push_back(coord const& p) {cellules.push_back(p); return *this;}
@@ -147,6 +155,10 @@ Motif& Motif::append(Motif const& autre) {
 }
 Motif& Motif::append(liste const& autre) {
 	for (auto const& el : autre) cellules.push_back(el);
+	return *this;
+}
+Motif& Motif::append(std::initializer_list<coord> const& autre) {
+	for (std::initializer_list<coord>::iterator it(autre.begin()); it != autre.end(); ++it) cellules.push_back(*it);
 	return *this;
 }
 Motif& Motif::translate(int const& x, int const& y) {

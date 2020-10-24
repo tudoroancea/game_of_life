@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 typedef std::pair<size_t,size_t> coord;
 typedef std::vector<coord> liste;
@@ -36,6 +37,7 @@ public :
      *  @param  categorie   Dossier dans lequel chercher. Si different de local, on cherche dans presaved
      */
     Motif(std::string const& fichier, std::string const& categorie = std::string("local"));
+    Motif(std::filesystem::path const& chemin);
 
     // Méthodes de modification
     /*
@@ -68,6 +70,12 @@ public :
      *  @returns    retourne une reference sur l'instance courante
      */
     Motif& append(liste const& autre);
+    /*
+     *  @brief  Concatene une liste de cellules
+     *  @param  autre  liste de cellules a rajouter
+     *  @returns    retourne une reference sur l'instance courante
+     */
+    Motif& append(std::initializer_list<coord> const& autre);
     /*
      *  @brief  Translate le motif. Si le resultat doit avoir des coordonnees positives, reduit la translation
      *  @param  x,y coordonnees du vecteur par lequel on translate

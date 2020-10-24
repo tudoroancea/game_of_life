@@ -105,7 +105,7 @@ void GameOfLife::wipe() {
 
 // Affichage ========================================================================================
 void GameOfLife::print(std::ostream& out) const {
-	out << "Debut" << std::endl;
+	out << "Debut grille" << std::endl;
 	for (size_t i(50); i < L+50; ++i) {
 		for (size_t j(50); j < C+50; ++j) {
 			if (champ[i][j]) out << 0;
@@ -113,7 +113,7 @@ void GameOfLife::print(std::ostream& out) const {
 		}
 		out << std::endl;
 	}
-	out << " Fin | Generation num " << nbr_gen << std::endl;
+	out << " Fin grille | Generation num " << nbr_gen << std::endl;
 }
 
 // Evolution de la simulation  ========================================================================================
@@ -170,16 +170,26 @@ std::vector<std::string> existing_presaved_sims() {
 }
 
 bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
+	// On verifie dans quel dossier on doit enregistrer la simulation
 	std::filesystem::path chemin;
 	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
     else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
+
+	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
 	if (!std::filesystem::exists(chemin)) {
 		std::filesystem::create_directory(chemin);
-		//std::filesystem::path chemin_cree(chemin.string())
 		std::ofstream out;
+
+		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
+		out.open(chemin.string()+"/"+nom_simulation+"-info.csv");
+		out << L << ',' << C << '\n' << duree_sim << ",\n";
+		out.close();
+		// On cree un premier fichier pour la config au depart (avant lacement de la simulation)
 		out.open(chemin.string()+"/"+nom_simulation+"0.csv");
 		for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
 		out.close();
+
+		// On enregistre un nouveau fichier pour chaque nouvelle generation
 		for (size_t i(0); i < duree_sim ; ++i) {
 			evolve();
 			out.open(chemin.string()+"/"+nom_simulation+std::to_string(this->nbr_gen)+".csv");
@@ -191,11 +201,7 @@ bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& dur
 }
 // Gestion des motifs ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif, std::string const& dossier) const {
-	std::ofstream out;
-	if (dossier != "local") out = std::ofstream("../../data/presaved/motifs/"+nom_motif+".csv");
-	else out = std::ofstream("../../data/local/motifs/"+nom_motif+".csv");
-	for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
-	out.close();
+	save_motif(nom_motif, 0, L, 0, C, dossier);
 }
 void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier) const {
 	std::ofstream out;

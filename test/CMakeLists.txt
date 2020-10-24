@@ -22,6 +22,9 @@ target_link_libraries(unittest LINK_PUBLIC simulation)
 add_executable(test_rotation test_rotation.cpp)
 target_link_libraries(test_rotation LINK_PUBLIC simulation)
 
+add_executable(test_save_sim test_save_sim.cpp)
+target_link_libraries(test_save_sim LINK_PUBLIC simulation)
+
 #if(${CMAKE_CXX_COMPILER} MATCHES ${Clang} OR ${CMAKE_CXX_COMPILER} MATCHES ${Linux})
 add_executable(test_cli test_cli.cpp)
 target_link_libraries(test_cli LINK_PUBLIC simulation cli)
