@@ -7,7 +7,7 @@ using namespace std;
 int main() {
     //GameOfLife G(Motif("pentominoR", "local"), 50, 50);
     //G.print();
-    //G.life("pentomino1", 10);
+    //G.save_sim("pentomino1", 10);
     #ifdef TEST_PATH
         cout << "test " << TEST_PATH;
     #endif

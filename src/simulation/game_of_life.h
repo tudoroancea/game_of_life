@@ -3,7 +3,7 @@
 #include <array>
 #include <iostream>
 #include "motifs.h"
-
+#include "rapidcsv.h"
 
 class GameOfLife {
 private :
@@ -62,65 +62,69 @@ public :
      */
     liste const& get_viv() const;
     /*
+     *  @returns    reference on the number of generations
+     */
+    unsigned int& get_nbr_gen();
+    /*
      *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
      *  @param   c  coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
      */
-    void add_cell(coord const& c);
+    GameOfLife& add_cell(coord const& c);
     /*
      *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
      *  @param   i,j    coordonnees par rapport a grille affichee (dans [0,L]x[0,C])
      */
-    void add_cell(size_t const& i, size_t const& j);
+    GameOfLife& add_cell(size_t const& i, size_t const& j);
     /*
      * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
      * @param   c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void suppr_cell(coord const& c);
+    GameOfLife& suppr_cell(coord const& c);
     /*
      * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
      * @param   i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void suppr_cell(size_t const& i, size_t const& j);
+    GameOfLife& suppr_cell(size_t const& i, size_t const& j);
     /*
      *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
      *  @param  c   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void inv_cell(coord const& c);
+    GameOfLife& inv_cell(coord const& c);
     /*
      *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
      *  @param  i,j   coordonnees par rapport a grille affichee (dans [0,L]x[0,C]))
      */
-    void inv_cell(size_t const& i, size_t const& j);
+    GameOfLife& inv_cell(size_t const& i, size_t const& j);
     /*
      *  @brief  Ajoute un motif dans la grille a l'aide de add_cell()
      *  @param  m   Motif a rajouter
      */
-    void add_motif(Motif const& m);
+    GameOfLife& add_motif(Motif const& m);
     /*
      *  @brief  Supprime les cellules de la grille contenues dans un motif a l'aide de suppr_cell()
      *  @param  m   Motif a enlever
      */
-    void suppr_motif(Motif const& m);
+    GameOfLife& suppr_motif(Motif const& m);
     /*
      *  @brief  Efface toute la grille
+     *  @returns    reference sur l'instance courante
      */
-    void wipe();
+    GameOfLife& wipe();
+    /*
+     *  @brief  Redimensionne la partie visible de la grille et supprime les cellules qui dépasserait
+     *  @param  l   nombre de lignes
+     *  @param  c   nombre de colonnes
+     *  @returns    reference sur l'instance courante
+     */
+    GameOfLife& resize(unsigned int const& l, unsigned int const& c);
 
     // Evolution de la simulaitton ==============================
     /*
      *  @brief  Fait evoluer la grille en la faisant passer a la generation suivantes et en updatant ses attributs
      */
     void evolve();
-    /*
-     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
-     *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
-     *  @param  duree_sim nombre de generations a simuler
-     *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
-     *  @returns    true si la simulation a pu être créée, false sinon
-     */
-    bool life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
 
-    // Gestion des motifs ==============================
+    // Enregistrement de motifs et simulaions  ==============================
     /*
 	 *  @brief	Enregistre un fichier .csv contenant les coordonnees du motif formé de toutes les cellules visibles dans la grille. Si un fichier du meme nom existe deja, l'ecrase
 	 *  @param	nom_motif	Nom du fichier à créer
@@ -134,6 +138,14 @@ public :
      *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
     void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier = "local") const;
+    /*
+     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
+     *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
+     *  @param  duree_sim nombre de generations a simuler
+     *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
+     *  @returns    true si la simulation a pu être créée, false sinon
+     */
+    bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
 
     // Affichage ========================================
     /*
@@ -149,5 +161,31 @@ public :
  */
 std::vector<std::string> existing_local_sims();
 std::vector<std::string> existing_presaved_sims();
+
+class Simulation {
+    private :
+        GameOfLife grille;
+        std::string nom;
+        std::filesystem::path info_path;
+        rapidcsv::Document info_file;
+        std::filesystem::path content_path;
+        rapidcsv::Document content_file;
+
+    public :
+        Simulation();
+        Simulation(std::string const& nom_sim, std::string const& categorie = "local");
+
+
+        bool exist_sim() const;
+
+        /*
+         *  @param  num_gen numero de la génération
+         *  @returns    motif numero num_gen*/
+        Motif get_motif(unsigned int const& num_gen) const;
+
+        void evolve();
+
+        liste get_viv() const;
+};
 
 #endif // GAME_OF_LIFE_H

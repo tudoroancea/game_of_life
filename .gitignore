@@ -21,3 +21,4 @@ data/local/sims/*
 *.o
 *.user
 *.app
+.DS_Store

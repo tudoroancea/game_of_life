@@ -1,5 +1,6 @@
 #include "game_of_life.h"
 #include "motifs.h"
+#include "rapidcsv.h"
 #include <string>
 #include <fstream>
 #include <vector>
@@ -56,25 +57,27 @@ bool GameOfLife::access(size_t i, size_t j) {
 }
 liste const& GameOfLife::get_viv() const {return vivantes_visibles;}
 
-void GameOfLife::add_cell(coord const& c) {
+GameOfLife& GameOfLife::add_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
 	if((!access(c_translate.first, c_translate.second)) && ((c_translate.first < L+50) && (c_translate.second < C+50))) {
 		vivantes.push_back(c_translate);
 		vivantes_visibles.push_back(c);
         champ[c_translate.first][c_translate.second] = true;
 	}
+	return *this;
 }
-void GameOfLife::add_cell(size_t const& i, size_t const& j) {add_cell({i,j});}
-void GameOfLife::suppr_cell(coord const& c) {
+GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {add_cell({i,j}); return *this;}
+GameOfLife& GameOfLife::suppr_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
 	if (access(c_translate.first, c_translate.second)) {
 		champ[c_translate.first][c_translate.second] = false;
 		vivantes.erase(std::find<liste::iterator, coord>(vivantes.begin(),	vivantes.end(), c_translate));
 		vivantes_visibles.erase(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), c));
 	}
+	return *this;
 }
-void GameOfLife::suppr_cell(size_t const& i, size_t const& j) {suppr_cell({i,j});}
-void GameOfLife::inv_cell(coord const& c) {
+GameOfLife& GameOfLife::suppr_cell(size_t const& i, size_t const& j) {suppr_cell({i,j}); return *this;}
+GameOfLife& GameOfLife::inv_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
     if (access(c_translate.first, c_translate.second)) {
 		champ[c_translate.first][c_translate.second] = false;
@@ -87,22 +90,42 @@ void GameOfLife::inv_cell(coord const& c) {
 			vivantes_visibles.push_back(c);
 		}
 	}
+	return *this;
 }
-void GameOfLife::inv_cell(size_t const& i, size_t const& j) {inv_cell({i,j});}
-void GameOfLife::add_motif(Motif const& m) {
+GameOfLife& GameOfLife::inv_cell(size_t const& i, size_t const& j) {inv_cell({i,j}); return *this;}
+GameOfLife& GameOfLife::add_motif(Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) add_cell(*it);
+	return *this;
 }
-void GameOfLife::suppr_motif(Motif const& m) {
+GameOfLife& GameOfLife::suppr_motif(Motif const& m) {
 	for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) suppr_cell(*it);
+	return *this;
 }
-void GameOfLife::wipe() {
+GameOfLife& GameOfLife::wipe() {
 	for (liste::iterator it(vivantes.begin()); it!= vivantes.end();) {
 		champ[it->first][it->second] = false;
 		vivantes.erase(it);
 	}
 	vivantes_visibles.erase(vivantes_visibles.begin(), vivantes_visibles.end());
+	return *this;
 }
-
+GameOfLife& GameOfLife::resize(unsigned int const& l, unsigned int const& c) {
+	L = l; C = c;
+	for (liste::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
+		if(it->first >= L+50 || it->second >= C+50) {
+			champ[it->first][it->second] = false;
+			vivantes.erase(it);
+		}
+	}
+	for (liste::iterator it(vivantes_visibles.begin()); it != vivantes_visibles.end(); ++it) {
+		if (!access(it->first, it->second)) {
+			vivantes_visibles.erase(it);
+			--it;
+		}
+	}
+	return *this;
+}
+unsigned int& GameOfLife::get_nbr_gen() {return nbr_gen;}
 // Affichage ========================================================================================
 void GameOfLife::print(std::ostream& out) const {
 	out << "Debut grille" << std::endl;
@@ -169,37 +192,7 @@ std::vector<std::string> existing_presaved_sims() {
     return res;
 }
 
-bool GameOfLife::life(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
-	// On verifie dans quel dossier on doit enregistrer la simulation
-	std::filesystem::path chemin;
-	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
-    else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
-
-	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
-	if (!std::filesystem::exists(chemin)) {
-		std::filesystem::create_directory(chemin);
-		std::ofstream out;
-
-		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
-		out.open(chemin.string()+"/"+nom_simulation+"-info.csv");
-		out << L << ',' << C << '\n' << duree_sim << ",\n";
-		out.close();
-		// On cree un premier fichier pour la config au depart (avant lacement de la simulation)
-		out.open(chemin.string()+"/"+nom_simulation+"-0.csv");
-		for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
-		out.close();
-
-		// On enregistre un nouveau fichier pour chaque nouvelle generation
-		for (size_t i(0); i < duree_sim ; ++i) {
-			evolve();
-			out.open(chemin.string()+"/"+nom_simulation+"-"+std::to_string(this->nbr_gen)+".csv");
-			for (auto const& el : vivantes_visibles) out << el.first << ',' << el.second << '\n';
-			out.close();
-		}
-		return true;
-	} else return false;
-}
-// Gestion des motifs ========================================================================================
+// Enregistrement de motifs et simulations ========================================================================================
 void GameOfLife::save_motif(std::string const& nom_motif, std::string const& dossier) const {
 	save_motif(nom_motif, 0, L, 0, C, dossier);
 }
@@ -211,3 +204,76 @@ void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t im
 	for (auto const& el : vivantes_visibles) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
 	out.close();
 }
+bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
+	// On verifie dans quel dossier on doit enregistrer la simulation
+	std::filesystem::path chemin;
+	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
+    else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
+
+	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
+	if (!std::filesystem::exists(chemin)) {
+		std::filesystem::create_directory(chemin);
+		std::ofstream info, content;
+
+		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
+		info.open(chemin.string()+"/"+nom_simulation+"-info.csv");
+		info << "ligne,colonne\n" << L << ',' << C << '\n' << duree_sim << ",\n";
+		content.open(chemin.string()+"/"+nom_simulation+"-content.cvs");
+
+		// On cree un premier fichier pour la config au depart (avant lacement de la simulation)
+		size_t compteur(0);
+		info << compteur << ",\n";
+		content << "ligne,colonne\n";
+		for (auto const& el : vivantes_visibles) content << el.first << ',' << el.second << '\n';
+		compteur += vivantes_visibles.size();
+
+		// On enregistre un nouveau fichier pour chaque nouvelle generation
+		for (size_t i(0); i < duree_sim ; ++i) {
+			info << compteur << ",\n";
+			evolve();
+			for (auto const& el : vivantes_visibles) content << el.first << ',' << el.second << '\n';
+			compteur += vivantes_visibles.size();
+		}
+		info << compteur << '\n';
+		info.close(); content.close();
+		return true;
+	} else return false;
+}
+
+
+
+Simulation::Simulation() : nom(""), info_path(std::filesystem::path(std::string(GLOBAL_PATH)+"/data")), content_path(std::filesystem::path(std::string(GLOBAL_PATH)+"/data")) {}
+
+Simulation::Simulation(std::string const& nom_sim, std::string const& categorie)
+	: nom(nom_sim),
+	  info_path(std::filesystem::path(categorie == "local" ? std::string(GLOBAL_PATH)+"/data/"+categorie+"/sims" : std::string(GLOBAL_PATH)+"/data/presaved/sims")),
+	  content_path(std::filesystem::path(categorie == "local" ? std::string(GLOBAL_PATH)+"/data/"+categorie+"/sims" : std::string(GLOBAL_PATH)+"/data/presaved/sims"))
+{
+	if (std::filesystem::exists(info_path/nom_sim)) {
+		(info_path /= nom_sim) /= nom_sim+"-info.csv";
+		(content_path /= nom_sim) /= nom_sim+"-content.csv";
+		info_file = rapidcsv::Document(info_path.string());
+		content_file = rapidcsv::Document(content_path.string());
+		grille.resize(info_file.GetCell<unsigned int>(0,0), info_file.GetCell<unsigned int>(1,0));
+	}
+}
+bool Simulation::exist_sim() const {return (info_path.extension().string()==".csv");}
+
+Motif Simulation::get_motif(unsigned int const& num_gen) const {
+	Motif res;
+	if (num_gen <= info_file.GetCell<unsigned int>(0,1)) {
+		unsigned int debut(info_file.GetCell<unsigned int>(0,num_gen+2)), fin(info_file.GetCell<unsigned int>(0,num_gen+3));
+		for (unsigned int i(debut); i < fin ; ++i) res.push_back({content_file.GetCell<size_t>(0,i), content_file.GetCell<size_t>(1,i)});
+	}
+	return res;
+}
+
+void Simulation::evolve() {
+	if (grille.get_nbr_gen() < info_file.GetCell<unsigned int>(0,1)) {
+		grille.wipe();
+		++grille.get_nbr_gen();
+		grille.add_motif(get_motif(grille.get_nbr_gen()));
+	}
+}
+
+liste Simulation::get_viv() const {return grille.get_viv();}
