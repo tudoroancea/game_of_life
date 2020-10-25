@@ -126,10 +126,14 @@ void MainWindow::combo_time(int i)
         QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
         QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
     {
+        if (calques->itemText(calques->view()->currentIndex().row()) != "--select--")
+        {
             detail_selectionne->show();
             detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
             detail_selectionne->move(QCursor::pos());
             detail_selectionne->raise();
+        }
+        else {detail_selectionne->resize(1,1);}
     }
     else {detail_selectionne->hide();}
 }
@@ -231,6 +235,7 @@ void MainWindow::charger_calque()
             translate(temp);
             calque.alive = temp.alive;//voué à changer
             calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+            calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
             translate(calque);
         }
     }
@@ -246,6 +251,7 @@ void MainWindow::lancer_s()
     pause->show();
     calques = new Combobox(this);
     calques->setParent(this);
+    calques->addItem("--select--");
     std::vector<std::string> motifs_locaux(existing_local_motifs());
     for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
     calques->move(10, 0);
@@ -267,6 +273,7 @@ void MainWindow::lancer_s()
     calque_mod->show();
     calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+    calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
     translate(calque);
     simul_on = true;
 }
@@ -288,10 +295,11 @@ void MainWindow::pause_s()
 
 void MainWindow::item_changed_s(QString const& entree)
 {
-    if (entree != "")
+    if (entree != "" && entree != "--select--")
     {
         calque.alive = Motif(entree.toStdString());
         calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+        calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
         translate(calque);
         this->setFocus();
     }
@@ -341,11 +349,14 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             y_current = (event->y()-90)*nb_col/500;
             if (event->buttons() == Qt::LeftButton && (x_prec != x_current || y_prec != y_current) && !simul_on)
             {
-                liste a_inverser(segment({x_prec, y_prec}, {x_current, y_current}));
-                for (auto const& a : a_inverser)
+                if (x_prec != -1 && y_prec != -1)
                 {
-                    //std::cout << "\\" << a.first << " " << a.second << std::endl;
-                    ptr->inv_cell(a);
+                    liste a_inverser(segment({x_prec, y_prec}, {x_current, y_current}));
+                    for (auto const& a : a_inverser)
+                    {
+                        //std::cout << "\\" << a.first << " " << a.second << std::endl;
+                        ptr->inv_cell(a);
+                    }
                 }
                 ptr->inv_cell({x_current, y_current});
             }
@@ -380,8 +391,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_C) {this->charger_calque();}
     if (event->key() == Qt::Key_R && calque.on_off)
     {
+
         calque.alive.rotate(1, *(calque.alive.cbegin()));
         translate(calque);
+        //for (auto a : calque.alive){std::cout << a.first << " " << a.second << " | ";} std::cout << std::endl;
         update();
     }
 }
