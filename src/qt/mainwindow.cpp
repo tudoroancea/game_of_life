@@ -380,7 +380,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_C) {this->charger_calque();}
     if (event->key() == Qt::Key_R && calque.on_off)
     {
-        calque.alive.rotate(90, *(calque.alive.cbegin()));
+        calque.alive.rotate(1, *(calque.alive.cbegin()));
         translate(calque);
         update();
     }
@@ -404,5 +404,3 @@ MainWindow::~MainWindow()
     delete pos_souris;
     delete calques;
 }
-
-
