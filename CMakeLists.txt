@@ -15,7 +15,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 # Verbose for extra compile information
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
-add_definitions( -DGLOBAL_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
