@@ -1,4 +1,6 @@
 #include <iostream>
+#include <filesystem>
+
 #include "motifs.h"
 #include "game_of_life.h"
 
@@ -9,9 +11,10 @@ int main() {
     G->save_motif("pentominoR", 0, 10, 0, 10);
     delete G;
 
-    //M = Motif();
-    //G  = new GameOfLife(M.append({{}}),10,10);
-    //G->print();
-    //delete G;
+    std::cout << std::endl;
+
+    G = new GameOfLife(Motif("pentominoR", "local"),10,10);
+    G->print();
+    delete G;
     return 0;
 }

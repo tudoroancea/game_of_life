@@ -1,23 +1,16 @@
 #include <iostream>
+#include <iomanip>
 #include "game_of_life.h"
 #include "motifs.h"
+#include "rapidcsv.h"
+#include <filesystem>
+#include "affichage.h"
 
 using namespace std;
 
 int main() {
-    //GameOfLife G(Motif("pentominoR", "local"), 50, 50);
+    GameOfLife G(Motif("pentominoR", "local"), 20, 20);
     //G.print();
-    //G.save_sim("pentomino1", 10);
-    #ifdef TEST_PATH
-        cout << "test " << TEST_PATH;
-    #endif
-    cout << endl;
-    #ifdef GLOBAL_PATH
-        cout << "global " << GLOBAL_PATH;
-    #endif
-    cout << endl;
-    #ifdef SRC_PATH
-        cout << "src " << SRC_PATH;
-    #endif
+    cout << boolalpha << G.save_sim("pentominoR1", 5, "local") << std::endl;
     return 0;
 }

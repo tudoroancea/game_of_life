@@ -1,5 +1,13 @@
 #ifndef GAME_OF_LIFE_H
 #define GAME_OF_LIFE_H
+
+#ifdef _WIN32
+    #define CLEAR() std::stystem("cls");
+#endif
+#ifndef _WIN32
+    #define CLEAR() std::system("clear");
+#endif
+
 #include <array>
 #include <iostream>
 #include "motifs.h"
@@ -164,28 +172,88 @@ std::vector<std::string> existing_presaved_sims();
 
 class Simulation {
     private :
-        GameOfLife grille;
+        /*
+         *  @brief  nom de la simulation
+         */
         std::string nom;
+        /*
+         *  @brief  GOL qui contiendra les cellules à afficher
+         */
+        GameOfLife* grille;
+        /*
+         *  @brief  Nombre de générations que doit durer la simulation
+         */
+        unsigned int nbr_gen;
+        /*
+         *  @brief  path du fichier de configuration <nom_sim>-info.csv
+         */
         std::filesystem::path info_path;
+        /*
+         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
+         */
         rapidcsv::Document info_file;
+        /*
+         *  @brief  path du fichier de contenu <nom_sim>-content.csv
+         */
         std::filesystem::path content_path;
+        /*
+         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
+         */
         rapidcsv::Document content_file;
 
     public :
-        Simulation();
-        Simulation(std::string const& nom_sim, std::string const& categorie = "local");
-
-
-        bool exist_sim() const;
-
         /*
+         *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
+         */
+        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT};
+
+        // Constructeurs & Destructeurs
+        /*
+         *  @brief  construit une simulation vide (pointeur grille NULL, pas de nom et path sur DATA_PATH)
+         */
+        Simulation();
+        /*
+         *  @brief  remplit la simulation des informations nécessaires
+         *  @param  nom_sim nom de la simulation à chercher
+         *  @param  categorie   dossier où chercher
+         *  @returns    référence sur l'instance courante
+         */
+        Simulation& load(std::string const& nom_sim, std::string const& categorie = "local");
+        ~Simulation();
+
+        // Getters
+        /*
+         *  @brief  pretty self-explanatory
+         */
+        std::string const& get_nom() const;
+        /*
+         *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
          *  @param  num_gen numero de la génération
-         *  @returns    motif numero num_gen*/
+         *  @returns    motif numero num_gen
+         */
         Motif get_motif(unsigned int const& num_gen) const;
-
-        void evolve();
-
+        /*
+         *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
+         */
         liste get_viv() const;
+
+        // Evolution de la grille
+        /*
+         *  @brief  fait évoluer la grille en chargeant le motif suivant
+         */
+        void evolve();
+        /*
+         *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
+         */
+        bool finie() const;
+
+        // Affichage
+        /*
+         *  @brief  fait appel à la méthode print() de grille pour l'afficher
+         *  @param  out flot de sortie sur lequel afficher la grille
+         */
+        void print(std::ostream& out = std::cout) const;
+
 };
 
 #endif // GAME_OF_LIFE_H

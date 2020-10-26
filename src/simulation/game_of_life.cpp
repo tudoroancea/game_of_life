@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <algorithm> //
+#include <typeinfo> // for typeid
 #include <filesystem> // pour trouver les simulations existantes
 
 // Methodes utilitaies  ========================================================================================
@@ -206,11 +207,15 @@ void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t im
 }
 bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
 	// On verifie dans quel dossier on doit enregistrer la simulation
+	std::filesystem::current_path(std::string(DATA_PATH));
 	std::filesystem::path chemin;
-	if (categorie != "local") chemin = std::filesystem::path("../../data/presaved/sims/"+nom_simulation);
-    else chemin = std::filesystem::path("../../data/local/sims/"+nom_simulation);
-
+	if (categorie != "local") chemin = std::filesystem::path("presaved/sims/");
+    else chemin = std::filesystem::path("local/sims/");
 	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
+	if (!std::filesystem::exists(chemin)) {
+		return false;
+	}
+	chemin /= nom_simulation;
 	if (!std::filesystem::exists(chemin)) {
 		std::filesystem::create_directory(chemin);
 		std::ofstream info, content;
@@ -218,62 +223,138 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
 		info.open(chemin.string()+"/"+nom_simulation+"-info.csv");
 		info << "ligne,colonne\n" << L << ',' << C << '\n' << duree_sim << ",\n";
-		content.open(chemin.string()+"/"+nom_simulation+"-content.cvs");
+		content.open(chemin.string()+"/"+nom_simulation+"-content.csv");
 
 		// On cree un premier fichier pour la config au depart (avant lacement de la simulation)
 		size_t compteur(0);
 		info << compteur << ",\n";
 		content << "ligne,colonne\n";
 		for (auto const& el : vivantes_visibles) content << el.first << ',' << el.second << '\n';
+		this->print();
 		compteur += vivantes_visibles.size();
 
 		// On enregistre un nouveau fichier pour chaque nouvelle generation
 		for (size_t i(0); i < duree_sim ; ++i) {
 			info << compteur << ",\n";
 			evolve();
+			CLEAR()
+			this->print();
 			for (auto const& el : vivantes_visibles) content << el.first << ',' << el.second << '\n';
 			compteur += vivantes_visibles.size();
+
 		}
-		info << compteur << '\n';
+		info << compteur << ",\n";
 		info.close(); content.close();
 		return true;
-	} else return false;
-}
-
-
-
-Simulation::Simulation() : nom(""), info_path(std::filesystem::path(std::string(GLOBAL_PATH)+"/data")), content_path(std::filesystem::path(std::string(GLOBAL_PATH)+"/data")) {}
-
-Simulation::Simulation(std::string const& nom_sim, std::string const& categorie)
-	: nom(nom_sim),
-	  info_path(std::filesystem::path(categorie == "local" ? std::string(GLOBAL_PATH)+"/data/"+categorie+"/sims" : std::string(GLOBAL_PATH)+"/data/presaved/sims")),
-	  content_path(std::filesystem::path(categorie == "local" ? std::string(GLOBAL_PATH)+"/data/"+categorie+"/sims" : std::string(GLOBAL_PATH)+"/data/presaved/sims"))
-{
-	if (std::filesystem::exists(info_path/nom_sim)) {
-		(info_path /= nom_sim) /= nom_sim+"-info.csv";
-		(content_path /= nom_sim) /= nom_sim+"-content.csv";
-		info_file = rapidcsv::Document(info_path.string());
-		content_file = rapidcsv::Document(content_path.string());
-		grille.resize(info_file.GetCell<unsigned int>(0,0), info_file.GetCell<unsigned int>(1,0));
+	} else {
+		std::cout << "le dossier de simulation existe deja" << std::endl;
+		return false;
 	}
 }
-bool Simulation::exist_sim() const {return (info_path.extension().string()==".csv");}
+
+
+
+Simulation::Simulation()
+	: nom(""), grille(nullptr), info_path(std::filesystem::path(std::string(DATA_PATH))), content_path(std::filesystem::path(std::string(DATA_PATH))), nbr_gen(0) {}
+
+Simulation::~Simulation() {
+	delete grille;
+}
+
+Simulation& Simulation::load(std::string const& nom_sim, std::string const& categorie) {
+	nom = nom_sim;
+	if (categorie == "local") {
+		info_path /= "local/sims/"+nom_sim;
+		content_path /= "local/sims/"+nom_sim;
+	} else {
+		info_path /= "presaved/sims/"+nom_sim;
+		content_path /= "presaved/sims/"+nom_sim;
+	}
+
+	if (std::filesystem::exists(info_path)) {
+		std::cout << " Le dossier de la simulation <" << nom_sim << "> existe bien." << std::endl;
+		// Le dossier de simulation existe bien. On ajuste les path correspondants
+		//std::cout << "info_path = " << info_path.string() << " est de type " << typeid(info_path).name() << std::endl;
+		//std::cout << "content_path = " << content_path.string() << " est de type " << typeid(content_path).name() << std::endl;
+		std::string s1(nom_sim+"-info.csv"), s2(nom_sim+"-content.csv");
+		info_path /=  s1;
+		content_path /= s2;
+		//std::cout << inf.string() << "     " << con.string() << std::endl;
+		if (std::filesystem::exists(info_path)) {
+			// Le fichier info existe bien. On l'ouvre
+			info_file = rapidcsv::Document(info_path.string());
+			if (info_file.GetRowCount() >= 3) {
+				// Infos sur les dimensions de la grille et la duree de la simulation présentes
+				grille = new GameOfLife(info_file.GetCell<unsigned int>(0,0), info_file.GetCell<unsigned int>(1,0));
+				nbr_gen = info_file.GetCell<unsigned int>(0,1);
+				if (std::filesystem::exists(content_path)) {
+					// Le fichier content exite bien. On l'ouvre
+					content_file = rapidcsv::Document(content_path.string());
+					if (info_file.GetRowCount() >= 4) {
+						// Motif non vide (listes de séparateurs contient autre chose que juste 0)
+						size_t fin(info_file.GetCell<size_t>(0,3));
+						Motif M;
+						try {
+							for (size_t i(0); i < fin; ++i)	M.push_back({content_file.GetCell<size_t>(0,i), content_file.GetCell<size_t>(1,i)});
+						}
+						catch(std::out_of_range const& err) {
+							throw Error::INCOMPLETE_CONTENT;
+						}
+						grille->add_motif(M);
+					} else {
+						std::cout << " WARNING : contruction grille vide au début de la simulation." << std::endl;
+					}
+				} else {
+					throw Error::NON_EXISTING_CONTENT;
+				}
+			} else {
+				throw Error::INCOMPLETE_INFO;
+			}
+		} else {
+			throw Error::NON_EXISTING_INFO;
+		}
+	} else {
+		throw Error::NON_EXISTING_SIM;
+	}
+	return *this;
+}
+
+
+std::string const& Simulation::get_nom() const {return nom;}
 
 Motif Simulation::get_motif(unsigned int const& num_gen) const {
 	Motif res;
-	if (num_gen <= info_file.GetCell<unsigned int>(0,1)) {
-		unsigned int debut(info_file.GetCell<unsigned int>(0,num_gen+2)), fin(info_file.GetCell<unsigned int>(0,num_gen+3));
-		for (unsigned int i(debut); i < fin ; ++i) res.push_back({content_file.GetCell<size_t>(0,i), content_file.GetCell<size_t>(1,i)});
+	if (nbr_gen != 0 && num_gen <= nbr_gen) {
+		unsigned int debut(0), fin(0);
+		try {
+			debut = info_file.GetCell<unsigned int>(0,num_gen+2);
+			fin = info_file.GetCell<unsigned int>(0,num_gen+3);
+		}
+		catch(std::out_of_range const& err) {
+			throw Error::INCOMPLETE_INFO;
+			return res;
+		}
+		try {
+			for (unsigned int i(debut); i < fin ; ++i) res.push_back({content_file.GetCell<size_t>(0,i), content_file.GetCell<size_t>(1,i)});
+		}
+		catch (std::out_of_range const& err) {
+			throw Error::INCOMPLETE_CONTENT;
+			return res;
+		}
 	}
 	return res;
 }
 
+bool Simulation::finie() const {return grille->get_nbr_gen() == nbr_gen;}
+
 void Simulation::evolve() {
-	if (grille.get_nbr_gen() < info_file.GetCell<unsigned int>(0,1)) {
-		grille.wipe();
-		++grille.get_nbr_gen();
-		grille.add_motif(get_motif(grille.get_nbr_gen()));
+	if (grille->get_nbr_gen() < info_file.GetCell<unsigned int>(0,1)) {
+		grille->wipe();
+		++grille->get_nbr_gen();
+		grille->add_motif(get_motif(grille->get_nbr_gen()));
 	}
 }
 
-liste Simulation::get_viv() const {return grille.get_viv();}
+liste Simulation::get_viv() const {return grille->get_viv();}
+
+void Simulation::print(std::ostream& out) const {grille->print(out);}
