@@ -16,6 +16,7 @@ add_definitions(-DLOCAL_PATH="${CMAKE_SOURCE_DIR}/data/local")
 add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
 add_library(qt
+    STATIC
     mainwindow.h cell_.h
     mainwindow.cpp cell_.cpp
 )

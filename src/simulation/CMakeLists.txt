@@ -11,6 +11,7 @@ add_definitions(-DLOCAL_PATH="${CMAKE_SOURCE_DIR}/data/local")
 add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
 add_library(simulation
+    STATIC
     game_of_life.cpp game_of_life.h
     motifs.cpp motifs.h
 )

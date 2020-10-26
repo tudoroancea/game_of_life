@@ -6,15 +6,15 @@
 
 int main() {
     Motif M;
-    GameOfLife* G(new GameOfLife(M.append({{0,1},{1,1},{1,2},{2,0},{2,1}}), 10,10));
+    GameOfLife* G(new GameOfLife(M.append({{0,4},{0,6},{1,0},{1,2},{1,5},{2,1},{2,5},{3,1},{3,7}}), 10,10));
     G->print();
-    G->save_motif("pentominoR", 0, 10, 0, 10);
-    delete G;
-
+    std::string line;
     std::cout << std::endl;
-
-    G = new GameOfLife(Motif("pentominoR", "local"),10,10);
-    G->print();
+    std::cin >> line;
+    if(line[0] == 'y') {
+        G->save_motif("lievres", 0, 10, 0, 10, "local");
+        std::cout << "enregistre" << std::endl;
+    }
     delete G;
     return 0;
 }

@@ -13,6 +13,7 @@ add_definitions(-DLOCAL_PATH="${CMAKE_SOURCE_DIR}/data/local")
 add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
 add_library(cli
+    STATIC
     affichage.h affichage.cpp
 )
 target_link_libraries(cli LINK_PUBLIC simulation)
