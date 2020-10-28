@@ -84,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setMouseTracking(true);
     this->resize(150, 30);
+    this->move(10, 10);
     x_ = new QLineEdit(this);
     x_->resize(50, 30);
     y_ = new QLineEdit(this);
@@ -367,6 +368,17 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     pos_souris->setText(QString::number(event->x()) + " " + QString::number(y_current));
 }
 
+void MainWindow::wheelEvent(QWheelEvent* event)
+{
+    QPoint delta(event->angleDelta());
+    nb_lines += delta.y()/12;
+    nb_col += delta.y()/12;
+    std::cout << nb_col << " " << nb_lines << std::endl;
+    ptr->resize(nb_lines, nb_col);
+    this->update();
+    //erreur de seg quand on va en dessous des 20 revoir demain
+}
+
 void MainWindow::timerEvent(QTimerEvent *event)
 {
     if (timer != 0)
@@ -416,4 +428,7 @@ MainWindow::~MainWindow()
     delete calque_mod;
     delete pos_souris;
     delete calques;
+    delete detail_selectionne;
+    delete ptr;
+
 }
