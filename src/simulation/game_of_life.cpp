@@ -255,7 +255,7 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 
 
 Simulation::Simulation()
-	: nom(""), grille(nullptr), info_path(std::filesystem::path(std::string(DATA_PATH))), content_path(std::filesystem::path(std::string(DATA_PATH))), nbr_gen(0) {}
+	: nom(""), grille(nullptr), nbr_gen(0), info_path(std::filesystem::path(std::string(DATA_PATH))), content_path(std::filesystem::path(std::string(DATA_PATH))) {}
 
 Simulation::~Simulation() {
 	delete grille;

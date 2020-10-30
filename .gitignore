@@ -17,6 +17,8 @@ cmake-build-debug
 test/googletest
 data/local/motifs/*
 data/local/sims/*
+!data/local/motifs
+!data/local/sims
 .qmake.stash
 *.o
 *.user
