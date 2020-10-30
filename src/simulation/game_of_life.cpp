@@ -198,12 +198,15 @@ void GameOfLife::save_motif(std::string const& nom_motif, std::string const& dos
 	save_motif(nom_motif, 0, L, 0, C, dossier);
 }
 void GameOfLife::save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier) const {
-	std::ofstream out;
-	if (dossier != "local") out = std::ofstream("../../data/presaved/motifs/"+nom_motif+".csv");
-	else out = std::ofstream("../../data/local/motifs/"+nom_motif+".csv");
-	out << "ligne,colonne\n";
-	for (auto const& el : vivantes_visibles) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
-	out.close();
+	if (std::filesystem::exists(std::filesystem::path(std::string(DATA_PATH)))) {
+		std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
+		std::ofstream out;
+		if (dossier != "local") out = std::ofstream("presaved/motifs/"+nom_motif+".csv");
+		else out = std::ofstream("local/motifs/"+nom_motif+".csv");
+		out << "ligne,colonne\n";
+		for (auto const& el : vivantes_visibles) if (imin <= el.first && el.first < imax && jmin <= el.second && el.second < jmax) out << el.first << ',' << el.second << '\n';
+		out.close();
+	} else std::cerr << " ERROR : On ne peut pas sauver le motif car le dossier " << DATA_PATH << " n'existe pas." << std::endl;
 }
 bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie) {
 	// On verifie dans quel dossier on doit enregistrer la simulation

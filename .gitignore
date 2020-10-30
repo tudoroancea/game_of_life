@@ -13,6 +13,7 @@ build
 .vscode
 .idea
 cmake-build-debug
+*.cbp
 
 test/googletest
 data/local/motifs/*
@@ -21,6 +22,11 @@ data/local/sims/*
 !data/local/sims
 .qmake.stash
 *.o
+*.a
 *.user
 *.app
 .DS_Store
+
+test_cli
+main
+*_autogen

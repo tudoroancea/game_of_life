@@ -10,14 +10,15 @@ Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
 Motif::Motif(std::string const& fichier, std::string const& categorie) {
 	std::string chemin("");
-	if (categorie != "local") chemin = "../../data/presaved/motifs/"+fichier+".csv";
-	else chemin = "../../data/local/motifs/"+fichier+".csv";
+	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
+	if (categorie != "local") chemin = "/presaved/motifs/"+fichier+".csv";
+	else chemin = "local/motifs/"+fichier+".csv";
 	if(std::filesystem::exists(std::filesystem::path(chemin))) {
 		rapidcsv::Document motif(chemin);
 		for (size_t i(0); i < motif.GetRowCount() ; ++i) {
 			cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
 		}
-	}
+	} else std::cerr << " ERROR : On ne peut pas créer le motif car le fichier " << DATA_PATH << "/" << chemin << "n'existe pas" << std::endl;
 }
 Motif::Motif(std::filesystem::path const& chemin) {
 	if (std::filesystem::exists(chemin)) {
@@ -214,7 +215,8 @@ size_t Motif::max_colonne() const {
 // Gestion des motifs enregsitres
 std::vector<std::string> existing_local_motifs() {
 	std::vector<std::string> res;
-	std::filesystem::path local_motifs("../../data/local/motifs");
+	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
+	std::filesystem::path local_motifs("local/motifs");
 	for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
 		if (file.path().extension() == ".csv") {
 			res.push_back(file.path().stem().string());
@@ -224,7 +226,8 @@ std::vector<std::string> existing_local_motifs() {
 }
 std::vector<std::string> existing_presaved_motifs() {
 	std::vector<std::string> res;
-	std::filesystem::path local_motifs("../../data/presaved/motifs");
+	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
+	std::filesystem::path local_motifs("presaved/motifs");
 	for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
 		if (file.path().extension() == ".csv") {
 			res.push_back(file.path().stem().string());
