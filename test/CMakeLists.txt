@@ -42,3 +42,6 @@ target_link_libraries(test_cli LINK_PUBLIC simulation cli)
 
 add_executable(test_connexite test_connexite.cpp)
 target_link_libraries(test_connexite LINK_PUBLIC simulation)
+
+add_executable(test_resize test_resize.cpp)
+target_link_libraries(test_resize LINK_PUBLIC simulation)

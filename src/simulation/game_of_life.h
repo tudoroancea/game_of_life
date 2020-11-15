@@ -24,7 +24,9 @@ private :
      */
     unsigned int nbr_gen;
     /**
-     *  @brief  Grille de 500x500 qui contient les informations des cellules. La zone visible doit avoir une taille max de 400x400 pour laisser des marges de 50 de chaque coté pour eviter les effets de bord
+     *  @brief  Grille de 500x500 qui contient les informations des cellules.
+     *  La zone visible doit avoir une taille max de 400x400 pour laisser des marges de 50 de chaque coté pour eviter les effets de bord.
+     *  On suppose que la zone visible s'étend sur [50,L+50[x[50,C+50[.
      */
     std::array<std::array<bool,500>,500> champ;
     /**
