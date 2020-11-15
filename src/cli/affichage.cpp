@@ -7,8 +7,9 @@
 #include <iostream>
 #include <cstdlib> // pour std::sytem()
 #include <stdexcept> // pou std::invalid_argument pour stoi()
-#include <thread> // pour std::this_thread::sleep_for();
 #include <chrono> // pour les s, ms
+#include <thread> // pour std::this_thread::sleep_for();
+#include <future>
 
 #define SWITCH_SIMULATION_ERROR(err) {\
     switch (err) {\
@@ -130,8 +131,18 @@ int CliApp::exec() {
         }
         std::cout << "Simulation terminée avec succès" << std::endl;
         return 0;
-    } else {
-        std::cout << "Circulez il y a rien à voir." << std::endl;
+    } else { // Nouvelle simulation
+        // On demande la vitesse de simulation
+        unsigned int vitesse(100);
+        bool test(true);
+        GameOfLife G;
+        auto affichage = std::async(std::launch::deferred, [&G, test, vitesse]() {
+            while (test) {
+                G.evolve();
+                G.print();
+                std::this_thread::sleep_for(std::chrono::milliseconds(vitesse));
+            }
+        });
         return 0;
     }
 }

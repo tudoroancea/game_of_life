@@ -5,20 +5,26 @@
 #include <cmath> // pour std::abs
 #include <filesystem> // Pour trouver la liste des fichiers
 
+
+std::ostream& operator<<(std::ostream& out, coord c) {
+	out << X(c) << ", " << Y(c);
+	return out;
+}
+
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
 Motif::Motif(std::string const& fichier, std::string const& categorie) {
 	std::string chemin("");
 	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
-	if (categorie != "local") chemin = "/presaved/motifs/"+fichier+".csv";
+	if (categorie != "local") chemin = "presaved/motifs/"+fichier+".csv";
 	else chemin = "local/motifs/"+fichier+".csv";
 	if(std::filesystem::exists(std::filesystem::path(chemin))) {
 		rapidcsv::Document motif(chemin);
 		for (size_t i(0); i < motif.GetRowCount() ; ++i) {
 			cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
 		}
-	} else std::cerr << " ERROR : On ne peut pas créer le motif car le fichier " << DATA_PATH << "/" << chemin << "n'existe pas" << std::endl;
+	} else std::cerr << " ERROR : On ne peut pas créer le motif car le fichier " << DATA_PATH << "/" << chemin << " n'existe pas" << std::endl;
 }
 Motif::Motif(std::filesystem::path const& chemin) {
 	if (std::filesystem::exists(chemin)) {
@@ -181,6 +187,30 @@ liste::iterator Motif::begin() {return cellules.begin();}
 liste::iterator Motif::end() {return cellules.end();}
 liste::const_iterator Motif::cbegin() const {return cellules.cbegin();}
 liste::const_iterator Motif::cend() const {return cellules.cend();}
+
+// Infos
+bool Motif::contient(coord const& c) const {
+	return std::find(cellules.begin(), cellules.end(), c) != cellules.end();
+}
+size_t dist(size_t const& a, size_t const& b) {return (a <= b ? b-a : a-b);}
+bool sont_voisins(coord const& a, coord const& b) {
+	return dist(X(a),X(b)) <= 1 && dist(Y(a),Y(b)) <= 1;
+}
+bool Motif::a_pour_voisin(coord const& c) const {
+	liste::const_iterator it(cellules.cbegin());
+	while (it != cellules.cend() && !sont_voisins(*it, c)) {
+		std::cout << it->first << ", " << it->second << std::endl;
+		++it;
+	}
+	return it != cellules.cend();
+	//for (auto const& cell : cellules) {
+	//	bool test(sont_voisins(cell, c));
+	//	if (test) {
+	//		return true;
+	//	}
+	//}
+	//return false;
+}
 size_t Motif::min_ligne() const {
 	size_t min(cellules.front().first);
 	for (auto el : cellules) {

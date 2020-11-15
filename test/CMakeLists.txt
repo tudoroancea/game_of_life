@@ -39,3 +39,6 @@ target_link_libraries(test_save_sim LINK_PUBLIC simulation)
 add_executable(test_cli test_cli.cpp)
 target_link_libraries(test_cli LINK_PUBLIC simulation cli)
 #endif()
+
+add_executable(test_connexite test_connexite.cpp)
+target_link_libraries(test_connexite LINK_PUBLIC simulation)

@@ -57,6 +57,7 @@ bool GameOfLife::access(size_t i, size_t j) {
 	else return champ[i][j];
 }
 liste const& GameOfLife::get_viv() const {return vivantes_visibles;}
+liste const& GameOfLife::get_viv_2() const {return vivantes;}
 
 GameOfLife& GameOfLife::add_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
@@ -361,3 +362,74 @@ void Simulation::evolve() {
 liste Simulation::get_viv() const {return grille->get_viv();}
 
 void Simulation::print(std::ostream& out) const {grille->print(out);}
+
+std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
+	liste vivantes(jeu.get_viv_2());
+	std::vector<Motif> res;
+	for (auto const& cell : vivantes) {
+		if (!res.empty()) {
+			std::vector<Motif>::iterator it(res.begin());
+			bool test(true);
+			while (it != res.end() && test) {
+				test = !it->a_pour_voisin(cell);
+				++it;
+			}
+			if (it != res.end()) it->push_back(cell);
+			else res.push_back(Motif({cell}));
+		} else {
+			res.push_back(Motif({cell}));
+		}
+	}
+	return res;
+}
+
+size_t find(std::vector<size_t> const& L, size_t const& e) {
+	size_t r(e);
+	while (L[r] != r) r = L[r];
+	return r;
+}
+size_t unionn(std::vector<size_t>& L, size_t const& e1, size_t const& e2) {
+	if (e1 < e2) {
+		L[e2] = e1;
+		return e1;
+	} else {
+		L[e1] = e2;
+		return e2;
+	}
+}
+bool is_adjacent(coord const& p1, coord const& p2) {return sont_voisins(p1, p2);}
+bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
+//void init_features(size_t const& label, coord const& pixel);
+//void accumulate_features(size_t const& label, coord const& pixel);
+std::vector<size_t> GameOfLife::sparseCLL() {
+	// first scan: pixel association
+	size_t start_j(0), n(vivantes.size()), tpr(0);
+	std::vector<size_t> Liste(n);
+	for (size_t i(0); i < n ; ++i) {
+		Liste[i] = i;
+		tpr = i;
+		for (size_t j(start_j); j < i-1 ; ++j) {
+			if (is_adjacent(vivantes[i], vivantes[j])) {
+				tpr = unionn(Liste, tpr, find(Liste, j));
+			} else if (is_far_enough(vivantes[i], vivantes[j])) {
+				++start_j;
+			}
+		}
+	}
+
+	// Second scan:  transittive closure and analysis
+	size_t labels(0), l(0);
+	for (size_t i(0); i < n-1 ; ++i) {
+		if (Liste[i] == i) {
+			++labels;
+			l = labels;
+			//init_features(l, vivantes[i]);
+		} else {
+			l = Liste[Liste[i]];
+			//accumulate_features(l, vivantes[i]);
+		}
+		Liste[i] = l;
+	}
+	Liste.push_back(labels);
+	return Liste;
+}
