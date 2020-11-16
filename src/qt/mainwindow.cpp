@@ -80,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
       ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
       nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
-      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false)
+      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -250,6 +250,10 @@ void MainWindow::lancer_s()
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
     pause->show();
+    save_game = new QPushButton("save", this);
+    connect(save_game, SIGNAL (clicked()), this, SLOT (save_game_s()));
+    save_game->move(350, 0);
+    save_game->show();
     calques = new Combobox(this);
     calques->setParent(this);
     calques->addItem("--select--");
@@ -304,6 +308,11 @@ void MainWindow::item_changed_s(QString const& entree)
         translate(calque);
         this->setFocus();
     }
+}
+
+void MainWindow::save_game_s()
+{
+
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -430,5 +439,6 @@ MainWindow::~MainWindow()
     delete calques;
     delete detail_selectionne;
     delete ptr;
+    delete save_game;
 
 }
