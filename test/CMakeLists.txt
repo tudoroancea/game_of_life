@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_FLAGS -pthread)
 
 add_definitions(-DGLOBAL_PATH="${CMAKE_SOURCE_DIR}")
 add_definitions(-DSRC_PATH="${CMAKE_SOURCE_DIR}/src")
