@@ -82,6 +82,7 @@ public slots:
     void combo_time(int);
     void focus_frame(bool);
     void item_changed_s(const QString&);
+    void save_game_s();
 
 
 private:
@@ -92,6 +93,7 @@ private:
     QPushButton* lance;
     QPushButton* pause;
     QPushButton* calque_mod;
+    QPushButton* save_game;
     QPainter* paint;
     QLabel* pos_souris;
     Combobox* calques;
@@ -118,7 +120,11 @@ private:
 #endif // MAINWINDOW_H
 /* Ajouter le nombre de générations
  * Ajouter la sauvegarde dans un fichier
- * Ajouter l'ajout de forme par calque
- * copié-collé ?
- */
+ * Pour la sauvegarde de la simulation deux possibilités
+ * si on peut ouvrir le dialogue interface et récupérer
+ * le nom entré alors super. Sinon il faut une première 
+ * fenêtre pour demander un nom et ensuite ouvrir 
+ * le dialogue interface avec ce nom proposé 
+ *  Dans tous les cas il faut ouvrir le dialogue interface
 
+ */
