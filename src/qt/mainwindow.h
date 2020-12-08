@@ -43,8 +43,7 @@ private:
     Motif a_dessiner;
 public:
     Frame(QWidget *parent = nullptr);
-    ~Frame();
-    void load(std::string s);
+    void load(std::string s, bool local = true);
     void paintEvent(QPaintEvent * event) override;
 };
 
@@ -76,6 +75,7 @@ public:
 
 public slots:
     void creer_s();
+    void lancer_saved_s() {} // décor de cinéma
     void lancer_s();
     void pause_s();
     void calque_switch_s() {calque.on_off = 1 - calque.on_off;}
@@ -86,10 +86,15 @@ public slots:
 
 
 private:
+    QComboBox* sim_loc;
+    QComboBox* sim_presaved;
+    QLabel* sim_choix;
+    QPushButton* sim_lance;
+    QPushButton* new_sim;
+    QLabel* new_taille;
+    QLineEdit* new_entree;
+    bool new_state;
     liste const* cells2;
-    QLineEdit* x_;
-    QLineEdit* y_;
-    QPushButton* cree;
     QPushButton* lance;
     QPushButton* pause;
     QPushButton* calque_mod;
@@ -115,6 +120,7 @@ private:
     bool simul_on;
     int state;
     bool frame_on;
+    int nb_motifs_locaux;
 };
 
 #endif // MAINWINDOW_H

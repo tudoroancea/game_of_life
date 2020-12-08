@@ -47,11 +47,12 @@ Combobox::~Combobox()
 
 Frame::Frame(QWidget* parent) : QFrame(parent) {}
 
-void Frame::load(std::string s)
+void Frame::load(std::string s, bool local)
 {
     if (s != "")
     {
-        a_dessiner = Motif(s);
+        if (local) {a_dessiner = Motif(s);}
+        else {a_dessiner = Motif(s, "");}
         a_dessiner.recalibrate();
         this->resize((a_dessiner.max_ligne()+1)*10, (a_dessiner.max_colonne()+1)*10);
     }
@@ -71,40 +72,52 @@ void Frame::paintEvent(QPaintEvent *event)
     }
 }
 
-Frame::~Frame()
-{
-
-}
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
       ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
       nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
       y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr), 
-      detail_selectionne(nullptr)
+      detail_selectionne(nullptr), calque_mod(nullptr), new_taille(nullptr), new_entree(nullptr),
+      new_state(false)
 {
     setMouseTracking(true);
-    this->resize(150, 30);
+    this->resize(520, 90);
     this->move(10, 10);
-    x_ = new QLineEdit(this);
-    x_->resize(50, 30);
-    y_ = new QLineEdit(this);
-    y_->resize(50, 30);
-    y_->move(50, 0);
-    cree = new QPushButton("créer", this);
-    cree->resize(50, 30);
-    cree->move(100, 0);
-    connect(cree, SIGNAL (clicked()), this, SLOT (creer_s()));
+    new_sim = new QPushButton("Nouvelle simulation", this);
+    new_sim->resize(150, 35);
+    new_sim->move(355, 15);
+    connect(new_sim, SIGNAL (clicked()), this, SLOT (creer_s()));
     paint = new QPainter(this);
     this->update();
-    std::cout << "End_build" << std::endl;
     state = 0;
+    nb_motifs_locaux = 0;
+    sim_choix = new QLabel("Simulations enregistrées :", this);
+    sim_choix->resize(200, 20);
+    sim_choix->move(20, 5);
+    sim_loc = new QComboBox(this);
+    std::vector<std::string> simul(existing_local_sims());
+    for (std::string a : simul) {sim_loc->addItem(QString::fromStdString(a));}
+    sim_loc->addItem("--local--");
+    sim_loc->move(10, 30);
+    sim_loc->resize(150, 25);
+    sim_presaved = new QComboBox(this);
+    simul = existing_local_sims();
+    for (std::string a : simul) {sim_presaved->addItem(QString::fromStdString(a));}
+    sim_presaved->addItem("--presaved--");
+    sim_presaved->move(170, 30);
+    sim_presaved->resize(150, 25);
+    sim_lance = new QPushButton("Lancer", this);
+    sim_lance->resize(70, 25);
+    sim_lance->move(250, 60);
+    connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));    
 }
 
 void MainWindow::creer()
 {
     this->resize(520, 600);
-    delete x_; delete y_; delete cree;
+    delete sim_choix;
+    sim_loc->hide(); sim_presaved->hide(); sim_lance->hide();
+    new_sim->hide(); new_taille->hide(); new_entree->hide();
     lance = new QPushButton("lancer", this);
     connect(lance, SIGNAL (clicked()), this, SLOT (lancer_s()));
     lance->show();
@@ -115,37 +128,38 @@ void MainWindow::creer()
     cells2 = &(ptr->get_viv());
 }
 
-void MainWindow::creer_s() { nb_lines = x_->text().toUInt(); nb_col = y_->text().toUInt(); this->creer(); state = 1;}
-
-void MainWindow::focus_frame(bool b) {frame_on = b;}
-
-void MainWindow::combo_time(int i)
-{
-    Q_UNUSED(i);
-    if (frame_on &&
-        QCursor::pos().x() >= calques->mapToGlobal(calques->view()->pos()).x()                            &&
-        QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()                             &&
-        QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
-        QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
+void MainWindow::creer_s() 
+{ 
+    if (new_state)
     {
-        if (calques->itemText(calques->view()->currentIndex().row()) != "--select--")
-        {
-            detail_selectionne->show();
-            detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString());
-            detail_selectionne->move(QCursor::pos());
-            detail_selectionne->raise();
-        }
-        else {detail_selectionne->resize(1,1);}
+        nb_lines = new_entree->text().toUInt(); 
+        nb_col = new_entree->text().toUInt(); 
+        this->creer(); 
+        state = 1;
+        new_state = false;
     }
-    else {detail_selectionne->hide();}
+    else 
+    {
+        new_state = true;
+        new_sim->resize(50, 25);
+        new_sim->move(405, 15);
+        new_sim->setText("  Créer  ");
+        new_taille = new QLabel("Taille : ", this);
+        new_taille->move(380, 45);
+        new_taille->show();
+        new_entree = new QLineEdit(this);
+        new_entree->resize(50, 25);
+        new_entree->move(430, 50);
+        new_entree->show();
+    }
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
+    paint->begin(this);
     if (state == 1)
     {
         Q_UNUSED(event);
-        paint->begin(this);
         QRect rect(10, 90, 500, 500);
         paint->fillRect(rect, Qt::black);
         bool in(false);
@@ -210,110 +224,12 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 }
             }
         }
-        paint->end();
     }
-}
-
-void MainWindow::charger_calque()
-{
-    x_end = x_current; y_end = y_current;
-    if (x_first != x_end || y_first != y_end)
+    else 
     {
-        int min_x, max_x, min_y, max_y;
-        if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
-        else {max_x = x_first; min_x = x_end;}
-        if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
-        else {max_y = y_first; min_y = y_end;}
-        if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
-        {
-            Calque temp;
-            for (auto a : *cells2)
-            {
-                if (a.first >= min_x && a.first <= max_x && a.second >= min_y && a.second <= max_y)
-                {
-                    temp.alive.push_back(a);
-                }
-            }
-            translate(temp);
-            calque.alive = temp.alive;//voué à changer
-            calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
-            calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
-            translate(calque);
-        }
+        paint->drawLine(335, 5, 335, 85);
     }
-}
-
-void MainWindow::lancer_s()
-{
-    timer = startTimer(50);
-    lance->hide();
-    pause = new QPushButton("pause", this);
-    connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
-    pause->move(425, 0);
-    pause->show();
-    save_game = new QPushButton("save", this);
-    connect(save_game, SIGNAL (clicked()), this, SLOT (save_game_s()));
-    save_game->move(350, 0);
-    save_game->show();
-    calques = new Combobox(this);
-    calques->setParent(this);
-    calques->addItem("--select--");
-    std::vector<std::string> motifs_locaux(existing_local_motifs());
-    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
-    calques->move(10, 0);
-    calques->resize(100, 20);
-    calques->show();
-    connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
-    connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
-    connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
-    detail_selectionne = new Frame();
-    detail_selectionne->resize(50, 50);
-    detail_selectionne->move(400, 400);
-    detail_selectionne->setWindowFlag(Qt::ToolTip, true);
-    detail_selectionne->setStyleSheet("background-color: white");
-    this->setUpdatesEnabled(true);
-    detail_selectionne->hide();
-    calque_mod = new QPushButton("calque_switch", this);
-    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
-    calque_mod->move(225, 0);
-    calque_mod->show();
-    calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
-    calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
-    calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
-    translate(calque);
-    simul_on = true;
-}
-
-void MainWindow::pause_s()
-{
-    if (timer == 0)
-    {
-        timer = startTimer(50);
-        simul_on = true;
-        pause->setText("pause");
-    } else {
-        killTimer(timer);
-        timer = 0;
-        pause->setText("play");
-        simul_on = false;
-    }
-}
-
-void MainWindow::item_changed_s(QString const& entree)
-{
-    if (entree != "" && entree != "--select--")
-    {
-        calque.alive = Motif(entree.toStdString());
-        calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
-        calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
-        translate(calque);
-        this->setFocus();
-    }
-}
-
-void MainWindow::save_game_s()
-{
-
+    paint->end();   
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -327,10 +243,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             {
                 for (auto const& a : calque.alive)
                 {
-                    if ((event->x()-10)*nb_lines/500 + a.first - calque.translate.first >= 0             &&
-                        (event->y()-90)*nb_lines/500 + a.second - calque.translate.second >= 0           &&
+                    if ((event->x()-10)*nb_lines/500 + a.first - calque.translate.first >= 0        &&
+                        (event->y()-90)*nb_col/500 + a.second - calque.translate.second >= 0        &&
                         (event->x()-10)*nb_lines/500 + a.first  - calque.translate.first < nb_lines &&
-                        (event->y()-90)*nb_lines/500 + a.second - calque.translate.second < nb_col)
+                        (event->y()-90)*nb_col/500 + a.second - calque.translate.second < nb_col)
                     {
                         ptr->add_cell({(event->x()-10)*nb_lines/500 + a.first  - calque.translate.first,(event->y()-90)*nb_col/500 + a.second - calque.translate.second});
                     }
@@ -362,11 +278,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             {
                 if (x_prec != -1 && y_prec != -1)
                 {
-                    liste a_inverser(segment({x_prec, y_prec}, {x_current, y_current}));
-                    for (auto const& a : a_inverser)
+                    liste a_ajouter(segment({x_prec, y_prec}, {x_current, y_current}));
+                    for (auto const& a : a_ajouter)
                     {
                         //std::cout << "\\" << a.first << " " << a.second << std::endl;
-                        ptr->inv_cell(a);
+                        ptr->add_cell(a);
                     }
                 }
                 ptr->inv_cell({x_current, y_current});
@@ -375,7 +291,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         else {x_current = -1; y_current = -1;}
         this->update();
     }
-    pos_souris->setText(QString::number(event->x()) + " " + QString::number(y_current));
+    if (state != 0) {pos_souris->setText(QString::number(event->x()) + " " + QString::number(y_current));}
 }
 
 void MainWindow::wheelEvent(QWheelEvent* event)
@@ -432,8 +348,143 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
+void MainWindow::charger_calque()
+{
+    x_end = x_current; y_end = y_current;
+    if (x_first != x_end || y_first != y_end)
+    {
+        int min_x, max_x, min_y, max_y;
+        if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
+        else {max_x = x_first; min_x = x_end;}
+        if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
+        else {max_y = y_first; min_y = y_end;}
+        if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
+        {
+            Calque temp;
+            for (auto a : *cells2)
+            {
+                if (a.first >= min_x && a.first <= max_x && a.second >= min_y && a.second <= max_y)
+                {
+                    temp.alive.push_back(a);
+                }
+            }
+            translate(temp);
+            calque.alive = temp.alive;//voué à changer
+            calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+            calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
+            translate(calque);
+        }
+    }
+}
+
+void MainWindow::lancer_s()
+{
+    timer = startTimer(50);
+    lance->hide();
+    pause = new QPushButton("pause", this);
+    connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
+    pause->move(425, 0);
+    pause->show();
+    save_game = new QPushButton("save", this);
+    connect(save_game, SIGNAL (clicked()), this, SLOT (save_game_s()));
+    save_game->move(350, 0);
+    save_game->show();
+    calques = new Combobox(this);
+    calques->setParent(this);
+    calques->addItem("--select--");
+    std::vector<std::string> motifs_locaux(existing_local_motifs());
+    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
+    nb_motifs_locaux = calques->count();
+    calques->insertSeparator(nb_motifs_locaux);
+    std::vector<std::string> motifs_presaved(existing_presaved_motifs());
+    for (std::string a : motifs_presaved) {calques->addItem(QString::fromStdString(a));}
+    calques->move(10, 0);
+    calques->resize(100, 20);
+    calques->show();
+    connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
+    connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
+    connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
+    detail_selectionne = new Frame();
+    detail_selectionne->resize(50, 50);
+    detail_selectionne->move(400, 400);
+    detail_selectionne->setWindowFlag(Qt::ToolTip, true);
+    detail_selectionne->setStyleSheet("background-color: white");
+    this->setUpdatesEnabled(true);
+    detail_selectionne->hide();
+    calque_mod = new QPushButton("calque_switch", this);
+    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
+    calque_mod->move(225, 0);
+    calque_mod->show();
+    calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
+    calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+    calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
+    translate(calque);
+    simul_on = true;
+}
+
+void MainWindow::pause_s()
+{
+    if (timer == 0)
+    {
+        timer = startTimer(50);
+        simul_on = true;
+        pause->setText("pause");
+    } else {
+        killTimer(timer);
+        timer = 0;
+        pause->setText("play");
+        simul_on = false;
+    }
+}
+
+void MainWindow::combo_time(int i)
+{
+    Q_UNUSED(i);
+    if (frame_on &&
+        QCursor::pos().x() >= calques->mapToGlobal(calques->view()->pos()).x()                            &&
+        QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()                             &&
+        QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
+        QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
+    {
+        if (calques->itemText(calques->view()->currentIndex().row()) != "--select--")
+        {
+            detail_selectionne->show();
+            detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString(), (calques->view()->currentIndex().row() <= nb_motifs_locaux));
+            detail_selectionne->move(QCursor::pos());
+            detail_selectionne->raise();
+        }
+        else {detail_selectionne->resize(1,1);}
+    }
+    else {detail_selectionne->hide();}
+}
+
+void MainWindow::focus_frame(bool b) {frame_on = b;}
+
+void MainWindow::item_changed_s(QString const& entree)
+{
+    if (entree != "" && entree != "--select--")
+    {
+        calque.alive = Motif(entree.toStdString());
+        calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+        calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
+        translate(calque);
+        this->setFocus();
+    }
+}
+
+void MainWindow::save_game_s()
+{
+
+}
+
 MainWindow::~MainWindow()
 {
+    delete sim_loc;
+    delete sim_presaved;
+    delete sim_lance;
+    delete new_sim;
+    delete new_taille;
+    delete new_entree;
     delete paint;
     delete lance;
     delete pause;
@@ -443,5 +494,4 @@ MainWindow::~MainWindow()
     delete detail_selectionne;
     delete ptr;
     delete save_game;
-
 }
