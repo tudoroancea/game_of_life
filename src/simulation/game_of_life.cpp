@@ -114,6 +114,7 @@ GameOfLife& GameOfLife::wipe() {
 GameOfLife& GameOfLife::resize(unsigned int const& l, unsigned int const& c) {
 	bool l_is_inf(l<L), c_is_inf(c<C);
 	L = l; C = c;
+	//Source de la disparition lors du zoom.
 	if (l_is_inf || c_is_inf) {
 		for (liste::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
 			if(it->first >= L+50 || it->second >= C+50) {

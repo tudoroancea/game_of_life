@@ -80,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
       ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
       nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
-      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr)
+      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr), 
+      detail_selectionne(nullptr)
 {
     setMouseTracking(true);
     this->resize(150, 30);
@@ -380,12 +381,15 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 void MainWindow::wheelEvent(QWheelEvent* event)
 {
     QPoint delta(event->angleDelta());
-    nb_lines += delta.y()/12;
-    nb_col += delta.y()/12;
-    std::cout << nb_col << " " << nb_lines << std::endl;
-    ptr->resize(nb_lines, nb_col);
-    this->update();
-    //erreur de seg quand on va en dessous des 20 revoir demain
+    double mouv(delta.y()/12);
+    if ((mouv > 0 && nb_lines <= 390 && nb_col <= 390)
+        || (mouv < 0 && nb_lines >= 20 && nb_col >= 20))
+    {
+        nb_lines += mouv;
+        nb_col += mouv;
+        ptr->resize(nb_lines, nb_col);
+        this->update();
+    }
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)
@@ -431,7 +435,6 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
 MainWindow::~MainWindow()
 {
     delete paint;
-    delete ptr;
     delete lance;
     delete pause;
     delete calque_mod;
