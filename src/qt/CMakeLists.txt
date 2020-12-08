@@ -24,5 +24,5 @@ add_library(qt
 # permet les includes sans prefix
 include_directories(../simulation)
 
-target_link_libraries(qt LINK_PUBLIC simulation)
+target_link_libraries(qt PUBLIC simulation)
 target_link_libraries(qt PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)

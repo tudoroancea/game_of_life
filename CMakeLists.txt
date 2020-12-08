@@ -1,8 +1,15 @@
-cmake_minimum_required(VERSION 3.17)
-project(Game_of_life)
+cmake_minimum_required(VERSION 3.7...3.18)
+
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
+
+project(Game_of_life VERSION 1.0
+                     LANGUAGES CXX)
 
 # Sets the default build mode on debug
 if(NOT CMAKE_BUILD_TYPE)
+        #set(CMAKE_DEFAULT_BUILD_TYPE "DEBUG")
         set(CMAKE_BUILD_TYPE "DEBUG" CACHE STRING "" FORCE)
 endif()
 # C++ standard

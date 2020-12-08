@@ -12,7 +12,8 @@ typedef std::vector<coord> liste;
 #define X(c) c.first
 #define Y(c) c.second
 
-std::ostream& operator<<(std::ostream& out, coord c);
+std::ostream& operator<<(std::ostream& out, coord const& c);
+//std::ostream& operator<<(std::ostream& out, coord c);
 
 class Motif {
 private :

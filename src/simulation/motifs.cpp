@@ -6,10 +6,14 @@
 #include <filesystem> // Pour trouver la liste des fichiers
 
 
-std::ostream& operator<<(std::ostream& out, coord c) {
+std::ostream& operator<<(std::ostream& out, coord const& c) {
 	out << X(c) << ", " << Y(c);
 	return out;
 }
+//std::ostream& operator<<(std::ostream& out, coord c) {
+//	out << X(c) << ", " << Y(c);
+//	return out;
+//}
 
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
