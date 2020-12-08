@@ -224,7 +224,7 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 	if (!std::filesystem::exists(chemin)) {
 		return false;
 	}
-	chemin /= nom_simulation;
+	chemin /= ("sim-"+nom_simulation);
 	if (!std::filesystem::exists(chemin)) {
 		std::filesystem::create_directory(chemin);
 		std::ofstream info, content;
