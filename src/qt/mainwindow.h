@@ -74,6 +74,8 @@ public:
 
     void charger_calque();
 
+    void charger_calques();
+
 public slots:
     void creer_s();
     void lancer_saved_s() {} // décor de cinéma
@@ -84,6 +86,7 @@ public slots:
     void focus_frame(bool);
     void item_changed_s(const QString&);
     void save_game_s();
+    void reload_calques_s();
 
 
 private:
@@ -92,7 +95,6 @@ private:
 
     QComboBox* sim_loc;
     QComboBox* sim_presaved;
-    QLabel* sim_choix;
     QPushButton* sim_lance;
     QPushButton* new_sim;
     QLabel* new_taille;
@@ -102,7 +104,8 @@ private:
     liste const* cells2;
     QPushButton* lance;
     QPushButton* calque_mod;
-    Combobox* calques;    
+    Combobox* calques;
+    QPushButton* reload_calques;    
 
     QPushButton* pause;
     QPushButton* save_game;

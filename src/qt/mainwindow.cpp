@@ -55,6 +55,7 @@ void Frame::load(std::string s, bool local)
         else {a_dessiner = Motif(s, "presaved");}
         a_dessiner.recalibrate();
         this->resize((a_dessiner.max_ligne()+1)*10, (a_dessiner.max_colonne()+1)*10);
+        this->update();
     }
 }
 
@@ -78,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
       nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
       y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr), 
       detail_selectionne(nullptr), calque_mod(nullptr), new_taille(nullptr), new_entree(nullptr),
-      new_state(false)
+      new_state(false), reload_calques(nullptr)
 {
     setMouseTracking(true);
     this->resize(520, 90);
@@ -119,7 +120,8 @@ void MainWindow::creer()
     sim_loc->hide(); sim_presaved->hide(); sim_lance->hide();
     new_sim->hide(); new_taille->hide(); new_entree->hide();
     labels["sim_choix"]->hide();
-    lance = new QPushButton("lancer", this);
+    //QString::fromWCharArray(L"\x27f2")
+    lance = new QPushButton("Lancer", this);
     connect(lance, SIGNAL (clicked()), this, SLOT (lancer_s()));
     lance->move(400, 10);
     lance->show();
@@ -140,14 +142,9 @@ void MainWindow::creer()
     calques = new Combobox(this);
     calques->setParent(this);
     calques->addItem("--select--");
-    std::vector<std::string> motifs_locaux(existing_local_motifs());
-    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
-    nb_motifs_locaux = calques->count();
-    calques->insertSeparator(nb_motifs_locaux);
-    std::vector<std::string> motifs_presaved(existing_presaved_motifs());
-    for (std::string a : motifs_presaved) {calques->addItem(QString::fromStdString(a));}
+    charger_calques();
     calques->move(10, 30);
-    calques->resize(140, 25);
+    calques->resize(115, 25);
     calques->show();
     connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
     connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
@@ -164,6 +161,11 @@ void MainWindow::creer()
     calque_mod->move(60, 60);
     calque_mod->resize(90, 25);
     calque_mod->show();
+    reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
+    connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));    
+    reload_calques->resize(25, 25);
+    reload_calques->move(125, 30);
+    reload_calques->show();
     calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
@@ -419,6 +421,18 @@ void MainWindow::charger_calque()
     }
 }
 
+void MainWindow::charger_calques()
+{
+    calques->clear();
+    calques->addItem("--select--");
+    std::vector<std::string> motifs_locaux(existing_local_motifs());
+    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
+    nb_motifs_locaux = calques->count();
+    calques->insertSeparator(nb_motifs_locaux);
+    std::vector<std::string> motifs_presaved(existing_presaved_motifs());
+    for (std::string a : motifs_presaved) {calques->addItem(QString::fromStdString(a));}
+}
+
 void MainWindow::lancer_s()
 {
     timer = startTimer(50);
@@ -464,15 +478,15 @@ void MainWindow::combo_time(int i)
     Q_UNUSED(i);
     if (frame_on &&
         QCursor::pos().x() >= calques->mapToGlobal(calques->view()->pos()).x()                            &&
-        QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()                             &&
-        QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width()  &&
-        QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height() + calques->height())
+        QCursor::pos().y() >= calques->mapToGlobal(calques->view()->pos()).y() + calques->height()        &&
+        QCursor::pos().x() <= calques->mapToGlobal(calques->view()->pos()).x() + calques->view()->width() &&
+        QCursor::pos().y() <= calques->mapToGlobal(calques->view()->pos()).y() + calques->view()->height())
     {
         if (calques->itemText(calques->view()->currentIndex().row()) != "--select--")
         {
-            detail_selectionne->show();
             detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString(), (calques->view()->currentIndex().row() <= nb_motifs_locaux));
             detail_selectionne->move(QCursor::pos());
+            detail_selectionne->show();            
             detail_selectionne->raise();
         }
         else {detail_selectionne->resize(1,1);}
@@ -506,6 +520,11 @@ void MainWindow::save_game_s()
 
 }
 
+void MainWindow::reload_calques_s()
+{
+    charger_calques();
+}
+
 MainWindow::~MainWindow()
 {
     delete sim_loc;
@@ -523,5 +542,6 @@ MainWindow::~MainWindow()
     delete detail_selectionne;
     delete ptr;
     delete save_game;
-    for (auto& a : labels) {delete a.second;}
+    for (auto& a : labels) {delete a.second;}  
+    delete reload_calques;
 }
