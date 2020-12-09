@@ -70,8 +70,6 @@ public:
 
     void keyPressEvent(QKeyEvent* event) override;
 
-    void keyReleaseEvent(QKeyEvent* event) override;
-
     void charger_calque();
 
     void charger_calques();

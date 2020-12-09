@@ -74,12 +74,13 @@ void Frame::paintEvent(QPaintEvent *event)
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), x_current(-1), y_current(-1), ptr(nullptr), lance(nullptr),
-      ctrl_on(false), x_first(-1), y_first(-1), x_end(-1), y_end(-1), nb_col(0),
-      nb_lines(0), simul_on(false), cells2(nullptr), pos_souris(nullptr), x_prec(-1),
-      y_prec(-1), pause(nullptr), calques(nullptr), frame_on(false), save_game(nullptr), 
-      detail_selectionne(nullptr), calque_mod(nullptr), new_taille(nullptr), new_entree(nullptr),
-      new_state(false), reload_calques(nullptr)
+    : QMainWindow(parent), new_taille(nullptr), new_entree(nullptr), new_state(false), 
+      cells2(nullptr), lance(nullptr), calque_mod(nullptr), calques(nullptr), reload_calques(nullptr),
+      pause(nullptr), 
+      save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0), 
+      nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
+      x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false), 
+      frame_on(false)
 {
     setMouseTracking(true);
     this->resize(520, 90);
@@ -195,6 +196,7 @@ void MainWindow::creer_s()
         new_entree->resize(50, 25);
         new_entree->move(430, 50);
         new_entree->show();
+        new_entree->setFocus();
     }
 }
 
@@ -204,8 +206,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     if (state == 1)
     {
         Q_UNUSED(event);
-        QRect rect(10, 90, 500, 500);
-        paint->fillRect(rect, Qt::black);
+        QRect rect1(10, 90, 500, 500);
+        paint->fillRect(rect1, Qt::black);
         bool in(false);
         for (auto a : *cells2)
         {
@@ -214,7 +216,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 Cell_ b(a.first*500/nb_lines + 10, a.second*500/nb_col + 90, 500/nb_lines, 500/nb_col);
                 b.change_color();
                 if (b.state()) {paint->fillRect(b.rect(), b.color());}
-                if (a.first == x_current && a.second == y_current) {in = true;}
+                if (a.first == size_t(x_current) && a.second == size_t(y_current)) {in = true;}
             }
         }
         if (in)
@@ -241,11 +243,11 @@ void MainWindow::paintEvent(QPaintEvent *event)
             else {max_x = x_first; min_x = x_current;}
             if (y_current >= y_first) {min_y = y_first; max_y = y_current;}
             else {max_y = y_first; min_y = y_current;}
-            if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
+            if (min_x >= 0 && size_t(max_x) < nb_lines && min_y >= 0 && size_t(max_y) < nb_col)
             {
-                for (size_t a(min_x); a<=max_x; a++)
+                for (size_t a(min_x); a<=size_t(max_x) && max_x >=0; a++)
                 {
-                    for (size_t b(min_y); b<=max_y; b++)
+                    for (size_t b(min_y); b<=size_t(max_y) && max_y >= 0; b++)
                     {
                         QRect rect(a*500/nb_lines + 10, b*500/nb_col + 90, 500/nb_lines, 500/nb_col);
                         paint->fillRect(rect, QColor(0,0,100,180));
@@ -257,9 +259,9 @@ void MainWindow::paintEvent(QPaintEvent *event)
         {
             for (auto const& a : calque.alive)
             {
-                if (a.first + x_current - calque.translate.first >=0        &&
-                    a.second + y_current - calque.translate.second >= 0     &&
-                    a.first + x_current - calque.translate.first < nb_lines &&
+                if (int(a.first + x_current) - int(calque.translate.first) >=0    &&
+                    int(a.second + y_current) - int(calque.translate.second) >= 0 &&
+                    a.first + x_current - calque.translate.first < nb_lines       &&
                     a.second + y_current - calque.translate.second < nb_col)
                 {
                     QRect rect((a.first + x_current - calque.translate.first)*500/nb_lines + 10, (a.second + y_current - calque.translate.second)*500/nb_col + 90, 500/nb_lines, 500/nb_col);
@@ -287,9 +289,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             {
                 for (auto const& a : calque.alive)
                 {
-                    if ((event->x()-10)*nb_lines/500 + a.first - calque.translate.first >= 0        &&
-                        (event->y()-90)*nb_col/500 + a.second - calque.translate.second >= 0        &&
-                        (event->x()-10)*nb_lines/500 + a.first  - calque.translate.first < nb_lines &&
+                    if (int((event->x()-10)*nb_lines/500 + a.first) - int(calque.translate.first) >= 0 &&
+                        int((event->y()-90)*nb_col/500 + a.second) - int(calque.translate.second) >= 0 &&
+                        (event->x()-10)*nb_lines/500 + a.first  - calque.translate.first < nb_lines    &&
                         (event->y()-90)*nb_col/500 + a.second - calque.translate.second < nb_col)
                     {
                         ptr->add_cell({(event->x()-10)*nb_lines/500 + a.first  - calque.translate.first,(event->y()-90)*nb_col/500 + a.second - calque.translate.second});
@@ -382,13 +384,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         //for (auto a : calque.alive){std::cout << a.first << " " << a.second << " | ";} std::cout << std::endl;
         update();
     }
-}
-
-void MainWindow::keyReleaseEvent(QKeyEvent *event)
-{
-    if (event->modifiers() == Qt::ControlModifier)
+    if ((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) && state == 0)
     {
-
+        new_sim->click();
     }
 }
 
@@ -402,12 +400,13 @@ void MainWindow::charger_calque()
         else {max_x = x_first; min_x = x_end;}
         if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
         else {max_y = y_first; min_y = y_end;}
-        if (min_x >= 0 && max_x < nb_lines && min_y >= 0 && max_y < nb_col)
+        if (min_x >= 0 && max_x < int(nb_lines) && min_y >= 0 && max_y < int(nb_col))
         {
             Calque temp;
             for (auto a : *cells2)
             {
-                if (a.first >= min_x && a.first <= max_x && a.second >= min_y && a.second <= max_y)
+                if (((long long int)(a.first) >= min_x && (long long int)(a.first) <= max_x) && 
+                    ((long long int)(a.second) >= min_y && (long long int)(a.second) <= max_y))
                 {
                     temp.alive.push_back(a);
                 }
