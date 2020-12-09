@@ -16,6 +16,7 @@
 #include <QModelIndex>
 #include <QString>
 #include <QTimer>
+#include <unordered_map>
 #include "game_of_life.h"
 #include "motifs.h"
 
@@ -78,7 +79,7 @@ public slots:
     void lancer_saved_s() {} // décor de cinéma
     void lancer_s();
     void pause_s();
-    void calque_switch_s() {calque.on_off = 1 - calque.on_off;}
+    void calque_switch_s();
     void combo_time(int);
     void focus_frame(bool);
     void item_changed_s(const QString&);
@@ -86,6 +87,9 @@ public slots:
 
 
 private:
+    
+    std::unordered_map<std::string, QLabel*> labels;
+
     QComboBox* sim_loc;
     QComboBox* sim_presaved;
     QLabel* sim_choix;
@@ -94,14 +98,16 @@ private:
     QLabel* new_taille;
     QLineEdit* new_entree;
     bool new_state;
+
     liste const* cells2;
     QPushButton* lance;
-    QPushButton* pause;
     QPushButton* calque_mod;
+    Combobox* calques;    
+
+    QPushButton* pause;
     QPushButton* save_game;
     QPainter* paint;
     QLabel* pos_souris;
-    Combobox* calques;
     Frame* detail_selectionne;
     size_t nb_lines;
     size_t nb_col;

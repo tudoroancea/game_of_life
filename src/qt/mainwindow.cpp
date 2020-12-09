@@ -52,7 +52,7 @@ void Frame::load(std::string s, bool local)
     if (s != "")
     {
         if (local) {a_dessiner = Motif(s);}
-        else {a_dessiner = Motif(s, "");}
+        else {a_dessiner = Motif(s, "presaved");}
         a_dessiner.recalibrate();
         this->resize((a_dessiner.max_ligne()+1)*10, (a_dessiner.max_colonne()+1)*10);
     }
@@ -91,7 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->update();
     state = 0;
     nb_motifs_locaux = 0;
-    sim_choix = new QLabel("Simulations enregistrées :", this);
+    QLabel* sim_choix = new QLabel("Simulations enregistrées :", this);
+    labels["sim_choix"] = sim_choix;
     sim_choix->resize(200, 20);
     sim_choix->move(20, 5);
     sim_loc = new QComboBox(this);
@@ -115,17 +116,58 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::creer()
 {
     this->resize(520, 600);
-    delete sim_choix;
     sim_loc->hide(); sim_presaved->hide(); sim_lance->hide();
     new_sim->hide(); new_taille->hide(); new_entree->hide();
+    labels["sim_choix"]->hide();
     lance = new QPushButton("lancer", this);
     connect(lance, SIGNAL (clicked()), this, SLOT (lancer_s()));
+    lance->move(400, 10);
     lance->show();
     pos_souris = new QLabel(this);
     pos_souris->move(480, 580);
     pos_souris->show();
     ptr = new GameOfLife(nb_lines, nb_col);
     cells2 = &(ptr->get_viv());
+    QLabel* calques_saved = new QLabel("Calques disponibles :", this);
+    labels["calques_saved"] = calques_saved;
+    calques_saved->resize(140, 20);
+    calques_saved->move(10, 5);
+    calques_saved->show();
+    QLabel* mode = new QLabel("mode :", this);
+    labels["calques_mode"] = mode;
+    mode->move(10, 55);
+    mode->show();
+    calques = new Combobox(this);
+    calques->setParent(this);
+    calques->addItem("--select--");
+    std::vector<std::string> motifs_locaux(existing_local_motifs());
+    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
+    nb_motifs_locaux = calques->count();
+    calques->insertSeparator(nb_motifs_locaux);
+    std::vector<std::string> motifs_presaved(existing_presaved_motifs());
+    for (std::string a : motifs_presaved) {calques->addItem(QString::fromStdString(a));}
+    calques->move(10, 30);
+    calques->resize(140, 25);
+    calques->show();
+    connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
+    connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
+    connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
+    detail_selectionne = new Frame();
+    detail_selectionne->resize(50, 50);
+    detail_selectionne->move(400, 400);
+    detail_selectionne->setWindowFlag(Qt::ToolTip, true);
+    detail_selectionne->setStyleSheet("background-color: white");
+    this->setUpdatesEnabled(true);
+    detail_selectionne->hide();
+    calque_mod = new QPushButton("calque actif", this);
+    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
+    calque_mod->move(60, 60);
+    calque_mod->resize(90, 25);
+    calque_mod->show();
+    calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
+    calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
+    calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
+    translate(calque);    
 }
 
 void MainWindow::creer_s() 
@@ -389,36 +431,6 @@ void MainWindow::lancer_s()
     connect(save_game, SIGNAL (clicked()), this, SLOT (save_game_s()));
     save_game->move(350, 0);
     save_game->show();
-    calques = new Combobox(this);
-    calques->setParent(this);
-    calques->addItem("--select--");
-    std::vector<std::string> motifs_locaux(existing_local_motifs());
-    for (std::string a : motifs_locaux) {calques->addItem(QString::fromStdString(a));}
-    nb_motifs_locaux = calques->count();
-    calques->insertSeparator(nb_motifs_locaux);
-    std::vector<std::string> motifs_presaved(existing_presaved_motifs());
-    for (std::string a : motifs_presaved) {calques->addItem(QString::fromStdString(a));}
-    calques->move(10, 0);
-    calques->resize(100, 20);
-    calques->show();
-    connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
-    connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
-    connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
-    detail_selectionne = new Frame();
-    detail_selectionne->resize(50, 50);
-    detail_selectionne->move(400, 400);
-    detail_selectionne->setWindowFlag(Qt::ToolTip, true);
-    detail_selectionne->setStyleSheet("background-color: white");
-    this->setUpdatesEnabled(true);
-    detail_selectionne->hide();
-    calque_mod = new QPushButton("calque_switch", this);
-    connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
-    calque_mod->move(225, 0);
-    calque_mod->show();
-    calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
-    calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
-    calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
-    translate(calque);
     simul_on = true;
 }
 
@@ -435,6 +447,16 @@ void MainWindow::pause_s()
         pause->setText("play");
         simul_on = false;
     }
+}
+
+void MainWindow::calque_switch_s()
+{
+    if (calque.on_off)
+    {
+        calque_mod->setDown(false);
+    }
+    else {calque_mod->setDown(true);}
+    calque.on_off = 1 - calque.on_off;
 }
 
 void MainWindow::combo_time(int i)
@@ -458,13 +480,20 @@ void MainWindow::combo_time(int i)
     else {detail_selectionne->hide();}
 }
 
-void MainWindow::focus_frame(bool b) {frame_on = b;}
+void MainWindow::focus_frame(bool b) 
+{
+    if (b) {calques->setCurrentText("--select--");}
+    frame_on = b;
+    if (calque.on_off) {calque_mod->setDown(true);}
+}
 
 void MainWindow::item_changed_s(QString const& entree)
 {
     if (entree != "" && entree != "--select--")
     {
-        calque.alive = Motif(entree.toStdString());
+        std::string emplacement("presavec");
+        if ((calques->view()->currentIndex().row() <= nb_motifs_locaux)) {emplacement = "local";}
+        calque.alive = Motif(entree.toStdString(), emplacement);
         calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
         calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
         translate(calque);
@@ -494,4 +523,5 @@ MainWindow::~MainWindow()
     delete detail_selectionne;
     delete ptr;
     delete save_game;
+    for (auto& a : labels) {delete a.second;}
 }
