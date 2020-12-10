@@ -85,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
-    new_sim = new QPushButton("Nouvelle simulation", this);
+    new_sim = new QPushButton("Nouvelle simulation", this);    
     new_sim->resize(150, 35);
     new_sim->move(355, 15);
     connect(new_sim, SIGNAL (clicked()), this, SLOT (creer_s()));
@@ -98,15 +98,15 @@ MainWindow::MainWindow(QWidget *parent)
     sim_choix->resize(200, 20);
     sim_choix->move(20, 5);
     sim_loc = new QComboBox(this);
+    sim_loc->addItem("--local--");    
     std::vector<std::string> simul(existing_local_sims());
     for (std::string a : simul) {sim_loc->addItem(QString::fromStdString(a));}
-    sim_loc->addItem("--local--");
     sim_loc->move(10, 30);
     sim_loc->resize(150, 25);
     sim_presaved = new QComboBox(this);
+    sim_presaved->addItem("--presaved--");    
     simul = existing_local_sims();
     for (std::string a : simul) {sim_presaved->addItem(QString::fromStdString(a));}
-    sim_presaved->addItem("--presaved--");
     sim_presaved->move(170, 30);
     sim_presaved->resize(150, 25);
     sim_lance = new QPushButton("Lancer", this);
@@ -163,6 +163,7 @@ void MainWindow::creer()
     calque_mod->resize(90, 25);
     calque_mod->show();
     reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
+    reload_calques->setStyleSheet("QPushButton {background-color : red; border-radius : 10px} QPushButton:pressed {background-color : blue; border-radius : 5px}"); 
     connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));    
     reload_calques->resize(25, 25);
     reload_calques->move(125, 30);
