@@ -74,18 +74,18 @@ void Frame::paintEvent(QPaintEvent *event)
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), new_taille(nullptr), new_entree(nullptr), new_state(false), 
+    : QMainWindow(parent), new_taille(nullptr), new_entree(nullptr), new_state(false),
       cells2(nullptr), lance(nullptr), calque_mod(nullptr), calques(nullptr), reload_calques(nullptr),
-      pause(nullptr), 
-      save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0), 
+      pause(nullptr),
+      save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false), 
+      x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
-    new_sim = new QPushButton("Nouvelle simulation", this);    
+    new_sim = new QPushButton("Nouvelle simulation", this);
     new_sim->resize(150, 35);
     new_sim->move(355, 15);
     connect(new_sim, SIGNAL (clicked()), this, SLOT (creer_s()));
@@ -98,13 +98,13 @@ MainWindow::MainWindow(QWidget *parent)
     sim_choix->resize(200, 20);
     sim_choix->move(20, 5);
     sim_loc = new QComboBox(this);
-    sim_loc->addItem("--local--");    
+    sim_loc->addItem("--local--");
     std::vector<std::string> simul(existing_local_sims());
     for (std::string a : simul) {sim_loc->addItem(QString::fromStdString(a));}
     sim_loc->move(10, 30);
     sim_loc->resize(150, 25);
     sim_presaved = new QComboBox(this);
-    sim_presaved->addItem("--presaved--");    
+    sim_presaved->addItem("--presaved--");
     simul = existing_local_sims();
     for (std::string a : simul) {sim_presaved->addItem(QString::fromStdString(a));}
     sim_presaved->move(170, 30);
@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance = new QPushButton("Lancer", this);
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
-    connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));    
+    connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
 }
 
 void MainWindow::creer()
@@ -163,28 +163,28 @@ void MainWindow::creer()
     calque_mod->resize(90, 25);
     calque_mod->show();
     reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
-    reload_calques->setStyleSheet("QPushButton {background-color : red; border-radius : 10px} QPushButton:pressed {background-color : blue; border-radius : 5px}"); 
-    connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));    
+    reload_calques->setStyleSheet("QPushButton {background-color : red; border-radius : 10px} QPushButton:pressed {background-color : blue; border-radius : 5px}");
+    connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
     reload_calques->resize(25, 25);
     reload_calques->move(125, 30);
     reload_calques->show();
     calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
-    translate(calque);    
+    translate(calque);
 }
 
-void MainWindow::creer_s() 
-{ 
+void MainWindow::creer_s()
+{
     if (new_state)
     {
-        nb_lines = new_entree->text().toUInt(); 
-        nb_col = new_entree->text().toUInt(); 
-        this->creer(); 
+        nb_lines = new_entree->text().toUInt();
+        nb_col = new_entree->text().toUInt();
+        this->creer();
         state = 1;
         new_state = false;
     }
-    else 
+    else
     {
         new_state = true;
         new_sim->resize(50, 25);
@@ -272,11 +272,11 @@ void MainWindow::paintEvent(QPaintEvent *event)
             }
         }
     }
-    else 
+    else
     {
         paint->drawLine(335, 5, 335, 85);
     }
-    paint->end();   
+    paint->end();
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -344,12 +344,20 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 void MainWindow::wheelEvent(QWheelEvent* event)
 {
     QPoint delta(event->angleDelta());
-    double mouv(delta.y()/12);
-    if ((mouv > 0 && nb_lines <= 390 && nb_col <= 390)
-        || (mouv < 0 && nb_lines >= 20 && nb_col >= 20))
+    // angleDelta en degrés (entre 0 et 360)
+    int mouv(delta.y()/12);
+    if (mouv >= 0 && mouv <= 10) {
+        mouv = 10;
+    } else if (mouv < 0 && mouv >= -10) {
+        mouv = -10;
+    }
+    mouv = (mouv/10)*10;
+    //std::cerr << delta.y() << " " << mouv << " ";
+    if (0 < mouv + nb_lines && mouv + nb_lines <= 400 && 0 < mouv + nb_col && mouv + nb_col <= 400)
     {
         nb_lines += mouv;
         nb_col += mouv;
+        //std::cerr << nb_lines << " " << nb_col << std::endl;
         ptr->resize(nb_lines, nb_col);
         this->update();
     }
@@ -406,7 +414,7 @@ void MainWindow::charger_calque()
             Calque temp;
             for (auto a : *cells2)
             {
-                if (((long long int)(a.first) >= min_x && (long long int)(a.first) <= max_x) && 
+                if (((long long int)(a.first) >= min_x && (long long int)(a.first) <= max_x) &&
                     ((long long int)(a.second) >= min_y && (long long int)(a.second) <= max_y))
                 {
                     temp.alive.push_back(a);
@@ -486,7 +494,7 @@ void MainWindow::combo_time(int i)
         {
             detail_selectionne->load(calques->itemText(calques->view()->currentIndex().row()).toStdString(), (calques->view()->currentIndex().row() <= nb_motifs_locaux));
             detail_selectionne->move(QCursor::pos());
-            detail_selectionne->show();            
+            detail_selectionne->show();
             detail_selectionne->raise();
         }
         else {detail_selectionne->resize(1,1);}
@@ -494,7 +502,7 @@ void MainWindow::combo_time(int i)
     else {detail_selectionne->hide();}
 }
 
-void MainWindow::focus_frame(bool b) 
+void MainWindow::focus_frame(bool b)
 {
     if (b) {calques->setCurrentText("--select--");}
     frame_on = b;
@@ -542,6 +550,6 @@ MainWindow::~MainWindow()
     delete detail_selectionne;
     delete ptr;
     delete save_game;
-    for (auto& a : labels) {delete a.second;}  
+    for (auto& a : labels) {delete a.second;}
     delete reload_calques;
 }

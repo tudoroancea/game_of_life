@@ -88,7 +88,7 @@ public slots:
 
 
 private:
-    
+
     std::unordered_map<std::string, QLabel*> labels;
 
     QComboBox* sim_loc;
@@ -103,7 +103,7 @@ private:
     QPushButton* lance;
     QPushButton* calque_mod;
     Combobox* calques;
-    QPushButton* reload_calques;    
+    QPushButton* reload_calques;
 
     QPushButton* pause;
     QPushButton* save_game;
@@ -135,9 +135,9 @@ private:
  * Ajouter la sauvegarde dans un fichier
  * Pour la sauvegarde de la simulation deux possibilités
  * si on peut ouvrir le dialogue interface et récupérer
- * le nom entré alors super. Sinon il faut une première 
- * fenêtre pour demander un nom et ensuite ouvrir 
- * le dialogue interface avec ce nom proposé 
+ * le nom entré alors super. Sinon il faut une première
+ * fenêtre pour demander un nom et ensuite ouvrir
+ * le dialogue interface avec ce nom proposé
  *  Dans tous les cas il faut ouvrir le dialogue interface
 
  */

@@ -16,7 +16,7 @@ cmake-build-debug
 *.cbp
 
 test/googletest
-data/local/**/*.csv
+#data/local/**/*.csv
 .qmake.stash
 *.o
 *.a
