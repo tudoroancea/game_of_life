@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include <QFile>
+#include <QPalette>
 
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
@@ -115,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
+    std::cout << QPalette().color(QPalette::Window).name().toStdString() << std::endl;
 }
 
 void MainWindow::init_styles()
