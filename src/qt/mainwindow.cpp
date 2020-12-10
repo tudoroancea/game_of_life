@@ -12,8 +12,7 @@
 #include <QAbstractItemView>
 #include <fstream>
 #include <string>
-
-typedef std::string S;
+#include <QFile>
 
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
@@ -84,8 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
       x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
-    init_styles();
-    this->setStyleSheet(style_sheets["style_button"]);    
+    init_styles();   
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
@@ -121,14 +119,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::init_styles()
 {
-    S style_button = S("QPushButton {background-color : rgb(230, 230, 230);") + 
-    S(" border-style : outset;") + 
-    S(" border-width : 1px;") + 
-    S(" border-radius : 3px;") + 
-    S(" border-color : grey}") +
-    S(" QPushButton:pressed {background-color : rgb(210, 210, 210);") +
-    S(" border-style : inset}");
-    style_sheets["style_button"] = QString::fromStdString(style_button);
+    QFile style_sh(":/style_sheet.qss");
+    style_sh.open(QFile::ReadOnly);
+
+    QString style = QLatin1String(style_sh.readAll());
+
+    this->setStyleSheet(style); 
+    //this->setStyleSheet(style_sheets["style_combo_liste"]); 
 }
 
 void MainWindow::creer()
@@ -158,6 +155,7 @@ void MainWindow::creer()
     mode->show();
     calques = new Combobox(this);
     calques->setParent(this);
+    //calques->setStyleSheet(style_sheets["style_combo"]);
     calques->addItem("--select--");
     charger_calques();
     calques->move(10, 30);
