@@ -58,6 +58,7 @@ bool GameOfLife::access(size_t i, size_t j) {
 }
 liste const& GameOfLife::get_viv() const {return vivantes_visibles;}
 liste const& GameOfLife::get_viv_2() const {return vivantes;}
+std::array<std::array<bool,500>,500> const& GameOfLife::get_champ() const {return champ;}
 
 GameOfLife& GameOfLife::add_cell(coord const& c) {
 	coord c_translate({c.first+50,c.second+50});
@@ -117,7 +118,7 @@ GameOfLife& GameOfLife::resize(unsigned int const& l, unsigned int const& c) {
 	//Source de la disparition lors du zoom.
 	if (l_is_inf || c_is_inf) {
 		for (liste::iterator it(vivantes.begin()); it != vivantes.end(); ++it) {
-			if(it->first >= L+50 || it->second >= C+50) {
+			if(it->first >= L+100 || it->second >= C+100) {
 				champ[it->first][it->second] = false;
 				vivantes.erase(it);
 				--it;

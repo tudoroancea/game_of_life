@@ -30,7 +30,7 @@ private :
      */
     std::array<std::array<bool,500>,500> champ;
     /**
-     *  @brief  Liste des coordonnees (dans [0,L+100[x[0,C+100[) des cellules vivantes a un instant donne.
+     *  @brief  Liste des coordonnees (dans [0,L+100[x[0,C+100[) des cellules vivantes a un instant donne. (partie visible et marge)
      */
     liste vivantes;
     /**
@@ -72,9 +72,10 @@ public :
      */
     liste const& get_viv() const;
     /**
-     *  @returns    La liste des cellules vivantes avec coordonnees translatees dans [0,L[x[0,C[
+     *  @returns    La liste des cellules vivantes avec coordonnees dans [0,L+100[x[0,C+100[ (comme dans l'array sous-jacent)
      */
     liste const& get_viv_2() const;
+    std::array<std::array<bool,500>,500> const& get_champ() const;
     /**
      *  @returns    reference on the number of generations
      */

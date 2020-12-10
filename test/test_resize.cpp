@@ -15,11 +15,20 @@ int main() {
     G.add_cell(39,39);
     G.add_cell(40,40);
     G.add_cell(49,49);
-    liste v(G.get_viv());
-    for (auto const& el : v) cout << "(" << el << ")\n";
+    G.print();
+    //std::array<std::array<bool,500>,500> tab(G.get_champ());
+    //for (auto const& ligne : tab) {
+    //    for (auto const& el : ligne) {
+    //        if (el != 0)
+    //    }
+    //}
+
+    //liste v(G.get_viv_2());
+    //for (auto const& el : v) cout << el << endl;
+
     G.resize(40,40);
     G.print();
-    v = G.get_viv();
-    for (auto const& el : v) cout << "(" << el << ")\n";
+    G.resize(50, 50);
+    G.print();
     return 0;
 }
