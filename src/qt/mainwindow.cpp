@@ -13,6 +13,8 @@
 #include <fstream>
 #include <string>
 
+typedef std::string S;
+
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
     timer = new QTimer();
@@ -82,6 +84,8 @@ MainWindow::MainWindow(QWidget *parent)
       x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
+    init_styles();
+    this->setStyleSheet(style_sheets["style_button"]);    
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
@@ -113,6 +117,18 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
+}
+
+void MainWindow::init_styles()
+{
+    S style_button = S("QPushButton {background-color : rgb(230, 230, 230);") + 
+    S(" border-style : outset;") + 
+    S(" border-width : 1px;") + 
+    S(" border-radius : 3px;") + 
+    S(" border-color : grey}") +
+    S(" QPushButton:pressed {background-color : rgb(210, 210, 210);") +
+    S(" border-style : inset}");
+    style_sheets["style_button"] = QString::fromStdString(style_button);
 }
 
 void MainWindow::creer()
@@ -163,7 +179,7 @@ void MainWindow::creer()
     calque_mod->resize(90, 25);
     calque_mod->show();
     reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
-    reload_calques->setStyleSheet("QPushButton {background-color : red; border-radius : 10px} QPushButton:pressed {background-color : blue; border-radius : 5px}");
+    //reload_calques->setStyleSheet(style_sheets["style_button"]);
     connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
     reload_calques->resize(25, 25);
     reload_calques->move(125, 30);

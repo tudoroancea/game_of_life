@@ -89,6 +89,9 @@ public slots:
 
 private:
 
+    void init_styles();    
+
+    std::unordered_map<std::string, QString> style_sheets;
     std::unordered_map<std::string, QLabel*> labels;
 
     QComboBox* sim_loc;
