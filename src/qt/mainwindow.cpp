@@ -81,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
       pause(nullptr),
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), ptr(nullptr), ctrl_on(false), simul_on(false),
+      x_end(-1), y_end(-1), ptr({nullptr, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
     init_styles();   
@@ -144,8 +144,12 @@ void MainWindow::creer()
     pos_souris = new QLabel(this);
     pos_souris->move(480, 580);
     pos_souris->show();
-    ptr = new GameOfLife(nb_lines, nb_col);
-    cells2 = &(ptr->get_viv());
+    ptr.lmin = (MAX_LIGNES - nb_lines)/2;
+    ptr.cmin = (MAX_COLONNES - nb_col)/2;
+    ptr.lmax = ptr.lmin + nb_lines;
+    ptr.cmax = ptr.cmin + nb_col;
+    ptr.vue = new GameOfLifeView(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+    cells2 = &(ptr.vue->get_viv());
     QLabel* calques_saved = new QLabel("Calques disponibles :", this);
     labels["calques_saved"] = calques_saved;
     calques_saved->resize(140, 20);
@@ -311,11 +315,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                         (event->x()-10)*nb_lines/500 + a.first  - calque.translate.first < nb_lines    &&
                         (event->y()-90)*nb_col/500 + a.second - calque.translate.second < nb_col)
                     {
-                        ptr->add_cell({(event->x()-10)*nb_lines/500 + a.first  - calque.translate.first,(event->y()-90)*nb_col/500 + a.second - calque.translate.second});
+                        ptr.vue->add_cell({(event->x()-10)*nb_lines/500 + a.first  - calque.translate.first,(event->y()-90)*nb_col/500 + a.second - calque.translate.second});
                     }
                 }
             }
-            else { ptr->inv_cell({(event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500});}
+            else { ptr.vue->inv_cell({(event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500});}
             x_prec = x_current;
             y_prec = y_current;
             x_current = (event->x()-10)*nb_lines/500;
@@ -345,10 +349,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
                     for (auto const& a : a_ajouter)
                     {
                         //std::cout << "\\" << a.first << " " << a.second << std::endl;
-                        ptr->add_cell(a);
+                        ptr.vue->add_cell(a);
                     }
                 }
-                ptr->inv_cell({x_current, y_current});
+                ptr.vue->inv_cell({x_current, y_current});
             }
         }
         else {x_current = -1; y_current = -1;}
@@ -374,7 +378,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         nb_lines += mouv;
         nb_col += mouv;
         //std::cerr << nb_lines << " " << nb_col << std::endl;
-        ptr->resize(nb_lines, nb_col);
+        //ptr.vue->resize(nb_lines, nb_col); A réimplémenter pour l'instant flemme.
         this->update();
     }
 }
@@ -384,7 +388,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
     if (timer != 0)
     {
         Q_UNUSED(event);
-        ptr->evolve();
+        ptr.vue->evolve();
         this->update();
     }
 }
@@ -564,7 +568,7 @@ MainWindow::~MainWindow()
     delete pos_souris;
     delete calques;
     delete detail_selectionne;
-    delete ptr;
+    delete ptr.vue;
     delete save_game;
     for (auto& a : labels) {delete a.second;}
     delete reload_calques;

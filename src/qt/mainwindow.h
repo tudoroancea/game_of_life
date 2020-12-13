@@ -20,6 +20,12 @@
 #include "game_of_life.h"
 #include "motifs.h"
 
+struct Vue
+{
+    GameOfLifeView* vue;
+    int lmin, lmax, cmin, cmax;
+};
+
 class Combobox : public QComboBox
 {
     Q_OBJECT
@@ -124,7 +130,9 @@ private:
     int x_end;
     int y_end;
     int timer;
-    GameOfLife* ptr;
+
+    Vue ptr;
+
     Calque calque;
     bool ctrl_on;
     bool simul_on;
