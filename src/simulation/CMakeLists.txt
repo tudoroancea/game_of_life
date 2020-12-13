@@ -10,6 +10,11 @@ add_definitions(-DDATA_PATH="${CMAKE_SOURCE_DIR}/data")
 add_definitions(-DLOCAL_PATH="${CMAKE_SOURCE_DIR}/data/local")
 add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    add_definitions(-DOVERFLOW_WARNINGS)
+endif()
+add_definitions()
+
 add_library(simulation
     STATIC
     game_of_life.cpp game_of_life.h

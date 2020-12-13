@@ -8,134 +8,146 @@
     #define CLEAR() std::system("clear");
 #endif
 
+#define MAX_LIGNES 400
+#define MAX_COLONNES 400
+
 #include <array>
 #include <iostream>
 #include "motifs.h"
 #include "rapidcsv.h"
 
+/**
+ * @class GameOfLife
+ * @brief Classe qui représente une grille de jeu de la vie qu'on peut faire évoluer, afficher, enregsitrer.
+ */
 class GameOfLife {
-private :
+protected :
     /**
-     *  @brief  Nombre de Lignes et de Colonnes de la zone visible de la Grille
-     */
-    unsigned int C,L;
-    /**
-     *  @brief  Nombre de generations passees pendant l'evolution
+     *  @brief  Nombre de générations passées pendant l'evolution
      */
     unsigned int nbr_gen;
     /**
-     *  @brief  Grille de 500x500 qui contient les informations des cellules.
-     *  La zone visible doit avoir une taille max de 400x400 pour laisser des marges de 50 de chaque coté pour eviter les effets de bord.
-     *  On suppose que la zone visible s'étend sur [50,L+50[x[50,C+50[.
+     *  @brief  Grille de (MAX_LIGNES+100)x(MAX_COLONNES+100) qui contient les informations des cellules.
+     *  La zone qu'on peut manipuler est [50,MAX_LIGNES+50[x[50,MAX_COLONNES+50[ (les marges restantes sont là pour éviter les effets de bord).
+     *  Ces manipulations via l'interface se font avec des coordonnées NE TENANT PAS COMPTE des marges (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ) et qui sont ensuite translatées.
      */
-    std::array<std::array<bool,500>,500> champ;
+    std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> grille;
     /**
-     *  @brief  Liste des coordonnees (dans [0,L+100[x[0,C+100[) des cellules vivantes a un instant donne. (partie visible et marge)
+     *  @brief  Liste des coordonnees qui TIENNENT compte des marges (dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[) des cellules vivantes a un instant donne.
      */
     liste vivantes;
-    /**
-     *  @brief  Liste des coordonnees (dans [0,L[x[0,C[) des cellules vivantes à l'interieur de la partie visible. Les coordonnees sont reconverties par rapport a l'origine de cette partie visible
-     */
-    liste vivantes_visibles;
 
     // Méthodes utilitaires =========================
     /**
-     *  @brief  Calcule l'etat suivant d'une cellule (d'une grille potentiellement infinie)
-     *  @param i,j coordonnees de la cellule
-     *  @returns true si la cellule doit devenir vivante ou false si elle ne doit pas ou si elle est en dehors de la zone a faire evoluer
+     * @brief Méthode utilitaire qui est utilisée comme raccourci dans evolve().
+     * Elle vérifie si les cellules voisines de (i,j) n'étaient pas déjà vivantes et si elles doivent le devenir.
+     * Si oui elle les rajoute à v
+     *
+     * @param i,j coordonnées de la cellule de base (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
+     * @param v liste des cellules vivantes à laquelle rajouter les voisines qui vont devenir vivantes.
      */
-    bool next_state(size_t i, size_t j);
+    void verif(size_t const& i, size_t const& j, liste& v);
     /**
      *  @brief  Calcule l'etat suivant d'une cellule (d'une grille potentiellement infinie)
-     *  @param c coordonnees de la cellule
+     *  @param i,j coordonnees de la cellule (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
+     *  @returns true si la cellule doit devenir vivante ou false si elle ne doit pas ou si elle est en dehors de la zone a faire evoluer
+     */
+    bool next_state(size_t const& i, size_t const& j) const;
+    /**
+     *  @brief  Calcule l'etat suivant d'une cellule (d'une grille potentiellement infinie)
+     *  @param c coordonnees de la cellule (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
      *  @returns true si la cellule doit devenir vivante ou false si elle ne doit pas ou si elle est en dehors de la zone a faire evoluer
      */
     bool next_state(coord const& c);
     /**
-     *  @brief  Verifie que la cellule indiquee est morte et a l'interieur de la grille, et si elle doit devenir vivante, la rajoute au tableau donne en parametres et a vivantes_visibles si elle est entre les bonnes bornes (en la translatant au prealable)
-     *  @param  i,j coordoonnees (dans [0,L+100]x[0,C+100])
-     *  @param  v,v_visibles    liste de cellules vivantes a mettre a jour
+     *  @returns	L'etat de la cellule si elle existe (true si elle est vivante, false si elle est morte), et false sinon
      */
-    void verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles);
+    bool access(size_t const& i, size_t const& j) const;
 public :
     // Constructeurs ========================================
-    GameOfLife(Motif const& a_marquer, unsigned int const& C = 50,unsigned int const& L = 50);
-    // modulos pour gérer les cas supérieurs à 400
-    GameOfLife(unsigned int const& C = 50, unsigned int const& L = 50);
-    // Getter & setters ========================================
     /**
-     *  @returns	L'etat de la cellule si elle existe, et false sinon
+     * @brief Construit un nouveau GameOfLife avec une grille vide.
      */
-    bool access(size_t i, size_t j);
+    GameOfLife();
     /**
-     *  @returns    La liste des cellules vivantes visibles avec coordonnees translatees dans [0,L[x[0,C[
+     * @brief Construit un nouveau GameOfLife contenant déjà un certain Motif.
+     * @param a_marquer Motif à dessiner à la création. Coordonnées dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ qui correspondent à la zone sans marge de la grille
+     */
+    GameOfLife(Motif const& a_marquer);
+
+    // Getters ========================================
+    /**
+     *  @return    La liste des cellules vivantes visibles avec coordonnees TENANT COMPTE DES MARGES (ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
      */
     liste const& get_viv() const;
     /**
-     *  @returns    La liste des cellules vivantes avec coordonnees dans [0,L+100[x[0,C+100[ (comme dans l'array sous-jacent)
+     * @return référence constante sur la grille des cellules
      */
-    liste const& get_viv_2() const;
-    std::array<std::array<bool,500>,500> const& get_champ() const;
+    std::array<std::array<bool,500>,500> const& get_grille() const;
     /**
-     *  @returns    reference on the number of generations
+     *  @returns    référence sur le nombre de générations
+     *  @brief  (on renvoie une référence pour incrémenter le nombre de générations dans …)
      */
     unsigned int& get_nbr_gen();
+
+    // Setters ==========================================
     /**
-     *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
-     *  @param   c  coordonnees par rapport a grille affichee (dans [0,L[x[0,C[)
+     *  @brief   Vérifie si la cellule indiquée est pas déjà dans la grille et sinon l'y insère (et dans la liste des vivantes)
+     *  @param   c  coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& add_cell(coord const& c);
     /**
-     *  @brief   Verifie si la cellule indiquee est pas deja dans la grille et sinon l'y insere (et dans la liste des vivantes)
-     *  @param   i,j    coordonnees par rapport a grille affichee (dans [0,L[x[0,C[)
+     *  @brief   Vérifie si la cellule indiquée est pas déjà dans la grille et sinon l'y insére (et dans la liste des vivantes)
+     *  @param   i,j    coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& add_cell(size_t const& i, size_t const& j);
     /**
-     * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
-     * @param   c   coordonnees par rapport a grille affichee (dans [0,L[x[0,C[))
+     *  @brief   Vérifie si la cellule indiquée est bien vivante et si oui la supprime de la grille (et de la liste des vivantes)
+     *  @param   c   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& suppr_cell(coord const& c);
     /**
-     * @brief   Verifie si la cellule indiquee est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
-     * @param   i,j   coordonnees par rapport a grille affichee (dans [0,L[x[0,C[))
+     *  @brief   Vérifie si la cellule indiquée est bien vivante et si oui la supprime de la grille (et dans la liste des vivantes)
+     *  @param   i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& suppr_cell(size_t const& i, size_t const& j);
     /**
-     *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
-     *  @param  c   coordonnees par rapport a grille affichee (dans [0,L[x[0,C[))
+     *  @brief  Inverse l'état de la cellule et met à jour les attributs de l'instance
+     *  @param  c   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& inv_cell(coord const& c);
     /**
-     *  @brief  Inverse l'etat de la cellule et met a jour les attributes de GameOfLife
-     *  @param  i,j   coordonnees par rapport a grille affichee (dans [0,L[x[0,C[))
+     *  @brief  Inverse l'état de la cellule et met à jour les attributes de GameOfLife
+     *  @param  i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& inv_cell(size_t const& i, size_t const& j);
     /**
-     *  @brief  Ajoute un motif dans la grille a l'aide de add_cell()
-     *  @param  m   Motif a rajouter
+     *  @brief  Ajoute un motif dans la grille à l'aide de add_cell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
+     *  @param  m   Motif à rajouter (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& add_motif(Motif const& m);
     /**
      *  @brief  Supprime les cellules de la grille contenues dans un motif a l'aide de suppr_cell()
-     *  @param  m   Motif a enlever
+     *  @param  m   Motif à enlever (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& suppr_motif(Motif const& m);
     /**
      *  @brief  Efface toute la grille
-     *  @returns    reference sur l'instance courante
+     *  @returns    référence sur l'instance courante
      */
     GameOfLife& wipe();
-    /**
-     *  @brief  Redimensionne la partie visible de la grille et supprime les cellules qui dépasserait
-     *  @param  l   nombre de lignes
-     *  @param  c   nombre de colonnes
-     *  @returns    reference sur l'instance courante
-     */
-    GameOfLife& resize(unsigned int const& l, unsigned int const& c);
 
     // Evolution de la simulaitton ==============================
     /**
-     *  @brief  Fait evoluer la grille en la faisant passer a la generation suivantes et en updatant ses attributs
+     *  @brief  Fait evoluer la grille en la faisant passer a la génération suivante et en updatant ses attributs
      */
     void evolve();
 
@@ -145,14 +157,14 @@ public :
 	 *  @param	nom_motif	Nom du fichier à créer
      *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
-    void save_motif(std::string const& nom_motif, std::string const& dossier = "local") const;
+    //void save_motif(std::string const& nom_motif, std::string const& dossier = "local") const;
     /**
      *  @brief  Enregistre un fichier .csv local contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
      *  @param  imin,imax   Bornes sur les lignes (dans [0,L])
      *  @param  jmin,jmax   Bornes sur les colonnes (dans [0,C])
      *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
      */
-    void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier = "local") const;
+    //void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier = "local") const;
     /**
      *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
      *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
@@ -160,21 +172,25 @@ public :
      *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
      *  @returns    true si la simulation a pu être créée, false sinon
      */
-    bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
+    //bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
 
     // Affichage ========================================
     /**
-     *  @brief  Affiche en sortie standard (cli) le contenu du tableau
-     *  @param  Flot de sortie
+     *  @brief  Affiche en sortie standard (texte, cli) le contenu de la grille (sans marges)
+     *  @param  out Flot de sortie sur lequel afficher
      */
     void print(std::ostream& out = std::cout) const;
 
-    // Informations
+    // Informations sur la grille ======================================================
     /**
      * @return Nombre de cellules vivantes
-     *
      */
     unsigned int nbr_cell() const;
+    /**
+     * @brief Utilise l'algorithme sparseCLL du CERN pour trouver les composantes connexes
+     *
+     * @return std::vector<size_t>
+     */
     std::vector<size_t> sparseCLL();
 };
 
@@ -185,91 +201,242 @@ public :
 std::vector<std::string> existing_local_sims();
 std::vector<std::string> existing_presaved_sims();
 
-class Simulation {
+/**
+ * @class   GameOfLifeView
+ * @brief   Sous-classe de GameOfLife qui représente une certaine portion (rectangulaire) de la grille qui est vue et avec laquelle on peut intéragir
+ */
+class GameOfLifeView : public GameOfLife {
     private :
         /**
-         *  @brief  nom de la simulation
+         * @brief Coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ) qui représentent la zone visible de la grille.
+         * On peut modifier le contenu de celle-ci via l'interface en utilisant des coordonnées dans [0,Lmax-Lmin[x[0,Cmax-Cmin[.
          */
-        std::string nom;
+        unsigned int Lmin, Lmax, Cmin, Cmax;
         /**
-         *  @brief  GOL qui contiendra les cellules à afficher
+         * @brief Liste des coordonnées (dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ ) des cellules qui sont vivantes et visibles à un instant donné.
          */
-        GameOfLife* grille;
-        /**
-         *  @brief  Nombre de générations que doit durer la simulation
-         */
-        unsigned int nbr_gen;
-        /**
-         *  @brief  path du fichier de configuration <nom_sim>-info.csv
-         */
-        std::filesystem::path info_path;
-        /**
-         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
-         */
-        rapidcsv::Document info_file;
-        /**
-         *  @brief  path du fichier de contenu <nom_sim>-content.csv
-         */
-        std::filesystem::path content_path;
-        /**
-         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
-         */
-        rapidcsv::Document content_file;
+        liste vivantes_visibles;
 
+        // Méthodes utilitaires ============================================================
+        /**
+         * @brief Méthode utilitaire qui est utilisée comme raccourci dans evolve(). ELle masque celle de la super-classe GameOfLife.
+         * Elle vérifie si les cellules voisines de (i,j) n'étaient pas déjà vivantes et si elles doivent le devenir.
+         * Si oui elle les rajoute à v et à v_visibles.
+         *
+         * @param i,j coordonnées de la cellule de base (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
+         * @param v liste des cellules vivantes à laquelle rajouter les voisines qui vont devenir vivantes.
+         * @param v_visibles    liste des cellules vivantes visibles à laquelle rajouter les voisines qui vont devenir vivantes et visibles.
+         */
+        void verif(size_t const& i, size_t const& j, liste& v, liste& v_visibles);
     public :
+        // Constructeurs ============================================================
         /**
-         *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
+         * @brief Construit un nouvel GameOfLifeView avec vue dans la fenêtre [Lmin, Lmax[x[Cmin, Cmax[.
+         * @param lmin futur Lmin
+         * @param lmax futur Lmax
+         * @param cmin futur Cmin
+         * @param cmax futur Cmax
          */
-        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT};
+        GameOfLifeView(unsigned int const& lmin = MAX_LIGNES/2-24,
+                       unsigned int const& lmax = MAX_LIGNES/2+26,
+                       unsigned int const& cmin = MAX_COLONNES/2-24,
+                       unsigned int const& cmax = MAX_COLONNES/2+26);
 
-        // Constructeurs & Destructeurs
+        // Getters  ==================================================================
         /**
-         *  @brief  construit une simulation vide (pointeur grille NULL, pas de nom et path sur DATA_PATH)
+         * @brief masque la version de la super-classe GameOfLife pour ne renvoyer que les cellules vivantes visibles (avec les coordonnées dans [0,Lmax-Lmin[x[0,Cmax-Cmin[.
+         * @return référence constante sur la liste des vivantes visibles
          */
-        Simulation();
+        liste const& get_viv() const;
         /**
-         *  @brief  remplit la simulation des informations nécessaires
-         *  @param  nom_sim nom de la simulation à chercher
-         *  @param  categorie   dossier où chercher
+         * @return nombre de cellules vivantes visibles
+         */
+        unsigned int nbr_cell() const;
+        /**
+         * @return nombre de lignes dans la partie visible (Lmax-Lmin)
+         */
+        unsigned int nbr_lignes() const;
+        /**
+         * @return nombre de colonnes dans la partie visible (Cmax-Cmin)
+         */
+        unsigned int nbr_colonnes() const;
+
+        // Setters du jeu =======================================================================
+        /**
+         *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
+         *  @param   c  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& add_cell(coord const& c);
+        /**
+         *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
+         *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& add_cell(size_t const& i, size_t const& j);
+        /**
+         *  @brief   Vérifie si la cellule indiquée est bien vivante dans la grille et si oui la supprime. Ne marche que pour des cellules dans la partie visible.
+         *  @param   c  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& suppr_cell(coord const& c);
+        /**
+         *  @brief   Vérifie si la cellule indiquée est bien vivante dans la grille et si oui la supprime. Ne marche que pour des cellules dans la partie visible.
+         *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& suppr_cell(size_t const& i, size_t const& j);
+        /**
+         *  @brief  Inverse l'état de la cellule. Ne marche que pour des cellules dans la partie visible.
+         *  @param   c  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& inv_cell(coord const& c);
+        /**
+         *  @brief  Inverse l'état de la cellule. Ne marche que pour des cellules dans la partie visible.
+         *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @returns référence sur l'instance courante
+         */
+        GameOfLifeView& inv_cell(size_t const& i, size_t const& j);
+        /**
+         *  @brief  Ajoute un motif dans la partie visible de la grille à l'aide de add_cell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
+         *  @param  m   Motif à rajouter (avec coordonnées par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ ))
          *  @returns    référence sur l'instance courante
          */
-        Simulation& load(std::string const& nom_sim, std::string const& categorie = "local");
-        ~Simulation();
+        GameOfLifeView& add_motif(Motif const& m);
+        /**
+         *  @brief  Supprime les cellules de la partie visible de la grille contenues dans un motif a l'aide de suppr_cell().
+         *  @param  m   Motif à enlever (avec coordonnéespar rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ ))
+         *  @returns    référence sur l'instance courante
+         */
+        GameOfLifeView& suppr_motif(Motif const& m);
+        /**
+         *  @brief  Efface toute la partie visible de la grille.
+         *  @returns    référence sur l'instance courante
+         */
+        GameOfLifeView& wipe();
 
-        // Getters
+        // Evolution du jeu ==========================================================================================
         /**
-         *  @brief  pretty self-explanatory
-         */
-        std::string const& get_nom() const;
-        /**
-         *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
-         *  @param  num_gen numero de la génération
-         *  @returns    motif numero num_gen
-         */
-        Motif get_motif(unsigned int const& num_gen) const;
-        /**
-         *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
-         */
-        liste get_viv() const;
-
-        // Evolution de la grille
-        /**
-         *  @brief  fait évoluer la grille en chargeant le motif suivant
+         *  @brief  Fait evoluer toute la grille en la faisant passer a la génération suivante et en updatant ses attributs.
+         *  Masque la version de la super-classe GameOfLife pour aussi mettre à jour la liste des cellules vivantes et visibles.
          */
         void evolve();
-        /**
-         *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
-         */
-        bool finie() const;
 
-        // Affichage
+        // Modification de la vue ====================================================================================
         /**
-         *  @brief  fait appel à la méthode print() de grille pour l'afficher
-         *  @param  out flot de sortie sur lequel afficher la grille
+         *  @brief  Redimensionne la partie visible de la grille et met à jour la liste des cellules vivantes visibles
+         *  @param  lmin    nouveau Lmin
+         *  @param  Lmax    nouveau Lmax
+         *  @param  Cmin    nouveau Cmin
+         *  @param  Cmax    nouveau Cmax
+         *  @returns    reference sur l'instance courante
          */
-        void print(std::ostream& out = std::cout) const;
+        GameOfLifeView& resize(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax);
+        /**
+         * @brief   Translate la partie visible d'un certain vecteur et met à jour la liste des cellules vivantes visibles
+         * @param   l   nombre de lignes à rajouter (négatif si on veut en enlever)
+         * @param   c   nombre de colonnes à rajouter (négatif si on veut en enlever)
+         * @return  référence sur l'instance courante
+         */
+        GameOfLifeView& translate(int const& l, int const& c);
+        //GameOfLifeView& rotate(int const& angle_mod_90);
 
+        // Affichage ====================================================================================
+        /**
+         *  @brief  Affiche en sortie standard (texte, cli) la partie visible de la grille
+         *  @param  out Flot de sortie sur lequel afficher
+         *  @param  avec_grille si true affiche également la grille entière à droite de la partie visible.
+         */
+        void print(std::ostream& out = std::cout, bool avec_grille = false) const;
 };
+
+//class Simulation {
+//    private :
+//        /**
+//         *  @brief  nom de la simulation
+//         */
+//        std::string nom;
+//        /**
+//         *  @brief  GOL qui contiendra les cellules à afficher
+//         */
+//        GameOfLife* grille;
+//        /**
+//         *  @brief  Nombre de générations que doit durer la simulation
+//         */
+//        unsigned int nbr_gen;
+//        /**
+//         *  @brief  path du fichier de configuration <nom_sim>-info.csv
+//         */
+//        std::filesystem::path info_path;
+//        /**
+//         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
+//         */
+//        rapidcsv::Document info_file;
+//        /**
+//         *  @brief  path du fichier de contenu <nom_sim>-content.csv
+//         */
+//        std::filesystem::path content_path;
+//        /**
+//         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
+//         */
+//        rapidcsv::Document content_file;
+
+//    public :
+//        /**
+//         *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
+//         */
+//        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT};
+
+//        // Constructeurs & Destructeurs
+//        /**
+//         *  @brief  construit une simulation vide (pointeur grille NULL, pas de nom et path sur DATA_PATH)
+//         */
+//        Simulation();
+//        /**
+//         *  @brief  remplit la simulation des informations nécessaires
+//         *  @param  nom_sim nom de la simulation à chercher
+//         *  @param  categorie   dossier où chercher
+//         *  @returns    référence sur l'instance courante
+//         */
+//        Simulation& load(std::string const& nom_sim, std::string const& categorie = "local");
+//        ~Simulation();
+
+//        // Getters
+//        /**
+//         *  @brief  pretty self-explanatory
+//         */
+//        std::string const& get_nom() const;
+//        /**
+//         *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
+//         *  @param  num_gen numero de la génération
+//         *  @returns    motif numero num_gen
+//         */
+//        Motif get_motif(unsigned int const& num_gen) const;
+//        /**
+//         *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
+//         */
+//        liste get_viv() const;
+
+//        // Evolution de la grille
+//        /**
+//         *  @brief  fait évoluer la grille en chargeant le motif suivant
+//         */
+//        void evolve();
+//        /**
+//         *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
+//         */
+//        bool finie() const;
+
+//        // Affichage
+//        /**
+//         *  @brief  fait appel à la méthode print() de grille pour l'afficher
+//         *  @param  out flot de sortie sur lequel afficher la grille
+//         */
+//        void print(std::ostream& out = std::cout) const;
+
+//};
+
 
 /**
  * @brief   Renvoie une repartition des cellules telle que chaque morceau est connexe (au sens des voisins)
