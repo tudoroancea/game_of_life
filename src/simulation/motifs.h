@@ -10,16 +10,16 @@ typedef std::pair<size_t,size_t> coord;
 typedef std::vector<coord> liste;
 
 enum FILE_CATEGORY{local, presaved};
-std::string to_string(FILE_CATEGORY const& FILE_CAT) {
-    switch (FILE_CAT) {
-        case local:
-            return "local";
-        case presaved:
-            return "presaved";
-        default:
-            return "";
-    }
-}
+//std::string to_string(FILE_CATEGORY const& FILE_CAT) {
+//    switch (FILE_CAT) {
+//        case local:
+//            return "local";
+//        case presaved:
+//            return "presaved";
+//        default:
+//            return "";
+//    }
+//}
 
 #define X(c) c.first
 #define Y(c) c.second

@@ -14,26 +14,26 @@
 #define SWITCH_SIMULATION_ERROR(err) {\
     switch (err) {\
         case Simulation::Error::NON_EXISTING_SIM:\
-            std::cerr << " ERROR : Dossier <" << sim.get_nom() << "> n'existe pas." << std::endl;\
+            std::cerr << "[ERROR : Dossier <" << sim.get_nom() << "> n'existe pas.]" << std::endl;\
             return -1;\
         case Simulation::Error::NON_EXISTING_INFO: {\
-            std::cerr << " ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> n'existe pas." << std::endl;\
+            std::cerr << "[ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> n'existe pas.]" << std::endl;\
             return -1;\
         }\
         case Simulation::Error::INCOMPLETE_INFO: {\
-            std::cerr << " ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> incomplet." << std::endl;\
+            std::cerr << "[ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> incomplet.]" << std::endl;\
             return -1;\
         }\
         case Simulation::Error::NON_EXISTING_CONTENT: {\
-            std::cerr << " ERROR : Fichier de contenu <" << sim.get_nom() << "-contenu.csv> n'existe pas." << std::endl;\
+            std::cerr << "[ERROR : Fichier de contenu <" << sim.get_nom() << "-contenu.csv> n'existe pas.]" << std::endl;\
             return -1;\
         }\
         case Simulation::Error::INCOMPLETE_CONTENT: {\
-            std::cerr << " ERROR : Fichier de contenu <" << sim.get_nom() << "-content.csv> incomplet." << std::endl;\
+            std::cerr << "[ERROR : Fichier de contenu <" << sim.get_nom() << "-content.csv> incomplet.]" << std::endl;\
             return -1;\
         }\
         default:\
-            std::cerr << " UNEXPECTED ERROR" << std::endl;\
+            std::cerr << "[UNEXPECTED ERROR]" << std::endl;\
             break;\
     }\
 }
@@ -77,14 +77,14 @@ int CliApp::exec() {
         std::cout << "Chargement du fichier de configuration de la simulation" << std::endl;
         if (size_t(input) <= loc_sims.size()) {
             try {
-                sim.load(loc_sims[input-1]);
+                sim.load(loc_sims[input-1], local);
             }
             catch (Simulation::Error const& err) {
                 SWITCH_SIMULATION_ERROR(err)
             }
         } else {
             try {
-                sim.load(saved_sims[input-1-loc_sims.size()], "presaved");
+                sim.load(saved_sims[input-1-loc_sims.size()], presaved);
             }
             catch (Simulation::Error const& err) {
                 SWITCH_SIMULATION_ERROR(err)
