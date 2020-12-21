@@ -46,3 +46,6 @@ target_link_libraries(test_connexite LINK_PUBLIC simulation)
 
 add_executable(test_resize test_resize.cpp)
 target_link_libraries(test_resize LINK_PUBLIC simulation)
+
+add_executable(test_gameoflifeview test_gameoflifeview.cpp)
+target_link_libraries(test_gameoflifeview LINK_PUBLIC simulation)

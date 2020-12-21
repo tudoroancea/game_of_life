@@ -19,10 +19,10 @@ std::ostream& operator<<(std::ostream& out, coord const& c) {
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
-Motif::Motif(std::string const& fichier, std::string const& categorie) {
+Motif::Motif(std::string const& fichier, FILE_CATEGORY const& categorie) {
 	std::string chemin("");
 	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
-	if (categorie != "local") chemin = "presaved/motifs/"+fichier+".csv";
+	if (categorie != local) chemin = "presaved/motifs/"+fichier+".csv";
 	else chemin = "local/motifs/"+fichier+".csv";
 	if(std::filesystem::exists(std::filesystem::path(chemin))) {
 		rapidcsv::Document motif(chemin);

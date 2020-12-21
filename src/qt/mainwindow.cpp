@@ -54,7 +54,7 @@ void Frame::load(std::string s, bool local)
     if (s != "")
     {
         if (local) {a_dessiner = Motif(s);}
-        else {a_dessiner = Motif(s, "presaved");}
+        else {a_dessiner = Motif(s, presaved);}
         a_dessiner.recalibrate();
         this->resize((a_dessiner.max_ligne()+1)*10, (a_dessiner.max_colonne()+1)*10);
         this->update();
@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
       x_end(-1), y_end(-1), ptr({nullptr, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
-    init_styles();   
+    init_styles();
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
@@ -126,8 +126,8 @@ void MainWindow::init_styles()
 
     QString style = QLatin1String(style_sh.readAll());
 
-    this->setStyleSheet(style); 
-    //this->setStyleSheet(style_sheets["style_combo_liste"]); 
+    this->setStyleSheet(style);
+    //this->setStyleSheet(style_sheets["style_combo_liste"]);
 }
 
 void MainWindow::creer()
@@ -533,8 +533,8 @@ void MainWindow::item_changed_s(QString const& entree)
 {
     if (entree != "" && entree != "--select--")
     {
-        std::string emplacement("presavec");
-        if ((calques->view()->currentIndex().row() <= nb_motifs_locaux)) {emplacement = "local";}
+        FILE_CATEGORY emplacement(presaved);
+        if ((calques->view()->currentIndex().row() <= nb_motifs_locaux)) {emplacement = local;}
         calque.alive = Motif(entree.toStdString(), emplacement);
         calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
         calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());

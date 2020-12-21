@@ -30,12 +30,12 @@ GameOfLife::GameOfLife(Motif const& a_marquer) : nbr_gen(0) {
 
 // Getters & Setters ========================================================================================
 bool GameOfLife::access(size_t const& i, size_t const& j) const {
-	if (i>=MAX_LIGNES+100 || j>=MAX_COLONNES+100) return false;
+	if (i < MAX_LIGNES+100 || j < MAX_COLONNES+100) return grille[i][j];
 	else {
 		#ifdef OVERFLOW_WARNINGS
 			std::cerr << "[GameOfLife::access(" << i << "," << j << ") a renvoyé false car les coordonées étaient trop grandes]";
 		#endif
-		return grille[i][j];
+		return false;
 	}
 }
 liste const& GameOfLife::get_viv() const {return vivantes;}
@@ -315,7 +315,7 @@ GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lma
 GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin) {
 		bool deja_vivante(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::add_cell(i+Lmin+50,j+Cmin+50);
+		GameOfLife::add_cell(i+Lmin,j+Cmin);
 		if (!deja_vivante && access(i+Lmin+50,j+Cmin+50)) vivantes_visibles.push_back({i, j});
 	} else {
 		#ifdef OVERFLOW_WARNINGS
@@ -328,7 +328,7 @@ GameOfLifeView& GameOfLifeView::add_cell(coord const& c) {return add_cell(c.firs
 GameOfLifeView& GameOfLifeView::suppr_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin) {
 		bool vivante_avant(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::suppr_cell(i+Lmin+50,j+Cmin+50);
+		GameOfLife::suppr_cell(i+Lmin,j+Cmin);
 		if (vivante_avant) {
 			liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j}));
 			if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
@@ -344,7 +344,7 @@ GameOfLifeView& GameOfLifeView::suppr_cell(coord const& c) {return suppr_cell(c.
 GameOfLifeView& GameOfLifeView::inv_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin) {
 		bool vivante_avant(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::inv_cell(i+Lmin+50, j+Cmin+50);
+		GameOfLife::inv_cell(i+Lmin, j+Cmin);
 		if (vivante_avant && !access(i+Lmin+50,j+Cmin+50)) {
 			liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j}));
 			if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
@@ -383,7 +383,7 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, liste& v, liste& v_
     #ifdef OVERFLOW_WARNINGS
 	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
 		if(!access(i,j) && std::find<liste::iterator, coord>(v.begin(),v.end(),{i,j}) == v.end()) {
-			if (next_state(i,j) && i<MAX_LIGNES+100 && j<MAX_COLONNES+100) {
+			if (next_state(i,j)) {
 				v.push_back({i,j});
 				if (Lmin+50 <= i && i < Lmax+50 && Cmin+50 <= j && j < Cmax+50) v_visibles.push_back({i-Lmin-50, j-Cmin-50});
 			}
@@ -396,7 +396,6 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, liste& v, liste& v_
 			if (Lmin+50 <= i && i < Lmax+50 && Cmin+50 <= j && j < Cmax+50) v_visibles.push_back({i-Lmin-50, j-Cmin-50});
 		}
 	}
-
 	#endif
 }
 void GameOfLifeView::evolve() {
@@ -645,11 +644,29 @@ Motif Simulation::get_motif(unsigned int const& num_gen) const {
 
 bool Simulation::finie() const {return grille->get_nbr_gen() == nbr_gen;}
 
-void Simulation::evolve() {
+bool Simulation::evolve() {
 	if (grille->get_nbr_gen() < nbr_gen) {
 		grille->GameOfLife::wipe();
 		++grille->get_nbr_gen();
-		grille->GameOfLife::add_motif(get_motif(grille->get_nbr_gen()));
+		try {
+			grille->GameOfLife::add_motif(get_motif(grille->get_nbr_gen()));
+		}
+		catch (Error const& err) {
+			switch (err) {
+				case INCOMPLETE_INFO:
+                    std::cerr << "[ERROR : Fichier de configuration <" << nom << "-info.csv> incomplet.]" << std::endl;
+					break;
+                case INCOMPLETE_CONTENT:
+                    std::cerr << "[ERROR : Fichier de contenu <" << nom << "-content.csv> incomplet.]" << std::endl;
+					break;
+                default:
+                    std::cerr << "[UNEXPECTED ERROR]" << std::endl;
+					break;
+			}
+		}
+		return true;
+	} else {
+		return false;
 	}
 }
 

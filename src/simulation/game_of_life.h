@@ -423,8 +423,9 @@ class Simulation {
         // Evolution de la grille ========================================================================================================
         /**
          *  @brief  fait évoluer la grille en chargeant le motif suivant
+            *  @returns    true si l'évolution a pu se faire, false si la simulation est arrivée à la fin
          */
-        void evolve();
+        bool evolve();
         /**
          * @brief Fait appel à la méthode translate de grille.
          * @param l
