@@ -12,6 +12,8 @@ add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DOVERFLOW_WARNINGS)
+    add_definitions(-DNON_EXISTING_PATH_WARNINGS)
+    add_definitions(-DWRONG_DIMENSIONS_WARNINGS)
 endif()
 add_definitions()
 

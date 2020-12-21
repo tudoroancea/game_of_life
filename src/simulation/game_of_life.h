@@ -153,26 +153,20 @@ public :
 
     // Enregistrement de motifs et simulaions  ==============================
     /**
-	 *  @brief	Enregistre un fichier .csv contenant les coordonnees du motif formé de toutes les cellules visibles dans la grille. Si un fichier du meme nom existe deja, l'ecrase
-	 *  @param	nom_motif	Nom du fichier à créer
-     *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
+	 *  @brief	Enregistre un fichier .csv contenant les coordonnées du motif formé de toutes les cellules vivantes de la grille. Si un fichier du même nom existe deja, l'écrase
+	 *  @param	nom_motif	Nom du fichier à créer.
+     *  @param  categorie La catégorie dans lequel le fichier sera enregistré.
      */
-    //void save_motif(std::string const& nom_motif, std::string const& dossier = "local") const;
+    void save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
     /**
-     *  @brief  Enregistre un fichier .csv local contenant les coordonnees du motif forme de toutes les cellules visibles entre certaines bornes
-     *  @param  imin,imax   Bornes sur les lignes (dans [0,L])
-     *  @param  jmin,jmax   Bornes sur les colonnes (dans [0,C])
-     *  @param  dossier Le repertoire dans lequel le fichier sera enregistre (si different de local, enregistre dans presaved)
-     */
-    //void save_motif(std::string const& nom_motif, size_t imin, size_t imax, size_t jmin, size_t jmax, std::string const& dossier = "local") const;
-    /**
-     *  @brief  Fait appel a la methode evolve() et calcules une simulation sur un nombre pre defini de generations, et l'enregistre en .csv. Si une simulation du meme nom existe dejé ne fait rien
-     *  @param  nom_simulation  nom a donner a l'enregistrement de la simulation
-     *  @param  duree_sim nombre de generations a simuler
-     *  @param  categorie   precise dans quel dossier enregistrer la simulation ("presaved" pour presaved, n'importe quoi d'autre pour "local")
+     *  @brief  Fait appel à la methode evolve() et calcules une simulation sur un nombre pré-défini de generations, et l'enregistre en .csv. Si une simulation du même nom existe déjà ne fait rien.
+     *  Voir le fichier convention.md pour la structure de ces fichiers.
+     *  @param  nom_simulation  nom à donner à l'enregistrement de la simulation
+     *  @param  duree_sim nombre de générations à simuler
+     *  @param  FILE_CAT   La catégorie dans lequel le fichier sera enregistré.
      *  @returns    true si la simulation a pu être créée, false sinon
      */
-    //bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, std::string const& categorie = "local");
+    bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie = local);
 
     // Affichage ========================================
     /**
@@ -351,91 +345,103 @@ class GameOfLifeView : public GameOfLife {
         void print(std::ostream& out = std::cout, bool avec_grille = false) const;
 };
 
-//class Simulation {
-//    private :
-//        /**
-//         *  @brief  nom de la simulation
-//         */
-//        std::string nom;
-//        /**
-//         *  @brief  GOL qui contiendra les cellules à afficher
-//         */
-//        GameOfLife* grille;
-//        /**
-//         *  @brief  Nombre de générations que doit durer la simulation
-//         */
-//        unsigned int nbr_gen;
-//        /**
-//         *  @brief  path du fichier de configuration <nom_sim>-info.csv
-//         */
-//        std::filesystem::path info_path;
-//        /**
-//         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
-//         */
-//        rapidcsv::Document info_file;
-//        /**
-//         *  @brief  path du fichier de contenu <nom_sim>-content.csv
-//         */
-//        std::filesystem::path content_path;
-//        /**
-//         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
-//         */
-//        rapidcsv::Document content_file;
+/**
+ *  @class  Simulation
+ *  @brief  API qui permet de charger une simulation déjà existante enregistrée localement et de l'afficher.
+ */
+class Simulation {
+    private :
+        /**
+         *  @brief  nom de la simulation
+         */
+        std::string nom;
+        /**
+         *  @brief  GOL qui contiendra les cellules à afficher
+         */
+        GameOfLifeView* grille;
+        /**
+         *  @brief  Nombre de générations que doit durer la simulation
+         */
+        unsigned int nbr_gen;
+        /**
+         *  @brief  path du fichier de configuration <nom_sim>-info.csv
+         */
+        std::filesystem::path info_path;
+        /**
+         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
+         */
+        rapidcsv::Document info_file;
+        /**
+         *  @brief  path du fichier de contenu <nom_sim>-content.csv
+         */
+        std::filesystem::path content_path;
+        /**
+         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
+         */
+        rapidcsv::Document content_file;
+    public :
+        /**
+         *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
+         */
+        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT, INCOMPATIBLE_DIMENSIONS};
 
-//    public :
-//        /**
-//         *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
-//         */
-//        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT};
+        // Constructeurs & Destructeurs ========================================================================================================
+        /**
+         *  @brief  construit une simulation vide (pointeur grille NULL, pas de nom et path sur DATA_PATH)
+         */
+        Simulation();
+        /**
+         *  @brief  remplit la simulation des informations nécessaires. Lance si nécessaire une Simulation::Error
+         *  @param  nom_sim nom de la simulation à chercher
+         *  @param  categorie   dossier où chercher
+         *  @returns    référence sur l'instance courante
+         */
+        Simulation& load(std::string const& nom_sim, FILE_CATEGORY const& categorie = local);
+        Simulation& release();
+        ~Simulation();
 
-//        // Constructeurs & Destructeurs
-//        /**
-//         *  @brief  construit une simulation vide (pointeur grille NULL, pas de nom et path sur DATA_PATH)
-//         */
-//        Simulation();
-//        /**
-//         *  @brief  remplit la simulation des informations nécessaires
-//         *  @param  nom_sim nom de la simulation à chercher
-//         *  @param  categorie   dossier où chercher
-//         *  @returns    référence sur l'instance courante
-//         */
-//        Simulation& load(std::string const& nom_sim, std::string const& categorie = "local");
-//        ~Simulation();
+        // Getters ========================================================================================================
+        /**
+         *  @brief  pretty self-explanatory
+         */
+        std::string const& get_nom() const;
+        /**
+         *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
+         *  @param  num_gen numero de la génération
+         *  @returns    motif numero num_gen
+         */
+        Motif get_motif(unsigned int const& num_gen) const;
+        /**
+         *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
+         */
+        liste get_viv() const;
+        /**
+         *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
+         */
+        bool finie() const;
 
-//        // Getters
-//        /**
-//         *  @brief  pretty self-explanatory
-//         */
-//        std::string const& get_nom() const;
-//        /**
-//         *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
-//         *  @param  num_gen numero de la génération
-//         *  @returns    motif numero num_gen
-//         */
-//        Motif get_motif(unsigned int const& num_gen) const;
-//        /**
-//         *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
-//         */
-//        liste get_viv() const;
+        // Evolution de la grille ========================================================================================================
+        /**
+         *  @brief  fait évoluer la grille en chargeant le motif suivant
+         */
+        void evolve();
+        /**
+         * @brief Fait appel à la méthode translate de grille.
+         * @param l
+         * @param c
+         * @return Simulation&
+         */
+        Simulation& translate(int const& l, int const& c);
+        Simulation& resize(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax);
 
-//        // Evolution de la grille
-//        /**
-//         *  @brief  fait évoluer la grille en chargeant le motif suivant
-//         */
-//        void evolve();
-//        /**
-//         *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
-//         */
-//        bool finie() const;
+        // Affichage ========================================================================================================
+        /**
+         *  @brief  fait appel à la méthode print() de grille pour l'afficher
+         *  @param  out flot de sortie sur lequel afficher la grille
+         */
+        void print(std::ostream& out = std::cout, bool avec_grille = false) const;
 
-//        // Affichage
-//        /**
-//         *  @brief  fait appel à la méthode print() de grille pour l'afficher
-//         *  @param  out flot de sortie sur lequel afficher la grille
-//         */
-//        void print(std::ostream& out = std::cout) const;
-
-//};
+};
 
 
 /**
