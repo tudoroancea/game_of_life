@@ -205,7 +205,9 @@ void GameOfLife::evolve() {
 
 std::vector<std::string> existing_local_sims() {
     std::vector<std::string> res;
-    std::filesystem::path sims("../../data/local/sims");
+	std::filesystem::path sims(std::string(LOCAL_PATH));
+	sims /= "sims";
+	//std::filesystem::current_path(chemin);
     for (auto const& entry : std::filesystem::directory_iterator(sims)) {
         if (entry.is_directory()) {
             res.push_back(entry.path().stem().string());
@@ -215,7 +217,8 @@ std::vector<std::string> existing_local_sims() {
 }
 std::vector<std::string> existing_presaved_sims() {
     std::vector<std::string> res;
-    std::filesystem::path sims("../../data/presaved/sims");
+    std::filesystem::path sims(std::string(LOCAL_PATH));
+	sims /= "sims";
     for (auto const& entry : std::filesystem::directory_iterator(sims)) {
         if (entry.is_directory()) {
             res.push_back(entry.path().stem().string());
@@ -319,23 +322,30 @@ GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 		grille[i+Lmin+50][j+Cmin+50] = true;
 	} else {
 		#ifdef OVERFLOW_WARNINGS
-		std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+		if (access(i+Lmin+50,j+Cmin+50)) {
+			std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car cell déjà vivante]";
+		} else {
+			std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+		}
 		#endif
 	}
 	return *this;
 }
 GameOfLifeView& GameOfLifeView::add_cell(coord const& c) {return add_cell(c.first, c.second);}
 GameOfLifeView& GameOfLifeView::suppr_cell(size_t const& i, size_t const& j) {
-	if (i < Lmax-Lmin && j < Cmax-Cmin) {
-		bool vivante_avant(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::suppr_cell(i+Lmin,j+Cmin);
-		if (vivante_avant) {
-			liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j}));
-			if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
-		}
+	if (i < Lmax-Lmin && j < Cmax-Cmin && !access(i+Lmin+50, j+Cmin+50)) {
+		liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes.begin(),	vivantes.end(), {i+Lmin+50,j+Cmin+50}));
+		if (a_effacer != vivantes.end()) vivantes.erase(a_effacer);
+		a_effacer = std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j});
+		if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
+		grille[i+Lmin+50][j+Cmin+50] = false;
 	} else {
 		#ifdef OVERFLOW_WARNINGS
-		std::cerr << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+		if (access(i+Lmin+50, j+Cmin+50)) {
+			std::cerr << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car cell déjà morte]";
+		} else {
+			std::cerr << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+		}
 		#endif
 	}
 	return *this;
@@ -343,13 +353,10 @@ GameOfLifeView& GameOfLifeView::suppr_cell(size_t const& i, size_t const& j) {
 GameOfLifeView& GameOfLifeView::suppr_cell(coord const& c) {return suppr_cell(c.first, c.second);}
 GameOfLifeView& GameOfLifeView::inv_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin) {
-		bool vivante_avant(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::inv_cell(i+Lmin, j+Cmin);
-		if (vivante_avant && !access(i+Lmin+50,j+Cmin+50)) {
-			liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j}));
-			if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
-		} else if (!vivante_avant && access(i+Lmin+50, j+Cmin+50)) {
-			vivantes_visibles.push_back({i,j});
+		if (access(i+Lmin+50, j+Cmin+50)) {
+			this->suppr_cell(i,j);
+		} else {
+			this->add_cell(i,j);
 		}
 	} else {
 		#ifdef OVERFLOW_WARNINGS
