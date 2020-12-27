@@ -322,7 +322,6 @@ GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 		std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
 		#endif
 	}
-	std::cout << vivantes_visibles.size() << std::endl;
 	return *this;
 }
 GameOfLifeView& GameOfLifeView::add_cell(coord const& c) {return add_cell(c.first, c.second);}
