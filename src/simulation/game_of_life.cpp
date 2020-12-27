@@ -47,7 +47,7 @@ GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {
 	if (i < MAX_LIGNES && j < MAX_COLONNES) {
 		if (!access(i+50, j+50)) {
 			vivantes.push_back({i+50, j+50});
-			grille[i][j] = true;
+			grille[i+50][j+50] = true;
 		}
 	} else {
 		std::cerr << "[GameOfLife::add_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]";
@@ -55,7 +55,7 @@ GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {
 	#else
 	if (!access(i+50,j+50) && i < MAX_LIGNES && j < MAX_COLONNES) {
 		vivantes.push_back({i+50, j+50});
-		grille[i][j] = true;
+		grille[i+50][j+50] = true;
 	}
 	#endif
 	return *this;
@@ -313,15 +313,16 @@ GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lma
 
 // Setters du jeu ==========================================================================================================================================================================
 GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
-	if (i < Lmax-Lmin && j < Cmax-Cmin) {
-		bool deja_vivante(access(i+Lmin+50,j+Cmin+50));
-		GameOfLife::add_cell(i+Lmin,j+Cmin);
-		if (!deja_vivante && access(i+Lmin+50,j+Cmin+50)) vivantes_visibles.push_back({i, j});
+	if (i < Lmax-Lmin && j < Cmax-Cmin && !access(i+Lmin+50, j+Cmin+50)) {
+		vivantes.push_back({i+Lmin+50,j+Cmin+50});
+		vivantes_visibles.push_back({i,j});
+		grille[i+Lmin+50][j+Cmin+50] = true;
 	} else {
 		#ifdef OVERFLOW_WARNINGS
 		std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
 		#endif
 	}
+	std::cout << vivantes_visibles.size() << std::endl;
 	return *this;
 }
 GameOfLifeView& GameOfLifeView::add_cell(coord const& c) {return add_cell(c.first, c.second);}
@@ -513,10 +514,10 @@ void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 		}
 		out << "\n=================================\n";
 	} else {
-		out << "Génération n° " << nbr_gen << "\n";
+		out << "Sans grille | Génération n° " << nbr_gen << "\n";
 		for (size_t i(0); i < Lmax-Lmin ; ++i) {
 			for (size_t j(0); j < Cmax-Cmin ; ++j) {
-				if (grille[i+Lmin][j+Cmin]) out << "0";
+				if (grille[i+Lmin+50][j+Cmin+50]) out << "0";
 				else out << ' ';
 			}
 			out << "\n";
