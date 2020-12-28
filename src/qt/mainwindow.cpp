@@ -142,7 +142,7 @@ void MainWindow::creer()
     lance->move(400, 10);
     lance->show();
     pos_souris = new QLabel(this);
-    pos_souris->move(480, 580);
+    pos_souris->move(290, 0);//480, 580
     pos_souris->show();
     ptr.lmin = (MAX_LIGNES - nb_lines)/2;
     ptr.cmin = (MAX_COLONNES - nb_col)/2;
@@ -301,64 +301,96 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (!simul_on)
+    if (event->button() == Qt::LeftButton)
+    {
+        if (!simul_on && !ctrl_on)
+        {
+            if (((event->x() >= 10) && (event->x() <= 510))&&
+                ((event->y() >= 90) && (event->y() <= 590)))
+            {
+                QPoint pos(pos_souris_rel(event));
+                if (calque.on_off)
+                {
+                    for (auto const& a : calque.alive)
+                    {
+                        if (int(pos.x() + a.first) - int(calque.translate.first) >= 0 &&
+                            int(pos.y() + a.second) - int(calque.translate.second) >= 0 &&
+                            pos.x() + a.first  - calque.translate.first < nb_lines    &&
+                            pos.y() + a.second - calque.translate.second < nb_col)
+                        {
+                            ptr.vue->add_cell({pos.x() + a.first  - calque.translate.first,pos.y() + a.second - calque.translate.second});
+                        }
+                    }
+                }
+                else { ptr.vue->inv_cell({pos.x(), pos.y()});}
+                x_prec = x_current;
+                y_prec = y_current;
+                x_current = pos.x();
+                y_current = pos.y();
+                this->update();
+            }
+        }
+    }
+    else if (event->button() == Qt::RightButton && state == 1)
     {
         if (((event->x() >= 10) && (event->x() <= 510))&&
             ((event->y() >= 90) && (event->y() <= 590)))
-        {
-            if (calque.on_off)
-            {
-                for (auto const& a : calque.alive)
-                {
-                    if (int((event->x()-10)*nb_lines/500 + a.first) - int(calque.translate.first) >= 0 &&
-                        int((event->y()-90)*nb_col/500 + a.second) - int(calque.translate.second) >= 0 &&
-                        (event->x()-10)*nb_lines/500 + a.first  - calque.translate.first < nb_lines    &&
-                        (event->y()-90)*nb_col/500 + a.second - calque.translate.second < nb_col)
-                    {
-                        ptr.vue->add_cell({(event->x()-10)*nb_lines/500 + a.first  - calque.translate.first,(event->y()-90)*nb_col/500 + a.second - calque.translate.second});
-                    }
-                }
-            }
-            else { ptr.vue->inv_cell({(event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500});}
+        {    
+            std::cout << "allo" << std::endl;
+            QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
             y_prec = y_current;
-            x_current = (event->x()-10)*nb_lines/500;
-            y_current = (event->y()-90)*nb_col/500;
-            this->update();
+            x_current = pos.x();
+            y_current = pos.y();    
         }
+    }
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent* event)
+{
+    if (state == 1 && event->button() == Qt::RightButton)
+    {
+        std::cout << "oui" << std::endl;         
+        ptr.vue->translate(x_current - x_prec, y_current - y_prec);
     }
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    if (nb_lines >= 1)
+    if (nb_lines >= 1 && event->buttons() != Qt::RightButton)
     {
         if (!(event->modifiers() == Qt::ControlModifier)) {ctrl_on = false;}
-        if (((event->x() >= 10) && (event->x() <= 510))&&
+        if (((event->x() >= 10) && (event->x() <= 510)) &&
             ((event->y() >= 90) && (event->y() <= 590)))
         {
             x_prec = x_current;
             y_prec = y_current;
-            x_current = (event->x()-10)*nb_lines/500;
-            y_current = (event->y()-90)*nb_col/500;
-            if (event->buttons() == Qt::LeftButton && (x_prec != x_current || y_prec != y_current) && !simul_on)
+            QPoint pos(pos_souris_rel(event));
+            x_current = pos.x();
+            y_current = pos.y();
+            if ((event->buttons() == Qt::LeftButton && (x_prec != x_current || y_prec != y_current) && !simul_on) && !ctrl_on)
             {
                 if (x_prec != -1 && y_prec != -1)
                 {
                     liste a_ajouter(segment({x_prec, y_prec}, {x_current, y_current}));
                     for (auto const& a : a_ajouter)
                     {
-                        //std::cout << "\\" << a.first << " " << a.second << std::endl;
                         ptr.vue->add_cell(a);
                     }
                 }
-                ptr.vue->inv_cell({x_current, y_current});
+                //ptr.vue->inv_cell({x_current, y_current});
             }
         }
         else {x_current = -1; y_current = -1;}
         this->update();
     }
-    if (state != 0) {pos_souris->setText(QString::number(event->x()) + " " + QString::number(y_current));}
+    else if (event->buttons() == Qt::RightButton)
+    {
+        QPoint pos(pos_souris_rel(event));
+        x_current = pos.x();
+        y_current = pos.y();
+    }
+    if (state != 0) {pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));}
 }
 
 void MainWindow::wheelEvent(QWheelEvent* event)
@@ -373,10 +405,21 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     }
     mouv = (mouv/10)*10;
     //std::cerr << delta.y() << " " << mouv << " ";
-    if (0 < mouv + nb_lines && mouv + nb_lines <= 400 && 0 < mouv + nb_col && mouv + nb_col <= 400)
+    if ((0 < mouv + nb_lines && mouv + nb_lines <= 400 && 0 < mouv + nb_col && mouv + nb_col <= 400) &&
+        (x_current != -1 && y_current != -1))
     {
+        ptr.lmin += -(((int(nb_lines)/2)-x_current)/4) - mouv/2;
+        if (ptr.lmin < 0) {ptr.lmin = 0;}
+        ptr.cmin += -(((int(nb_col)/2)-y_current)/4) - mouv/2;
+        if (ptr.cmin < 0) {ptr.cmin = 0;}
         nb_lines += mouv;
-        nb_col += mouv;
+        nb_col += mouv; 
+        ptr.lmax = ptr.lmin + nb_lines;
+        if (ptr.lmax > MAX_LIGNES) {ptr.lmax = MAX_LIGNES;}
+        ptr.cmax = ptr.cmin + nb_col;  
+        if (ptr.cmax > MAX_COLONNES) {ptr.cmax = MAX_COLONNES;}    
+        //std::cout << ptr.lmin << " | " << ptr.cmin << std::endl;
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);       
         //std::cerr << nb_lines << " " << nb_col << std::endl;
         //ptr.vue->resize(nb_lines, nb_col); A réimplémenter pour l'instant flemme.
         this->update();

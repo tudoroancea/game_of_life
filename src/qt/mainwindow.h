@@ -68,6 +68,8 @@ public:
 
     void mousePressEvent(QMouseEvent* event) override;
 
+    void mouseReleaseEvent(QMouseEvent* event) override;
+
     void mouseMoveEvent(QMouseEvent* event) override;
 
     void wheelEvent(QWheelEvent* event) override;
@@ -96,6 +98,8 @@ public slots:
 private:
 
     void init_styles();    
+
+    QPoint pos_souris_rel(QMouseEvent* event) { return QPoint((event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500);}
 
     std::unordered_map<std::string, QString> style_sheets;
     std::unordered_map<std::string, QLabel*> labels;
