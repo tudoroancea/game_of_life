@@ -335,13 +335,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     {
         if (((event->x() >= 10) && (event->x() <= 510))&&
             ((event->y() >= 90) && (event->y() <= 590)))
-        {    
+        {
             std::cout << "allo" << std::endl;
             QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
             y_prec = y_current;
             x_current = pos.x();
-            y_current = pos.y();    
+            y_current = pos.y();
         }
     }
 }
@@ -350,8 +350,8 @@ void MainWindow::mouseReleaseEvent(QMouseEvent* event)
 {
     if (state == 1 && event->button() == Qt::RightButton)
     {
-        std::cout << "oui" << std::endl;         
-        ptr.vue->translate(x_current - x_prec, y_current - y_prec);
+        std::cout << "oui" << std::endl;
+        ptr.vue->translate(x_prec - x_current, y_prec - y_current);
     }
 }
 
@@ -387,43 +387,57 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     else if (event->buttons() == Qt::RightButton)
     {
         QPoint pos(pos_souris_rel(event));
+        x_prec = x_current;
+        y_prec = y_current;
         x_current = pos.x();
         y_current = pos.y();
+        ptr.vue->translate(x_prec - x_current, y_prec - y_current);
     }
     if (state != 0) {pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));}
 }
 
 void MainWindow::wheelEvent(QWheelEvent* event)
 {
-    QPoint delta(event->angleDelta());
-    // angleDelta en degrés (entre 0 et 360)
+    //int nbr_degres = event->angleDelta().y() / 12;
+    // 10% par cran = 10% par 15° = 10% par 120 huitième de degré = 1% par 12 huitièmes de degrés
+
+    //double taux(1- (nbr_pourcent/100.0));
+    double taux(0.5);
+
+    ptr.vue->zoom({ptr.vue->get_Lmin()+x_current, ptr.vue->get_Cmin()+y_current}, taux);
+    this->update();
+    std::cerr << "Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
+
+    /*QPoint delta(event->angleDelta());
+    // angleDelta en 8eme de degré
+    // 120 = 15°  (24 crans sur une souris standard)
     int mouv(delta.y()/12);
+    //std::cerr << delta.y() << " " << mouv << std::endl;
     if (mouv >= 0 && mouv <= 10) {
         mouv = 10;
     } else if (mouv < 0 && mouv >= -10) {
         mouv = -10;
     }
     mouv = (mouv/10)*10;
-    //std::cerr << delta.y() << " " << mouv << " ";
     if ((0 < mouv + nb_lines && mouv + nb_lines <= 400 && 0 < mouv + nb_col && mouv + nb_col <= 400) &&
         (x_current != -1 && y_current != -1))
     {
-        ptr.lmin += -(((int(nb_lines)/2)-x_current)/4) - mouv/2;
+        ptr.lmin += -(((int(nb_lines)/2)-x_current)) - mouv/2;
         if (ptr.lmin < 0) {ptr.lmin = 0;}
-        ptr.cmin += -(((int(nb_col)/2)-y_current)/4) - mouv/2;
+        ptr.cmin += -(((int(nb_col)/2)-y_current)) - mouv/2;
         if (ptr.cmin < 0) {ptr.cmin = 0;}
         nb_lines += mouv;
-        nb_col += mouv; 
+        nb_col += mouv;
         ptr.lmax = ptr.lmin + nb_lines;
         if (ptr.lmax > MAX_LIGNES) {ptr.lmax = MAX_LIGNES;}
-        ptr.cmax = ptr.cmin + nb_col;  
-        if (ptr.cmax > MAX_COLONNES) {ptr.cmax = MAX_COLONNES;}    
+        ptr.cmax = ptr.cmin + nb_col;
+        if (ptr.cmax > MAX_COLONNES) {ptr.cmax = MAX_COLONNES;}
         //std::cout << ptr.lmin << " | " << ptr.cmin << std::endl;
-        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);       
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
         //std::cerr << nb_lines << " " << nb_col << std::endl;
         //ptr.vue->resize(nb_lines, nb_col); A réimplémenter pour l'instant flemme.
         this->update();
-    }
+    }*/
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)

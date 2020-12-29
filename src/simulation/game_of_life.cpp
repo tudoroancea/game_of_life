@@ -303,16 +303,11 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 // Constructeurs ==================================================================================================================
 GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax)
 : GameOfLife(),
-	Lmin(lmin%400 < lmax%400 ? lmin%400 : lmax%400),
-	Lmax(lmin%400 < lmax%400 ? lmax%400 : lmin%400),
-	Cmin(cmin%400 < cmax%400 ? cmin%400 : cmax%400),
-	Cmax(cmin%400 < cmax%400 ? cmax%400 : cmin%400)
-{
-	if (Lmin < 50) Lmin = 50;
-	if (Lmax >= MAX_LIGNES-50) Lmax = MAX_LIGNES-50;
-	if (Cmin < 50) Cmin = 50;
-	if (Cmax >= MAX_COLONNES-50) Cmax = MAX_COLONNES-50;
-}
+	Lmin(lmin%MAX_LIGNES < lmax%MAX_LIGNES ? lmin%MAX_LIGNES : lmax%MAX_LIGNES),
+	Lmax(lmin%MAX_LIGNES < lmax%MAX_LIGNES ? lmax%MAX_LIGNES : lmin%MAX_LIGNES),
+	Cmin(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmin%MAX_COLONNES : cmax%MAX_COLONNES),
+	Cmax(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmax%MAX_COLONNES : cmin%MAX_COLONNES)
+{}
 
 // Setters du jeu ==========================================================================================================================================================================
 GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
@@ -446,6 +441,10 @@ liste const& GameOfLifeView::get_viv() const {return vivantes_visibles;}
 unsigned int GameOfLifeView::nbr_cell() const {return vivantes_visibles.size();}
 unsigned int GameOfLifeView::nbr_lignes() const {return Lmax - Lmin;}
 unsigned int GameOfLifeView::nbr_colonnes() const {return Cmax - Cmin;}
+unsigned int GameOfLifeView::get_Lmin() const {return Lmin;}
+unsigned int GameOfLifeView::get_Cmin() const {return Cmin;}
+unsigned int GameOfLifeView::get_Lmax() const {return Lmax;}
+unsigned int GameOfLifeView::get_Cmax() const {return Cmax;}
 
 GameOfLifeView& GameOfLifeView::resize(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax) {
 	if (lmin < MAX_LIGNES && lmax <= MAX_LIGNES && cmin < MAX_COLONNES && cmax <= MAX_COLONNES) {
@@ -474,8 +473,11 @@ GameOfLifeView& GameOfLifeView::resize(unsigned int const& lmin, unsigned int co
 //	}
 //}
 GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
-	if (-Lmin <= l && l <= MAX_LIGNES-Lmax && -Cmin <= c && c <= MAX_COLONNES-Cmax) {
+	int maxl(MAX_LIGNES-Lmax), maxc(MAX_COLONNES-Cmax), minl(-Lmin), minc(-Cmin);
+	if (minl <= l && l <= maxl && minc <= c && c <= maxc) {
+		//std::cerr << "hey" << std::endl;
 		if (l != 0 || c != 0) {
+			//std::cerr << "hey2" << std::endl;
 			Lmin += l;
 			Lmax += l;
 			Cmin += c;
@@ -490,7 +492,28 @@ GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
 	}
 	return *this;
 }
-
+GameOfLifeView& GameOfLifeView::zoom() {
+	if (Lmax - Lmin >= 20 && Cmax-Cmin >= 20) this->resize(Lmin+10, Lmax-10, Cmin+10, Cmax-10);
+	return *this;
+}
+GameOfLifeView& GameOfLifeView::dezoom() {
+	if (Lmin >= 10 && Lmax <= MAX_LIGNES-10 && Cmin >= 10 && Cmax <= MAX_COLONNES-10) this->resize(Lmin-10, Lmax+10, Cmin-10, Cmax+10);
+	return *this;
+}
+GameOfLifeView& GameOfLifeView::zoom(coord const& centre, double grossissement) {
+	if (X(centre) < Lmax-Lmin && Y(centre) < Cmax-Cmin && 0<=grossissement && grossissement != 1) {
+		unsigned int x(X(centre)+Lmin),y(Y(centre)+Cmin);
+		this->resize(x-grossissement*(x-Lmin), x+grossissement*(Lmax-x), y-grossissement*(y-Cmin), y+grossissement*(Cmax-y));
+	}
+	return *this;
+}
+GameOfLifeView& GameOfLifeView::zoom(size_t const& x, size_t const& y, double grossissement) {
+	if (x < Lmax-Lmin && y < Cmax-Cmin && 0<=grossissement && grossissement != 1) {
+		unsigned int xprime(x+Lmin), yprime(y+Cmin);
+		this->resize(xprime-grossissement*(xprime-Lmin), xprime+grossissement*(Lmax-xprime), yprime-grossissement*(yprime-Cmin), yprime+grossissement*(Cmax-yprime));
+	}
+	return *this;
+}
 void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 	if (avec_grille) {
 		out << "Génération n° " << nbr_gen << "\n";
@@ -530,9 +553,9 @@ void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 				if (grille[i+Lmin+50][j+Cmin+50]) out << "0";
 				else out << ' ';
 			}
-			out << "\n";
+			out << "|\n";
 		}
-		out << "\n=================================\n";
+		out << "=================================\n";
 	}
 }
 

@@ -254,7 +254,10 @@ class GameOfLifeView : public GameOfLife {
          * @return nombre de colonnes dans la partie visible (Cmax-Cmin)
          */
         unsigned int nbr_colonnes() const;
-
+        unsigned int get_Lmin() const;
+        unsigned int get_Cmin() const;
+        unsigned int get_Lmax() const;
+        unsigned int get_Cmax() const;
         // Setters du jeu =======================================================================
         /**
          *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
@@ -320,10 +323,10 @@ class GameOfLifeView : public GameOfLife {
         // Modification de la vue ====================================================================================
         /**
          *  @brief  Redimensionne la partie visible de la grille et met à jour la liste des cellules vivantes visibles
-         *  @param  lmin    nouveau Lmin
-         *  @param  Lmax    nouveau Lmax
-         *  @param  Cmin    nouveau Cmin
-         *  @param  Cmax    nouveau Cmax
+         *  @param  lmin    nouveau Lmin (dans [0,MAX_LIGNES[)
+         *  @param  Lmax    nouveau Lmax (dans [0,MAX_LIGNES[)
+         *  @param  Cmin    nouveau Cmin (dans [0,MAX_COLONNES[)
+         *  @param  Cmax    nouveau Cmax (dans [0,MAX_COLONNES[)
          *  @returns    reference sur l'instance courante
          */
         GameOfLifeView& resize(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax);
@@ -335,6 +338,22 @@ class GameOfLifeView : public GameOfLife {
          */
         GameOfLifeView& translate(int const& l, int const& c);
         //GameOfLifeView& rotate(int const& angle_mod_90);
+        GameOfLifeView& zoom();
+        GameOfLifeView& dezoom();
+        /**
+         * @brief Zoom la vue autour d'un certain point
+         * @param centre    coordonnées par rapport à la grille (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[) du centre du zoom
+         * @param grossissement  grossissement du zoom. Zoom in si entre 0 et 1, zoom out (dézoom) si supérieur à 1.
+         * @return  référence sur l'instance courante
+         */
+        GameOfLifeView& zoom(coord const& centre, double grossissement);
+        /**
+         * @brief Zoom la vue autour d'un certain point
+         * @param x,y    coordonnées par rapport à la grille (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[) du centre du zoom
+         * @param grossissement  grossissement du zoom. Zoom in si entre 0 et 1, zoom out (dézoom) si supérieur à 1.
+         * @return  référence sur l'instance courante
+         */
+        GameOfLifeView& zoom(size_t const& x, size_t const& y, double grossissement);
 
         // Affichage ====================================================================================
         /**
