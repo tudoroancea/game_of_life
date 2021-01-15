@@ -309,7 +309,7 @@ GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lma
 	Cmax(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmax%MAX_COLONNES : cmin%MAX_COLONNES)
 {}
 
-// Setters du jeu ==========================================================================================================================================================================
+// Setters du jeu GameOfLifeView ==========================================================================================================================================================================
 GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin && !access(i+Lmin+50, j+Cmin+50)) {
 		vivantes.push_back({i+Lmin+50,j+Cmin+50});
@@ -463,15 +463,6 @@ GameOfLifeView& GameOfLifeView::resize(unsigned int const& lmin, unsigned int co
 	}
 	return *this;
 }
-//GameOfLifeView& GameOfLifeView::resize(unsigned int const& l, unsigned int const& c) {
-//	if (l <= MAX_LIGNES && c <= MAX_COLONNES) {
-
-//	} else {
-//		#ifdef OVERFLOW_WARNINGS
-//		std::cerr << "[GameOfLifeView::resize(" << l << "," << c << ") n'a rien fait car bords dépassent la grille]";
-//		#endif
-//	}
-//}
 GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
 	int maxl(MAX_LIGNES-Lmax), maxc(MAX_COLONNES-Cmax), minl(-Lmin), minc(-Cmin);
 	if (minl <= l && l <= maxl && minc <= c && c <= maxc) {
@@ -492,12 +483,12 @@ GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
 	}
 	return *this;
 }
-GameOfLifeView& GameOfLifeView::zoom() {
-	if (Lmax - Lmin >= 20 && Cmax-Cmin >= 20) this->resize(Lmin+10, Lmax-10, Cmin+10, Cmax-10);
-	return *this;
-}
-GameOfLifeView& GameOfLifeView::dezoom() {
-	if (Lmin >= 10 && Lmax <= MAX_LIGNES-10 && Cmin >= 10 && Cmax <= MAX_COLONNES-10) this->resize(Lmin-10, Lmax+10, Cmin-10, Cmax+10);
+GameOfLifeView& GameOfLifeView::zoom(double const& grossissement) {
+	if (grossissement >= 0) {
+		if (Lmax - Lmin >= 20 && Cmax-Cmin >= 20) this->resize(Lmin+10, Lmax-10, Cmin+10, Cmax-10);
+	} else {
+		if (Lmin >= 10 && Lmax <= MAX_LIGNES-10 && Cmin >= 10 && Cmax <= MAX_COLONNES-10) this->resize(Lmin-10, Lmax+10, Cmin-10, Cmax+10);
+	}
 	return *this;
 }
 GameOfLifeView& GameOfLifeView::zoom(coord const& centre, double grossissement) {

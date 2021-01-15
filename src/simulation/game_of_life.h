@@ -337,9 +337,12 @@ class GameOfLifeView : public GameOfLife {
          * @return  référence sur l'instance courante
          */
         GameOfLifeView& translate(int const& l, int const& c);
-        //GameOfLifeView& rotate(int const& angle_mod_90);
-        GameOfLifeView& zoom();
-        GameOfLifeView& dezoom();
+        /**
+         * @brief Zoom/dézoom la vue de manière fixe, en réduisant/augmentant la partie visible de 10 de chaque côté
+         * @param grossissment  zoom si positif, dézoom si négatif
+         * @return GameOfLifeView&
+         */
+        GameOfLifeView& zoom(double const& grossissement);
         /**
          * @brief Zoom la vue autour d'un certain point
          * @param centre    coordonnées par rapport à la grille (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[) du centre du zoom
