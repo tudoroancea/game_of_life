@@ -413,14 +413,24 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     //std::cout << "pos : " << x_current << " | " << y_current << std::endl;
 
     QPoint delta(event->angleDelta());
-    // angleDelta en 8eme de degré
-    // 120 = 15°  (24 crans sur une souris standard)
-    int mouv(delta.y()/12);
-    //std::cerr << delta.y() << " " << mouv << std::endl;
-    if (mouv >= 0 && mouv <= 10) {
-        mouv = 10;
-    } else if (mouv < 0 && mouv >= -10) {
-        mouv = -10;
+    QPoint delta_pix(event->pixelDelta());
+    int mouv(0);
+    if (!delta_pix.isNull())
+    {
+        std::cout << " pixel : " << delta_pix.y() << std::endl;
+        mouv = delta_pix.y()/100;
+    }
+    else 
+    {
+        // angleDelta en 8eme de degré
+        // 120 = 15°  (24 crans sur une souris standard)
+        mouv = delta.y()/12;
+        //std::cerr << delta.y() << " " << mouv << std::endl;
+        if (mouv >= 0 && mouv <= 10) {
+            mouv = 10;
+        } else if (mouv < 0 && mouv >= -10) {
+            mouv = -10;
+        }
     }
     mouv = (mouv/10)*10;//cheat code
 
