@@ -336,7 +336,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if (((event->x() >= 10) && (event->x() <= 510))&&
             ((event->y() >= 90) && (event->y() <= 590)))
         {
-            std::cout << "allo" << std::endl;
             QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
             y_prec = y_current;
@@ -350,7 +349,6 @@ void MainWindow::mouseReleaseEvent(QMouseEvent* event)
 {
     if (state == 1 && event->button() == Qt::RightButton)
     {
-        std::cout << "oui" << std::endl;
         ptr.vue->translate(x_prec - x_current, y_prec - y_current);
     }
 }
@@ -384,16 +382,21 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         else {x_current = -1; y_current = -1;}
         this->update();
     }
-    else if (event->buttons() == Qt::RightButton)
+    if (state != 0) { pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));}
+    if (state == 1 && event->buttons() == Qt::RightButton)
     {
-        QPoint pos(pos_souris_rel(event));
-        x_prec = x_current;
-        y_prec = y_current;
-        x_current = pos.x();
-        y_current = pos.y();
-        ptr.vue->translate(x_prec - x_current, y_prec - y_current);
+        if (((event->x() >= 10) && (event->x() <= 510))&&
+            ((event->y() >= 90) && (event->y() <= 590)))
+        {
+            ptr.vue->translate(x_prec - x_current, y_prec - y_current);
+            QPoint pos(pos_souris_rel(event));
+            x_prec = x_current;
+            y_prec = y_current;
+            x_current = pos.x();
+            y_current = pos.y();
+            this->update();
+        }
     }
-    if (state != 0) {pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));}
 }
 
 void MainWindow::wheelEvent(QWheelEvent* event)
@@ -402,12 +405,35 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // 10% par cran = 10% par 15° = 10% par 120 huitième de degré = 1% par 12 huitièmes de degrés
 
     //double taux(1- (nbr_pourcent/100.0));
-    double taux(0.5);
 
-    ptr.vue->zoom({ptr.vue->get_Lmin()+x_current, ptr.vue->get_Cmin()+y_current}, taux);
+    //double taux(0.5);
+
+    //std::cerr << "1: Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
+
+    //std::cout << "pos : " << x_current << " | " << y_current << std::endl;
+
+    QPoint delta(event->angleDelta());
+    // angleDelta en 8eme de degré
+    // 120 = 15°  (24 crans sur une souris standard)
+    int mouv(delta.y()/12);
+    //std::cerr << delta.y() << " " << mouv << std::endl;
+    if (mouv >= 0 && mouv <= 10) {
+        mouv = 10;
+    } else if (mouv < 0 && mouv >= -10) {
+        mouv = -10;
+    }
+    mouv = (mouv/10)*10;//cheat code
+
+    double taux = 1.0 + (double(mouv/10)/10.0);
+
+    ptr.vue->zoom({x_current, y_current}, taux);//en coord relatives parce que Tudor
+
+    nb_lines = ptr.vue->nbr_lignes();
+    nb_col = ptr.vue->nbr_colonnes();
+
+    //std::cerr << "2: Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
+    
     this->update();
-    std::cerr << "Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
-
     /*QPoint delta(event->angleDelta());
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
