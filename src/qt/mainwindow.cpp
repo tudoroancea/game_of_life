@@ -192,6 +192,7 @@ void MainWindow::creer()
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
     translate(calque);
+    this->setFocus();
 }
 
 void MainWindow::creer_s()

@@ -1,4 +1,13 @@
+QMainWindow {
+    background-color: #efefef;
+}
+
+QLabel {
+    color:black;
+}
+
 QPushButton {
+    color:black;
 	background-color: rgb(230, 230, 230);
 	border-style: outset;
 	border-width: 1px;
@@ -12,6 +21,7 @@ QPushButton:pressed {
 }
 
 QComboBox {
+    color:black;
     border: 1px solid gray;
     border-radius: 3px;
     padding: 1px 18px 1px 3px;
