@@ -7,7 +7,7 @@ QLabel {
 }
 
 QPushButton {
-    color:black;
+    color: black;
 	background-color: rgb(230, 230, 230);
 	border-style: outset;
 	border-width: 1px;
@@ -26,6 +26,8 @@ QComboBox {
     border-radius: 3px;
     padding: 1px 18px 1px 3px;
     border-style: outset;
+    selection-background-color: rgb(170, 170, 170);
+    selection-color: white;
 }
 
 
@@ -43,6 +45,7 @@ QComboBox:!editable:on, QComboBox::drop-down:editable:on {
 }
 
 QComboBox::drop-down {
+    color: blue;
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 15px;
