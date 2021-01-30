@@ -116,7 +116,6 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
-    std::cout << QPalette().color(QPalette::Window).name().toStdString() << std::endl;
 }
 
 void MainWindow::init_styles()
@@ -416,24 +415,30 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     QPoint delta(event->angleDelta());
     QPoint delta_pix(event->pixelDelta());
     int mouv(0);
+    /*
     if (!delta_pix.isNull())
     {
         std::cout << " pixel : " << delta_pix.y() << std::endl;
         mouv = delta_pix.y()/100;
     }
-    else 
+    */
+    // angleDelta en 8eme de degré
+    // 120 = 15°  (24 crans sur une souris standard)
+    mouv = delta.y()/12;
+    //std::cerr << delta.y() << " " << mouv << std::endl;
+    if (mouv >= 0 && mouv <= 10) {
+        mouv = 10;
+    } else if (mouv < 0 && mouv >= -10) {
+        mouv = -10;
+    }
+
+    if (mouv > 100 || mouv < -100)
     {
-        // angleDelta en 8eme de degré
-        // 120 = 15°  (24 crans sur une souris standard)
-        mouv = delta.y()/12;
-        //std::cerr << delta.y() << " " << mouv << std::endl;
-        if (mouv >= 0 && mouv <= 10) {
-            mouv = 10;
-        } else if (mouv < 0 && mouv >= -10) {
-            mouv = -10;
-        }
+        mouv /= 10;
     }
     mouv = (mouv/10)*10;//cheat code
+
+    //std::cout << mouv << std::endl;
 
     double taux = 1.0 + (double(mouv/10)/10.0);
 
