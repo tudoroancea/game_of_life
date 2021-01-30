@@ -14,6 +14,7 @@
 #include <string>
 #include <QFile>
 #include <QPalette>
+#include <time.h>
 
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
@@ -126,7 +127,6 @@ void MainWindow::init_styles()
     QString style = QLatin1String(style_sh.readAll());
 
     this->setStyleSheet(style);
-    //this->setStyleSheet(style_sheets["style_combo_liste"]);
 }
 
 void MainWindow::creer()
@@ -160,7 +160,6 @@ void MainWindow::creer()
     mode->show();
     calques = new Combobox(this);
     calques->setParent(this);
-    //calques->setStyleSheet(style_sheets["style_combo"]);
     calques->addItem("--select--");
     charger_calques();
     calques->move(10, 30);
@@ -182,7 +181,6 @@ void MainWindow::creer()
     calque_mod->resize(90, 25);
     calque_mod->show();
     reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
-    //reload_calques->setStyleSheet(style_sheets["style_button"]);
     connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
     reload_calques->resize(25, 25);
     reload_calques->move(125, 30);
@@ -191,6 +189,11 @@ void MainWindow::creer()
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
     translate(calque);
+    QLabel* eps = new QLabel(" ", this);
+    labels["eps"] = eps;
+    eps->move(290, 15);
+    eps->show();
+
     this->setFocus();
 }
 
@@ -442,11 +445,15 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     double taux = 1.0 + (double(mouv/10)/10.0);
 
-    ptr.vue->zoom({x_current, y_current}, taux);//en coord relatives parce que Tudor
+    //std::cout << taux << std::endl;
 
-    nb_lines = ptr.vue->nbr_lignes();
-    nb_col = ptr.vue->nbr_colonnes();
+    if (!(taux < 1.0 && (nb_lines <= 2 || nb_col <= 2)))
+    {
+        ptr.vue->zoom({x_current, y_current}, taux);//en coord relatives parce que Tudor
 
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes();
+    }
     //std::cerr << "2: Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
     
     this->update();
@@ -487,7 +494,11 @@ void MainWindow::timerEvent(QTimerEvent *event)
     if (timer != 0)
     {
         Q_UNUSED(event);
+        clock_t T1(clock());
         ptr.vue->evolve();
+        double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
+        if (ms < 50) {ms = 50;}
+        labels["eps"]->setText(QString::number(1000/ms));
         this->update();
     }
 }
@@ -515,6 +526,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if ((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) && state == 0)
     {
         new_sim->click();
+    }
+    if (event->key() == Qt::Key_O)
+    {
+        for (int a(0); a<1000000000; a++)
+        {
+            if (a%10000000 == 0) {std::cout << a/10000000 << std::endl;}
+        }
     }
 }
 
