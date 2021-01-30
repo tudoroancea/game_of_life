@@ -9,6 +9,25 @@
 #include <algorithm> //
 #include <typeinfo> // for typeid
 #include <filesystem> // pour trouver les simulations existantes
+#include <chrono>
+
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 // Constructeurs ========================================================================================
 GameOfLife::GameOfLife() : nbr_gen(0) {
@@ -39,11 +58,11 @@ bool GameOfLife::access(size_t const& i, size_t const& j) const {
 	}
 }
 liste const& GameOfLife::get_viv() const {return vivantes;}
-std::array<std::array<bool,500>,500> const& GameOfLife::get_grille() const {return grille;}
+std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> const& GameOfLife::get_grille() const {return grille;}
 
 // Setters ================================================
 GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {
-	#ifdef OVERFL0W_WARNINGS
+	#ifdef OVERFLOW_WARNINGS
 	if (i < MAX_LIGNES && j < MAX_COLONNES) {
 		if (!access(i+50, j+50)) {
 			vivantes.push_back({i+50, j+50});
@@ -205,22 +224,19 @@ void GameOfLife::evolve() {
 
 std::vector<std::string> existing_local_sims() {
     std::vector<std::string> res;
-	std::filesystem::path sims(std::string(LOCAL_PATH));
-	sims /= "sims";
-	//std::filesystem::current_path(chemin);
-    for (auto const& entry : std::filesystem::directory_iterator(sims)) {
-        if (entry.is_directory()) {
+	std::filesystem::current_path(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"));
+    for (auto const& entry : std::filesystem::directory_iterator(std::filesystem::current_path())) {
+        if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
             res.push_back(entry.path().stem().string());
         }
     }
     return res;
 }
 std::vector<std::string> existing_presaved_sims() {
-    std::vector<std::string> res;
-    std::filesystem::path sims(std::string(LOCAL_PATH));
-	sims /= "sims";
-    for (auto const& entry : std::filesystem::directory_iterator(sims)) {
-        if (entry.is_directory()) {
+	std::vector<std::string> res;
+    //std::filesystem::current_path(std::filesystem::path(std::string(PRESAVED_PATH)+"/sims"));
+    for (auto const& entry : std::filesystem::directory_iterator(std::filesystem::path(std::string(PRESAVED_PATH)+"/sims"))) {
+        if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
             res.push_back(entry.path().stem().string());
         }
     }
@@ -237,32 +253,48 @@ void GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& c
 				std::ofstream out(nom_motif+".csv");
 				for (auto const& el : vivantes) out << el.first << ',' << el.second << '\n';
 				out.close();
-			} else std::cerr << " ERROR : On ne peut pas sauver le motif car " << DATA_PATH << "/local/motifs n'existe pas." << std::endl;
+			} else {
+				#ifdef NON_EXISTING_PATH_WARNINGS
+					std::cerr << "[ERROR : On ne peut pas sauver le dossier car " << DATA_PATH << "/local/motifs n'existe pas.]" << std::endl;
+				#endif
+			}
 		} else {
 			if (std::filesystem::exists(chemin/="presaved/motifs")) {
 				std::filesystem::current_path(chemin);
 				std::ofstream out(nom_motif+".csv");
 				for (auto const& el : vivantes) out << el.first << ',' << el.second << '\n';
 				out.close();
-			} else std::cerr << " ERROR : On ne peut pas sauver le motif car " << DATA_PATH << "/presaved/motifs n'existe pas." << std::endl;
+			} else {
+				#ifdef NON_EXISTING_PATH_WARNINGS
+					std::cerr << "[ERROR : On ne peut pas sauver le dossier car " << DATA_PATH << "/presaved/motifs n'existe pas.]" << std::endl;
+				#endif
+			}
 		}
-	} else std::cerr << " ERROR : On ne peut pas sauver le motif car le dossier " << DATA_PATH << " n'existe pas." << std::endl;
+	} else {
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << "[ERROR : On ne peut pas sauver le motif car le dossier " << DATA_PATH << " n'existe pas.]" << std::endl;
+		#endif
+	}
 }
 bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie) {
+	std::cerr << "hey" << std::endl;
 	// On verifie dans quel dossier on doit enregistrer la simulation
 	std::filesystem::current_path(std::string(DATA_PATH));
 	std::filesystem::path chemin;
 	if (categorie == local) chemin = std::filesystem::path("local/sims/");
     else chemin = std::filesystem::path("presaved/sims/");
+	std::cerr << "hey" << std::endl;
 	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
 	if (!std::filesystem::exists(chemin)) {
-		return false;
+		std::cerr << "hey" << std::endl;
 		#ifdef NON_EXISTING_PATH_WARNINGS
 			std::cerr << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé false car " DATA_PATH;
 			if (categorie == local) std::cerr << "/local/sims/ n'existe pas]";
 			else std::cerr << "/presaved/sims/ n'existe pas]";
 		#endif
+		return false;
 	}
+	std::cerr << "hey" << std::endl;
 	chemin /= ("sim-"+nom_simulation);
 	if (!std::filesystem::exists(chemin)) {
 		std::filesystem::create_directory(chemin);
@@ -270,11 +302,12 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 		std::ofstream info, content;
 
 		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
-		info.open(chemin.string()+"/"+nom_simulation+"-info.csv");
+		std::cerr << "hey" << std::endl;
+		info.open(nom_simulation+"-info.csv");
 		info << "ligne,colonne\n"
 			 << MAX_LIGNES << "," << MAX_COLONNES << '\n'
 			 << duree_sim << ",\n";
-		content.open(chemin.string()+"/"+nom_simulation+"-content.csv");
+		content.open(nom_simulation+"-content.csv");
 
 		//
 		size_t compteur(1);
@@ -466,9 +499,7 @@ GameOfLifeView& GameOfLifeView::resize(unsigned int const& lmin, unsigned int co
 GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
 	int maxl(MAX_LIGNES-Lmax), maxc(MAX_COLONNES-Cmax), minl(-Lmin), minc(-Cmin);
 	if (minl <= l && l <= maxl && minc <= c && c <= maxc) {
-		//std::cerr << "hey" << std::endl;
 		if (l != 0 || c != 0) {
-			//std::cerr << "hey2" << std::endl;
 			Lmin += l;
 			Lmax += l;
 			Cmin += c;
@@ -493,15 +524,24 @@ GameOfLifeView& GameOfLifeView::zoom(double const& grossissement) {
 }
 GameOfLifeView& GameOfLifeView::zoom(coord const& centre, double grossissement) {
 	if (X(centre) < Lmax-Lmin && Y(centre) < Cmax-Cmin && 0<=grossissement && grossissement != 1) {
-		unsigned int x(X(centre)+Lmin),y(Y(centre)+Cmin);
-		this->resize(x-grossissement*(x-Lmin), x+grossissement*(Lmax-x), y-grossissement*(y-Cmin), y+grossissement*(Cmax-y));
+		unsigned int nbr_l(Lmax-Lmin), nbr_c(Cmax-Cmin);
+		nbr_l *= grossissement;
+		nbr_c *= grossissement;
+		unsigned int Lminprime(X(centre)+Lmin-grossissement*X(centre)), Cminprime(Y(centre)+Cmin-grossissement*Y(centre));
+		this->resize(Lminprime, nbr_l+Lminprime, Cminprime, nbr_c+Cminprime);
 	}
 	return *this;
 }
 GameOfLifeView& GameOfLifeView::zoom(size_t const& x, size_t const& y, double grossissement) {
 	if (x < Lmax-Lmin && y < Cmax-Cmin && 0<=grossissement && grossissement != 1) {
-		unsigned int xprime(x+Lmin), yprime(y+Cmin);
-		this->resize(xprime-grossissement*(xprime-Lmin), xprime+grossissement*(Lmax-xprime), yprime-grossissement*(yprime-Cmin), yprime+grossissement*(Cmax-yprime));
+		//auto start(std::chrono::high_resolution_clock::now());
+		unsigned int nbr_l(Lmax-Lmin), nbr_c(Cmax-Cmin);
+		nbr_l *= grossissement;
+		nbr_c *= grossissement;
+		unsigned int Lminprime(x+Lmin-grossissement*x), Cminprime(y+Cmin-grossissement*y);
+		this->resize(Lminprime, nbr_l+Lminprime, Cminprime, nbr_c+Cminprime);
+		//auto stop(std::chrono::high_resolution_clock::now());
+		//std:: cerr << RED << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << " ns" << RESET << std::endl;
 	}
 	return *this;
 }
@@ -572,7 +612,7 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 	if (std::filesystem::exists(info_path)) {
 		// Le dossier de simulation existe bien. On ajuste les path correspondants
 		//std::string s1(nom_sim+"-info.csv"), s2(nom_sim+"-content.csv");
-		info_path /=  (nom_sim+"info.csv");
+		info_path /=  (nom_sim+"-info.csv");
 		content_path /= (nom_sim+"-content.csv");
 		if (std::filesystem::exists(info_path)) {
 			// Le fichier info existe bien. On l'ouvre
@@ -585,6 +625,7 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 				C = info_file.GetCell<unsigned int>(1,1);
 			}
 			catch (...) { // On peut attraper des erreurs out_of_range mais aussi des erreurs de conversion
+				std::cerr << "INCOMPLETE_INFO" << std::endl;
 				throw Error::INCOMPLETE_INFO;
 			}
 			if (L == MAX_LIGNES && C == MAX_COLONNES) {
@@ -596,6 +637,7 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 					fin = info_file.GetCell<size_t>(0,4);
 				}
 				catch (...) { // On peut attraper des erreurs out_of_range mais aussi des erreurs de conversion
+					std::cerr << "INCOMPLETE_INFO" << std::endl;
 					throw Error::INCOMPLETE_INFO;
 				}
 				// On essaie d'ouvrir la génération 0
@@ -608,9 +650,11 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 						grille->add_motif(M);
 					}
 					catch (...) {
+						std::cerr << "INCOMPLETE_CONTENT" << std::endl;
 						throw Error::INCOMPLETE_CONTENT;
 					}
 				} else {
+					std::cerr << "NON_EXISTING_CONTENT" << std::endl;
 					throw Error::NON_EXISTING_CONTENT;
 				}
 			} else {
@@ -622,9 +666,11 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 				#endif
 			}
 		} else {
+			std::cerr << "NON_EXISTING_INFO" << std::endl;
 			throw Error::NON_EXISTING_INFO;
 		}
 	} else {
+		std::cerr << "NON_EXISTING_SIM" << std::endl;
 		throw Error::NON_EXISTING_SIM;
 	}
 	return *this;
@@ -708,7 +754,7 @@ Simulation& Simulation::resize(unsigned int const& lmin, unsigned int const& lma
 	return *this;
 }
 
-/*std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
+std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
 	liste vivantes(jeu.get_viv());
 	std::vector<Motif> res;
 	for (auto const& cell : vivantes) {
@@ -726,9 +772,9 @@ Simulation& Simulation::resize(unsigned int const& lmin, unsigned int const& lma
 		}
 	}
 	return res;
-}*/
+}
 
-/*size_t find(std::vector<size_t> const& L, size_t const& e) {
+size_t find(std::vector<size_t> const& L, size_t const& e) {
 	size_t r(e);
 	while (L[r] != r) r = L[r];
 	return r;
@@ -741,12 +787,12 @@ size_t unionn(std::vector<size_t>& L, size_t const& e1, size_t const& e2) {
 		L[e1] = e2;
 		return e2;
 	}
-}*/
-//bool is_adjacent(coord const& p1, coord const& p2) {return sont_voisins(p1, p2);}
-//bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
-//void init_features(size_t const& label, coord const& pixel);
-//void accumulate_features(size_t const& label, coord const& pixel);
-/*std::vector<size_t> GameOfLife::sparseCLL() {
+}
+bool is_adjacent(coord const& p1, coord const& p2) {return sont_voisins(p1, p2);}
+bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
+void init_features(size_t const& label, coord const& pixel);
+void accumulate_features(size_t const& label, coord const& pixel);
+std::vector<size_t> GameOfLife::sparseCLL() {
 	// first scan: pixel association
 	size_t start_j(0), n(vivantes.size()), tpr(0);
 	std::vector<size_t> Liste(n);
@@ -777,4 +823,4 @@ size_t unionn(std::vector<size_t>& L, size_t const& e1, size_t const& e2) {
 	}
 	Liste.push_back(labels);
 	return Liste;
-}*/
+}
