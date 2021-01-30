@@ -16,6 +16,7 @@
 #include <QModelIndex>
 #include <QString>
 #include <QTimer>
+#include <QResizeEvent>
 #include <unordered_map>
 #include "game_of_life.h"
 #include "motifs.h"
@@ -24,6 +25,7 @@ struct Vue
 {
     GameOfLifeView* vue;
     int lmin, lmax, cmin, cmax;
+    unsigned int size_cell, px_x, px_y;
 };
 
 class Combobox : public QComboBox
@@ -78,6 +80,8 @@ public:
 
     void keyPressEvent(QKeyEvent* event) override;
 
+    void resizeEvent(QResizeEvent* event) override;
+
     void charger_calque();
 
     void charger_calques();
@@ -99,9 +103,10 @@ private:
 
     void init_styles();    
 
-    QPoint pos_souris_rel(QMouseEvent* event) { return QPoint((event->x()-10)*nb_lines/500, (event->y()-90)*nb_col/500);}
+    bool mouse_in(QMouseEvent* event);
 
-    std::unordered_map<std::string, QString> style_sheets;
+    QPoint pos_souris_rel(QMouseEvent* event) { return QPoint((event->x()-10)/ptr.size_cell, (event->y()-90)/ptr.size_cell);}
+
     std::unordered_map<std::string, QLabel*> labels;
 
     QComboBox* sim_loc;
@@ -112,7 +117,6 @@ private:
     QLineEdit* new_entree;
     bool new_state;
 
-    liste const* cells2;
     QPushButton* lance;
     QPushButton* calque_mod;
     Combobox* calques;
@@ -156,3 +160,16 @@ private:
  *  Dans tous les cas il faut ouvrir le dialogue interface
 
  */
+
+/* nouveau système d'affichage :
+un conserve la taille d'une cellule et nb lines et nb col
+nb lines et nb col en commun avec la vue ensuite la vue 
+les état des cellules auquels on donne la bonne taille
+il faut modifier la taille au moment du zoom
+et il faut modifier nb_lines et nb_col au moment du resize 
+de la fenêtre.
+Etape 1 : 
+adapter le code à la nouvelle architecture
+Etape 2 :
+implémenter resize event
+*/

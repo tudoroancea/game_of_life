@@ -78,11 +78,11 @@ void Frame::paintEvent(QPaintEvent *event)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), new_taille(nullptr), new_entree(nullptr), new_state(false),
-      cells2(nullptr), lance(nullptr), calque_mod(nullptr), calques(nullptr), reload_calques(nullptr),
+      lance(nullptr), calque_mod(nullptr), calques(nullptr), reload_calques(nullptr),
       pause(nullptr),
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), ptr({nullptr, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
+      x_end(-1), y_end(-1), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
     init_styles();
@@ -148,7 +148,11 @@ void MainWindow::creer()
     ptr.lmax = ptr.lmin + nb_lines;
     ptr.cmax = ptr.cmin + nb_col;
     ptr.vue = new GameOfLifeView(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
-    cells2 = &(ptr.vue->get_viv());
+    if (nb_lines == 0) {nb_lines = 1;}
+    if (nb_col == 0) {nb_col = 1;}
+    ptr.size_cell = 500/nb_lines;
+    ptr.px_x = 500;
+    ptr.px_y = 500;
     QLabel* calques_saved = new QLabel("Calques disponibles :", this);
     labels["calques_saved"] = calques_saved;
     calques_saved->resize(140, 20);
@@ -230,14 +234,14 @@ void MainWindow::paintEvent(QPaintEvent *event)
     if (state == 1)
     {
         Q_UNUSED(event);
-        QRect rect1(10, 90, 500, 500);
+        QRect rect1(10, 90, ptr.px_x, ptr.px_y);
         paint->fillRect(rect1, Qt::black);
         bool in(false);
-        for (auto a : *cells2)
+        for (auto a : ptr.vue->get_viv())
         {
             if (a.first < nb_lines && a.second < nb_col)
             {
-                Cell_ b(a.first*500/nb_lines + 10, a.second*500/nb_col + 90, 500/nb_lines, 500/nb_col);
+                Cell_ b(a.first*ptr.size_cell + 10, a.second*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
                 b.change_color();
                 if (b.state()) {paint->fillRect(b.rect(), b.color());}
                 if (a.first == size_t(x_current) && a.second == size_t(y_current)) {in = true;}
@@ -246,7 +250,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         if (in)
         {
             paint->setPen(Qt::black);
-            QRect rect(x_current*500/nb_lines + 10, y_current*500/nb_col + 90, 500/nb_lines, 500/nb_col);
+            QRect rect(x_current*ptr.size_cell + 10, y_current*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
             rect.setWidth(rect.width() - 1);
             rect.setHeight(rect.height() - 1);
             paint->drawRect(rect);
@@ -254,7 +258,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         else if (x_current >= 0 && y_current >= 0)
         {
             paint->setPen(Qt::white);
-            QRect rect(x_current*500/nb_lines + 10, y_current*500/nb_col + 90, 500/nb_lines, 500/nb_col);
+            QRect rect(x_current*ptr.size_cell + 10, y_current*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
             rect.setWidth(rect.width() - 1);
             rect.setHeight(rect.height() - 1);
             paint->drawRect(rect);
@@ -273,7 +277,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 {
                     for (size_t b(min_y); b<=size_t(max_y) && max_y >= 0; b++)
                     {
-                        QRect rect(a*500/nb_lines + 10, b*500/nb_col + 90, 500/nb_lines, 500/nb_col);
+                        QRect rect(a*ptr.size_cell + 10, b*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
                         paint->fillRect(rect, QColor(0,0,100,180));
                     }
                 }
@@ -288,7 +292,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                     a.first + x_current - calque.translate.first < nb_lines       &&
                     a.second + y_current - calque.translate.second < nb_col)
                 {
-                    QRect rect((a.first + x_current - calque.translate.first)*500/nb_lines + 10, (a.second + y_current - calque.translate.second)*500/nb_col + 90, 500/nb_lines, 500/nb_col);
+                    QRect rect((a.first + x_current - calque.translate.first)*ptr.size_cell + 10, (a.second + y_current - calque.translate.second)*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
                     paint->fillRect(rect, QColor(128,128,128,180));
                     pos_souris->setText(QString::number(calque.translate.first) + " " + QString::number(calque.translate.second));
                 }
@@ -302,14 +306,19 @@ void MainWindow::paintEvent(QPaintEvent *event)
     paint->end();
 }
 
+bool MainWindow::mouse_in(QMouseEvent* event)
+{
+    return ((event->x() >= 10) && (event->x() <= int(ptr.px_x) + 10))&&
+           ((event->y() >= 90) && (event->y() <= int(ptr.px_y) + 90));
+}
+
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {
         if (!simul_on && !ctrl_on)
         {
-            if (((event->x() >= 10) && (event->x() <= 510))&&
-                ((event->y() >= 90) && (event->y() <= 590)))
+            if (mouse_in(event))
             {
                 QPoint pos(pos_souris_rel(event));
                 if (calque.on_off)
@@ -336,8 +345,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
     else if (event->button() == Qt::RightButton && state == 1)
     {
-        if (((event->x() >= 10) && (event->x() <= 510))&&
-            ((event->y() >= 90) && (event->y() <= 590)))
+        if (mouse_in(event))
         {
             QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
@@ -361,8 +369,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     if (nb_lines >= 1 && event->buttons() != Qt::RightButton)
     {
         if (!(event->modifiers() == Qt::ControlModifier)) {ctrl_on = false;}
-        if (((event->x() >= 10) && (event->x() <= 510)) &&
-            ((event->y() >= 90) && (event->y() <= 590)))
+        if (mouse_in(event))
         {
             x_prec = x_current;
             y_prec = y_current;
@@ -388,8 +395,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     if (state != 0) { pos_souris->setText(QString::number(x_current) + " " + QString::number(y_current));}
     if (state == 1 && event->buttons() == Qt::RightButton)
     {
-        if (((event->x() >= 10) && (event->x() <= 510))&&
-            ((event->y() >= 90) && (event->y() <= 590)))
+        if (mouse_in(event))
         {
             ptr.vue->translate(x_prec - x_current, y_prec - y_current);
             QPoint pos(pos_souris_rel(event));
@@ -453,6 +459,9 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();
+
+        ptr.size_cell = ptr.px_x/nb_lines;
+        std::cout << nb_lines << " | " << nb_col << std::endl;
     }
     //std::cerr << "2: Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
     
@@ -527,12 +536,20 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         new_sim->click();
     }
-    if (event->key() == Qt::Key_O)
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    if (state != 0)
     {
-        for (int a(0); a<1000000000; a++)
-        {
-            if (a%10000000 == 0) {std::cout << a/10000000 << std::endl;}
-        }
+        ptr.px_x = (this->size().width() - 20);
+        ptr.px_y = (this->size().height() - 100);
+        nb_lines = ptr.px_x/ptr.size_cell;
+        nb_col = ptr.px_y/ptr.size_cell;
+        ptr.lmax = ptr.lmin + nb_lines;
+        ptr.cmax = ptr.cmin + nb_col;
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
     }
 }
 
@@ -549,7 +566,7 @@ void MainWindow::charger_calque()
         if (min_x >= 0 && max_x < int(nb_lines) && min_y >= 0 && max_y < int(nb_col))
         {
             Calque temp;
-            for (auto a : *cells2)
+            for (auto a : ptr.vue->get_viv())
             {
                 if (((long long int)(a.first) >= min_x && (long long int)(a.first) <= max_x) &&
                     ((long long int)(a.second) >= min_y && (long long int)(a.second) <= max_y))
