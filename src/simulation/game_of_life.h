@@ -86,7 +86,7 @@ public :
     std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> const& get_grille() const;
     /**
      *  @returns    référence sur le nombre de générations
-     *  @brief  (on renvoie une référence pour incrémenter le nombre de générations dans …)
+     *  @brief  (on renvoie une référence pour incrémenter le nombre de générations dans Simulation::evolve() )
      */
     unsigned int& get_nbr_gen();
 
@@ -153,13 +153,14 @@ public :
 
     // Enregistrement de motifs et simulaions  ==============================
     /**
-	 *  @brief	Enregistre un fichier .csv contenant les coordonnées du motif formé de toutes les cellules vivantes de la grille. Si un fichier du même nom existe deja, l'écrase
+	 *  @brief	Enregistre un fichier .csv contenant les coordonnées du motif formé de toutes les cellules vivantes de la grille. Si un fichier du même nom existe deja, ne fait rien
 	 *  @param	nom_motif	Nom du fichier à créer.
      *  @param  categorie La catégorie dans lequel le fichier sera enregistré.
+     *  @return true si on a réussi à enregistrer le motif, false sinon
      */
-    void save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
+    bool save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
     /**
-     *  @brief  Fait appel à la methode evolve() et calcules une simulation sur un nombre pré-défini de generations, et l'enregistre en .csv. Si une simulation du même nom existe déjà ne fait rien.
+     *  @brief  Fait appel à la methode evolve() et calcule une simulation sur un nombre pré-défini de generations, et l'enregistre en .csv. Si une simulation du même nom existe déjà ne fait rien.
      *  Voir le fichier convention.md pour la structure de ces fichiers.
      *  @param  nom_simulation  nom à donner à l'enregistrement de la simulation
      *  @param  duree_sim nombre de générations à simuler
@@ -263,6 +264,16 @@ class GameOfLifeView : public GameOfLife {
         unsigned int get_Cmin() const;
         unsigned int get_Lmax() const;
         unsigned int get_Cmax() const;
+
+        /**
+         *  @brief	Enregistre un fichier .csv contenant les coordonnées du motif formé de toutes les cellules vivantes dans la partie visible de la grille.
+         *  Si un fichier du même nom existe deja, ne fait rien.
+         *  Les coordonnées des cellules sont par rapport à la partie visible (ie dans [0,Lmax-Lmin[x[0,Cmax-Cmin[ )
+         *  @param	nom_motif	Nom du fichier à créer.
+         *  @param  categorie La catégorie dans lequel le fichier sera enregistré.
+         *  @return true si on a réussi à enregistrer le motif, false sinon
+         */
+        bool save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
         // Setters du jeu =======================================================================
         /**
          *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
@@ -379,38 +390,17 @@ class GameOfLifeView : public GameOfLife {
 class Simulation {
     private :
         /**
-         *  @brief  nom de la simulation
-         */
-        std::string nom;
-        /**
-         *  @brief  GOL qui contiendra les cellules à afficher
+         *  @brief  GOLView qui contiendra les cellules à afficher
          */
         GameOfLifeView* grille;
-        /**
-         *  @brief  Nombre de générations que doit durer la simulation
-         */
-        unsigned int nbr_gen;
-        /**
-         *  @brief  path du fichier de configuration <nom_sim>-info.csv
-         */
-        std::filesystem::path info_path;
-        /**
-         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-info.csv
-         */
-        rapidcsv::Document info_file;
-        /**
-         *  @brief  path du fichier de contenu <nom_sim>-content.csv
-         */
-        std::filesystem::path content_path;
-        /**
-         *  @brief  Document rapidcsv pour parse le fichier <nom_sim>-content.csv
-         */
-        rapidcsv::Document content_file;
+        std::filesystem::path config_path;
+        rapidcsv::Document* config_file;
+
     public :
         /**
          *  @brief  types d'erreurs à lancer pour être attrapées lors de la création de simulations
          */
-        enum Error{NON_EXISTING_SIM, NON_EXISTING_INFO, NON_EXISTING_CONTENT, INCOMPLETE_INFO, INCOMPLETE_CONTENT, INCOMPATIBLE_DIMENSIONS};
+        enum Error{NON_EXISTING_SIM, INCOMPLETE_SIM, INCOMPATIBLE_DIMENSIONS};
 
         // Constructeurs & Destructeurs ========================================================================================================
         /**
@@ -429,10 +419,6 @@ class Simulation {
 
         // Getters ========================================================================================================
         /**
-         *  @brief  pretty self-explanatory
-         */
-        std::string const& get_nom() const;
-        /**
          *  @brief  S'il y a un problème d'accès au fichiers, lance une erreur INCOMPLETE_INFO ou INCOMPLETE_CONTENT
          *  @param  num_gen numero de la génération
          *  @returns    motif numero num_gen
@@ -441,11 +427,13 @@ class Simulation {
         /**
          *  @returns    la liste des cellules vivantes visibles de la grille sous-jacente
          */
-        liste get_viv() const;
+        liste const& get_viv() const;
         /**
          *  @returns    true si la simulation est terminée (il n'y a plus de motifs à charger), false sinon
          */
         bool finie() const;
+
+        unsigned int duree_sim() const;
 
         // Evolution de la grille ========================================================================================================
         /**

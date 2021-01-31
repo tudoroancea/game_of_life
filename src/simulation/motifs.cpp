@@ -24,36 +24,45 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
+
+std::ostream& operator<<(std::ostream& out, FILE_CATEGORY const& cat) {
+    if (cat == local) out << "local";
+    else out << "presaved";
+    return out;
+}
 std::ostream& operator<<(std::ostream& out, coord const& c) {
 	out << X(c) << ", " << Y(c);
 	return out;
 }
-//std::ostream& operator<<(std::ostream& out, coord c) {
-//	out << X(c) << ", " << Y(c);
-//	return out;
-//}
 
 // Constructeurs & Destructeurs ========================================
 Motif::Motif(std::initializer_list<coord> L) : cellules(L) {}
 Motif::Motif(liste const& L) : cellules(L) {}
-Motif::Motif(std::string const& fichier, FILE_CATEGORY const& categorie) {
-	std::string chemin("");
-	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
-	if (categorie != local) chemin = "presaved/motifs/"+fichier+".csv";
-	else chemin = "local/motifs/"+fichier+".csv";
-	if(std::filesystem::exists(std::filesystem::path(chemin))) {
-		rapidcsv::Document motif(chemin);
-		for (size_t i(0); i < motif.GetRowCount() ; ++i) {
-			cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
-		}
-	} else std::cerr << " ERROR : On ne peut pas créer le motif car le fichier " << DATA_PATH << "/" << chemin << " n'existe pas" << std::endl;
-}
 Motif::Motif(std::filesystem::path const& chemin) {
 	if (std::filesystem::exists(chemin)) {
-		rapidcsv::Document motif(chemin.string());
-		for (size_t i(0); i < motif.GetRowCount() ; ++i) {
-			cellules.push_back({motif.GetCell<size_t>(0,i), motif.GetCell<size_t>(1,i)});
+		rapidcsv::Document motif(chemin, rapidcsv::LabelParams(-1,-1));
+		for (size_t i(0); i < motif.GetColumnCount() ; i+=2) {
+			cellules.push_back({motif.GetCell<size_t>(i,0), motif.GetCell<size_t>(i+1,0)});
 		}
+	} else {
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << YELLOW << "[Motif(" << chemin.string() << ") a construit un motif vide car ce chemin n'existe pas]" << RESET;
+		#endif
+	}
+}
+Motif::Motif(std::string const& fichier, FILE_CATEGORY const& categorie) {
+	std::filesystem::path chemin;
+	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs/"+fichier+".csv");
+	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs/"+fichier+".csv");
+	if (std::filesystem::exists(chemin)) {
+		rapidcsv::Document motif(chemin, rapidcsv::LabelParams(-1,-1));
+		for (size_t i(0); i < motif.GetColumnCount() ; i+=2) {
+			cellules.push_back({motif.GetCell<size_t>(i,0), motif.GetCell<size_t>(i+1,0)});
+		}
+	} else {
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << YELLOW << "[Motif(" << chemin.string() << ") a construit un motif vide car ce chemin n'existe pas]" << RESET;
+		#endif
 	}
 }
 

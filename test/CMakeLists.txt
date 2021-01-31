@@ -49,3 +49,9 @@ target_link_libraries(test_resize LINK_PUBLIC simulation)
 
 add_executable(test_gameoflifeview test_gameoflifeview.cpp)
 target_link_libraries(test_gameoflifeview LINK_PUBLIC simulation)
+
+add_executable(test_existing_sims test_existing_sims.cpp)
+target_link_libraries(test_existing_sims LINK_PUBLIC simulation)
+
+add_executable(test_rapidcsv test_rapidcsv.cpp)
+target_link_libraries(test_rapidcsv LINK_PUBLIC simulation)

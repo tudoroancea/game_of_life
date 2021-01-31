@@ -29,4 +29,5 @@ add_library(simulation
     STATIC
     game_of_life.cpp game_of_life.h
     motifs.cpp motifs.h
+    rapidcsv.h
 )

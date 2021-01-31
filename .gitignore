@@ -27,3 +27,4 @@ test/googletest
 test_cli
 main
 *_autogen
+test/test.csv

@@ -119,13 +119,13 @@ int CliApp::exec() {
         catch (Simulation::Error const& err) {
             switch (err) {
                 case Simulation::Error::INCOMPLETE_INFO:
-                    std::cerr << " ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> incomplet." << std::endl;
+                    std::cerr << "[ERROR : Fichier de configuration <" << sim.get_nom() << "-info.csv> incomplet.]" << std::endl;
                     return -1;
                 case Simulation::Error::INCOMPLETE_CONTENT:
-                    std::cerr << " ERROR : Fichier de contenu <" << sim.get_nom() << "-content.csv> incomplet." << std::endl;
+                    std::cerr << "[ERROR : Fichier de contenu <" << sim.get_nom() << "-content.csv> incomplet.]" << std::endl;
                     return -1;
                 default:
-                    std::cerr << " UNEXPECTED ERROR" << std::endl;
+                    std::cerr << "[UNEXPECTED ERROR]" << std::endl;
                     return -1;
             }
         }

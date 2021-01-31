@@ -228,7 +228,7 @@ std::vector<std::string> existing_local_sims() {
 	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
 	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
 		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
-			if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
+			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
 				res.push_back(entry.path().stem().string());
 			}
 		}
@@ -241,7 +241,7 @@ std::vector<std::string> existing_presaved_sims() {
 	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
     if (std::filesystem::exists(presaved_sims)) {
 		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {
-			if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
+			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
 				res.push_back(entry.path().stem().string());
 			}
 		}
@@ -250,91 +250,82 @@ std::vector<std::string> existing_presaved_sims() {
 }
 
 // Enregistrement de motifs et simulations ========================================================================================
-void GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
-	std::filesystem::path chemin(std::string(DATA_PATH));
+bool GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
+	std::filesystem::path chemin;
+	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs");
+	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs");
 	if (std::filesystem::exists(chemin)) {
-		if (categorie == local) {
-			if (std::filesystem::exists(chemin/="local/motifs")) {
-				std::filesystem::current_path(chemin);
-				std::ofstream out(nom_motif+".csv");
-				for (auto const& el : vivantes) out << el.first << ',' << el.second << '\n';
-				out.close();
-			} else {
-				#ifdef NON_EXISTING_PATH_WARNINGS
-					std::cerr << "[ERROR : On ne peut pas sauver le dossier car " << DATA_PATH << "/local/motifs n'existe pas.]" << std::endl;
-				#endif
+		chemin /= (nom_motif+".csv");
+		if (!std::filesystem::exists(chemin)) {
+			std::ofstream out(chemin);
+			out.close();
+			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+			for (size_t cell(0); cell < vivantes.size(); ++cell) {
+				file.SetCell<size_t>(2*cell, 0, X(vivantes[cell])-50);
+				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes[cell])-50);
 			}
+			file.Save();
+			return true;
 		} else {
-			if (std::filesystem::exists(chemin/="presaved/motifs")) {
-				std::filesystem::current_path(chemin);
-				std::ofstream out(nom_motif+".csv");
-				for (auto const& el : vivantes) out << el.first << ',' << el.second << '\n';
-				out.close();
-			} else {
-				#ifdef NON_EXISTING_PATH_WARNINGS
-					std::cerr << "[ERROR : On ne peut pas sauver le dossier car " << DATA_PATH << "/presaved/motifs n'existe pas.]" << std::endl;
-				#endif
-			}
+			std::cerr << CYAN << "GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car un motif du même nom existait déjà]" << RESET;
+			return false;
 		}
 	} else {
 		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << "[ERROR : On ne peut pas sauver le motif car le dossier " << DATA_PATH << " n'existe pas.]" << std::endl;
-		#endif
-	}
-}
-bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie) {
-	std::cerr << "hey" << std::endl;
-	// On verifie dans quel dossier on doit enregistrer la simulation
-	std::filesystem::current_path(std::string(DATA_PATH));
-	std::filesystem::path chemin;
-	if (categorie == local) chemin = std::filesystem::path("local/sims/");
-    else chemin = std::filesystem::path("presaved/sims/");
-	std::cerr << "hey" << std::endl;
-	// On verifie si un dossier du même nom existe deja, et sinon en enregistre la simulation
-	if (!std::filesystem::exists(chemin)) {
-		std::cerr << "hey" << std::endl;
-		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé false car " DATA_PATH;
-			if (categorie == local) std::cerr << "/local/sims/ n'existe pas]";
-			else std::cerr << "/presaved/sims/ n'existe pas]";
+			std::cerr << RED << "[GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car /" DATA_PATH;
+			if (categorie == presaved) std::cerr << "presaved";
+			else std::cerr << "local";
+			std::cerr << "/motifs n'existe pas]" << RESET;
 		#endif
 		return false;
 	}
-	std::cerr << "hey" << std::endl;
-	chemin /= ("sim-"+nom_simulation);
+}
+bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie) {
+	// On verifie dans quel dossier on doit enregistrer la simulation
+	std::filesystem::path chemin;
+	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/sims");
+    else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/sims");
+	#ifdef NON_EXISTING_PATH_WARNINGS
 	if (!std::filesystem::exists(chemin)) {
-		std::filesystem::create_directory(chemin);
-		std::filesystem::current_path(chemin);
-		std::ofstream info, content;
+			std::cerr << RED << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car " DATA_PATH;
+			if (categorie == presaved) std::cerr << "/presaved/sims n'existe pas]";
+			else std::cerr << "/local/sims n'existe pas]";
+			std::cerr << RESET;
+		return false;
+	}
+	#endif
+	// On verifie si une simulation du même nom existe déjà, et si ce n'est pas le cas on crée la simulation
+	chemin /= ("sim-"+nom_simulation+".csv");
+	if (!std::filesystem::exists(chemin)) {
+		std::ofstream file(chemin);
+		file.close();
+		rapidcsv::Document res(chemin.string(), rapidcsv::LabelParams(-1,0));
 
-		// On crée les informations de la simulation (dimensions de la grille, nombre de generations)
-		std::cerr << "hey" << std::endl;
-		info.open(nom_simulation+"-info.csv");
-		info << "ligne,colonne\n"
-			 << MAX_LIGNES << "," << MAX_COLONNES << '\n'
-			 << duree_sim << ",\n";
-		content.open(nom_simulation+"-content.csv");
+		res.SetCell<unsigned int>(0,0,MAX_LIGNES);
+		res.SetCell<unsigned int>(1,0,MAX_COLONNES);
+		res.SetRowName(0,"dimensions (lignes x colonnes)");
+		res.Save();
 
-		//
-		size_t compteur(1);
-		info << compteur << ",\n";
-		content << "ligne,colonne\n";
-		for (auto const& el : vivantes) content << el.first-50 << ',' << el.second-50 << '\n';
-		compteur += vivantes.size();
+		res.SetCell<int>(0,1,duree_sim);
+		res.SetRowName(1,"nombre de générations");
+		res.Save();
 
-		//
-		for (size_t i(0); i < duree_sim ; ++i) {
-			info << compteur << ",\n";
+		size_t gen(0);
+		do {
+			// On ajoute les cellules vivantes à la génétation i
+			for (size_t cell(0); cell < vivantes.size(); ++cell) {
+				res.SetCell<size_t>(2*cell, 2+gen, X(vivantes[cell])-50);
+				res.SetCell<size_t>(2*cell+1, 2+gen, Y(vivantes[cell])-50);
+				res.Save();
+			}
+			res.SetRowName(2+gen,"Génération n°"+std::to_string(gen));
+			res.Save();
 			this->evolve();
-			for (auto const& el : vivantes) content << el.first-50 << ',' << el.second-50 << '\n';
-			compteur += vivantes.size();
-
-		}
-		info << compteur << ",\n";
-		info.close(); content.close();
+			++gen;
+		} while (gen <= duree_sim);
 		return true;
 	} else {
-		std::cerr << "Le dossier de simulation existe déjà. " << std::endl;
+		std::cerr << CYAN << "GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car une sim du même nom existait déjà]" << RESET;
 		return false;
 	}
 }
@@ -348,6 +339,36 @@ GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lma
 	Cmax(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmax%MAX_COLONNES : cmin%MAX_COLONNES)
 {}
 
+bool GameOfLifeView::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
+	std::filesystem::path chemin;
+	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs");
+	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs");
+	if (std::filesystem::exists(chemin)) {
+		chemin /= (nom_motif+".csv");
+		if (!std::filesystem::exists(chemin)) {
+			std::ofstream out(chemin);
+			out.close();
+			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+			for (size_t cell(0); cell < vivantes_visibles.size(); ++cell) {
+				file.SetCell<size_t>(2*cell, 0, X(vivantes_visibles[cell])-Lmin-50);
+				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes_visibles[cell])-Cmin-50);
+			}
+			file.Save();
+			return true;
+		} else {
+			std::cerr << CYAN << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car un motif du même nom existait déjà]" << RESET;
+			return false;
+		}
+	} else {
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << RED << "[GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car /" DATA_PATH;
+			if (categorie == presaved) std::cerr << "presaved";
+			else std::cerr << "local";
+			std::cerr << "/motifs n'existe pas]" << RESET;
+		#endif
+		return false;
+	}
+}
 // Setters du jeu GameOfLifeView ==========================================================================================================================================================================
 GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 	if (i < Lmax-Lmin && j < Cmax-Cmin && !access(i+Lmin+50, j+Cmin+50)) {
@@ -597,157 +618,93 @@ void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 }
 
 
+// SIMULATION ====================================================================================================================================
+
 
 Simulation::Simulation()
-	: nom(""), grille(nullptr), nbr_gen(0), info_path(std::filesystem::path(std::string(DATA_PATH))), content_path(std::filesystem::path(std::string(DATA_PATH))) {}
+	: grille(nullptr), config_path(std::filesystem::path(std::string(DATA_PATH))), config_file(nullptr) {}
 
 Simulation::~Simulation() {
 	delete grille;
+	delete config_file;
+}
+
+unsigned int Simulation::duree_sim() const {
+	if (config_path.extension().string() == ".csv") return config_file->GetCell<unsigned int>(0,"nombre de générations");
+	else return 0;
 }
 
 Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& categorie) {
-	nom = nom_sim;
-	if (categorie == local) {
-		info_path /= "local/sims/sim-"+nom_sim;
-		content_path /= "local/sims/sim-"+nom_sim;
-	} else {
-		info_path /= "presaved/sims/sim-"+nom_sim;
-		content_path /= "presaved/sims/sim-"+nom_sim;
-	}
-
-	if (std::filesystem::exists(info_path)) {
-		// Le dossier de simulation existe bien. On ajuste les path correspondants
-		//std::string s1(nom_sim+"-info.csv"), s2(nom_sim+"-content.csv");
-		info_path /=  (nom_sim+"-info.csv");
-		content_path /= (nom_sim+"-content.csv");
-		if (std::filesystem::exists(info_path)) {
-			// Le fichier info existe bien. On l'ouvre
-			info_file = rapidcsv::Document(info_path.string());
-			// On essaie de créer la grille à partir des dimensions indiquées dans info.csv. Si les dimensions ne correspondent pas à MAX_LIGNES et MAX_COLONNES, on ne crée pas
-			unsigned int L(0);
-			unsigned int C(0);
-			try {
-				L = info_file.GetCell<unsigned int>(0,1);
-				C = info_file.GetCell<unsigned int>(1,1);
-			}
-			catch (...) { // On peut attraper des erreurs out_of_range mais aussi des erreurs de conversion
-				std::cerr << "INCOMPLETE_INFO" << std::endl;
-				throw Error::INCOMPLETE_INFO;
-			}
-			if (L == MAX_LIGNES && C == MAX_COLONNES) {
-				grille = new GameOfLifeView(0, MAX_LIGNES, 0, MAX_COLONNES);
-				size_t debut(0), fin(0);
-				try {
-					nbr_gen = info_file.GetCell<unsigned int>(0,2);
-					debut = info_file.GetCell<size_t>(0,3);
-					fin = info_file.GetCell<size_t>(0,4);
-				}
-				catch (...) { // On peut attraper des erreurs out_of_range mais aussi des erreurs de conversion
-					std::cerr << "INCOMPLETE_INFO" << std::endl;
-					throw Error::INCOMPLETE_INFO;
-				}
-				// On essaie d'ouvrir la génération 0
-				if (debut != 0 && fin != 0) {
-					try {
-						Motif M;
-						for (size_t i(debut); i < fin ; ++i) {
-							M.push_back({content_file.GetCell<size_t>(0,i), content_file.GetCell<size_t>(1,i)});
-						}
-						grille->add_motif(M);
-					}
-					catch (...) {
-						std::cerr << "INCOMPLETE_CONTENT" << std::endl;
-						throw Error::INCOMPLETE_CONTENT;
-					}
-				} else {
-					std::cerr << "NON_EXISTING_CONTENT" << std::endl;
-					throw Error::NON_EXISTING_CONTENT;
-				}
+	if (categorie == presaved) config_path /= "/presaved/sims/sim-"+nom_sim+".csv";
+	else config_path /= "/local/sims/sim-"+nom_sim+".csv";
+	if (std::filesystem::exists(config_path)) {
+		config_file = new rapidcsv::Document(config_path, rapidcsv::LabelParams(-1,0));
+		// on vérifie que le fichier a l'air complet
+		if (config_file->GetRowCount() >= 3 && config_file->GetColumnCount() >= 2 && config_file->GetCell<unsigned int>(0,"nombre de générations")+3 == config_file->GetRowCount() && config_file->GetColumnCount()%2 == 0) {
+			// On vérifie que les dimensions de la simulation correspondent aux dimensions actuelles
+			if (config_file->GetCell<unsigned int>(0,"dimensions (lignes x colonnes)") == MAX_LIGNES && config_file->GetCell<unsigned int>(1,"dimensions (lignes x colonnes)") == MAX_COLONNES) {
+				// On ouvre tout ma gueule, c'est open bar
+				grille = new GameOfLifeView(0,MAX_LIGNES,0,MAX_COLONNES);
+				grille->add_motif(this->get_motif(0));
 			} else {
-				nom = "";
-				info_path = std::filesystem::path(std::string(DATA_PATH));
-				content_path = std::filesystem::path(std::string(DATA_PATH));
-				#ifdef WRONG_DIMENSIONS_WARNINGS
-				std::cerr << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a pas créé de grille car les dimensions de la simulation enregistrée de correspondent pas à celles de la version du progamme]";
-				#endif
+				std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car les dimensions de la simulation ne correspondaient pas aux dimensions actuelles de << " << MAX_LIGNES << "x" << MAX_COLONNES << "]" << RESET;
+				config_path = std::filesystem::path(std::string(DATA_PATH));
+				//throw INCOMPATIBLE_DIMENSIONS;
 			}
 		} else {
-			std::cerr << "NON_EXISTING_INFO" << std::endl;
-			throw Error::NON_EXISTING_INFO;
+			std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car le fichier de configuration était incomplet]" << RESET;
+			config_path = std::filesystem::path(std::string(DATA_PATH));
+			//throw INCOMPLETE_SIM;
 		}
 	} else {
-		std::cerr << "NON_EXISTING_SIM" << std::endl;
-		throw Error::NON_EXISTING_SIM;
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car la simulation indiquée n'existe pas]" << RESET;
+		#endif
+		config_path = std::filesystem::path(std::string(DATA_PATH));
+		//throw NON_EXISTING_SIM;
 	}
 	return *this;
 }
 
 Simulation& Simulation::release() {
-	nom = "";
 	delete grille;
 	grille = nullptr;
-	nbr_gen = 0;
-	info_path = std::filesystem::path(std::string(DATA_PATH));
-	content_path = std::filesystem::path(std::string(DATA_PATH));
+	config_path = std::filesystem::path(std::string(DATA_PATH));
+	delete config_file;
+	config_file = nullptr;
 	return *this;
 }
 
-std::string const& Simulation::get_nom() const {return nom;}
 
 Motif Simulation::get_motif(unsigned int const& num_gen) const {
 	Motif res;
-	if (nbr_gen != 0 && num_gen <= nbr_gen) {
-		unsigned int debut(0), fin(0);
-		try {
-			debut = info_file.GetCell<size_t>(0,3+num_gen);
-			fin = info_file.GetCell<size_t>(0,4+num_gen);
-		}
-		catch(...) { // On attrape des out_of_range mais aussi des erreurs de conversion
-			throw Error::INCOMPLETE_INFO;
-			return res;
-		}
-		try {
-			for (size_t i(debut); i < fin ; ++i) {
-				res.push_back({content_file.GetCell<size_t>(0,i),content_file.GetCell<size_t>(1,i)});
+	if (config_path.extension().string() == ".csv" && num_gen <= this->duree_sim()) {
+		std::vector<size_t> row(config_file->GetRow<size_t>(3+num_gen));
+		if (row.size()%2 == 0) {
+			for (size_t i(0); i < row.size() ; i+=2) {
+				res.push_back({row[i], row[i+1]});
 			}
-		}
-		catch (...) { // On attrape des out_of_range mais aussi des erreurs de conversion
-			throw Error::INCOMPLETE_CONTENT;
-			return res;
+		} else {
+			std::cerr << RED << "[Simulation::get_motif(" << num_gen << ") n'a rien fait car le fichier de configuration était incomplet (pas un nombre pair de coordonnées sur la ligne)]" << RESET;
+			//throw INCOMPLETE_SIM;
 		}
 	}
 	return res;
 }
 
-bool Simulation::finie() const {return grille->get_nbr_gen() == nbr_gen;}
+bool Simulation::finie() const {return grille->get_nbr_gen() == this->duree_sim();}
 
 bool Simulation::evolve() {
-	if (grille->get_nbr_gen() < nbr_gen) {
+	if (grille->get_nbr_gen() < this->duree_sim()) {
 		grille->GameOfLife::wipe();
-		++grille->get_nbr_gen();
-		try {
-			grille->GameOfLife::add_motif(get_motif(grille->get_nbr_gen()));
-		}
-		catch (Error const& err) {
-			switch (err) {
-				case INCOMPLETE_INFO:
-                    std::cerr << "[ERROR : Fichier de configuration <" << nom << "-info.csv> incomplet.]" << std::endl;
-					break;
-                case INCOMPLETE_CONTENT:
-                    std::cerr << "[ERROR : Fichier de contenu <" << nom << "-content.csv> incomplet.]" << std::endl;
-					break;
-                default:
-                    std::cerr << "[UNEXPECTED ERROR]" << std::endl;
-					break;
-			}
-		}
+		grille->GameOfLife::add_motif(get_motif(++grille->get_nbr_gen()));
 		return true;
 	} else {
 		return false;
 	}
 }
 
-liste Simulation::get_viv() const {return grille->get_viv();}
+liste const& Simulation::get_viv() const {return grille->get_viv();}
 
 void Simulation::print(std::ostream& out, bool avec_grille) const {grille->print(out, avec_grille);}
 

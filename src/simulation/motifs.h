@@ -10,6 +10,7 @@ typedef std::pair<size_t,size_t> coord;
 typedef std::vector<coord> liste;
 
 enum FILE_CATEGORY{local, presaved};
+std::ostream& operator<<(std::ostream& out, FILE_CATEGORY const& cat);
 //std::string to_string(FILE_CATEGORY const& FILE_CAT) {
 //    switch (FILE_CAT) {
 //        case local:
@@ -25,7 +26,6 @@ enum FILE_CATEGORY{local, presaved};
 #define Y(c) c.second
 
 std::ostream& operator<<(std::ostream& out, coord const& c);
-//std::ostream& operator<<(std::ostream& out, coord c);
 
 class Motif {
 private :
@@ -35,7 +35,7 @@ private :
     liste cellules;
 
 public :
-    // Constructeurs & Destructeurs
+    // Constructeurs & Destructeurs ===================================================================================================
     /**
      *  @brief  cree un motif vide
      */
@@ -61,7 +61,7 @@ public :
      */
     Motif(std::filesystem::path const& chemin);
 
-    // Méthodes de modification
+    // Méthodes de modification ===================================================================================================
     /**
      *  @brief  Tourne un motif d'un multiple de 90° autour d'un point specifie
      *  @param  angle   nombre de 1/4 de tours a faire (positif = sens trigo, negatif = sens horaire)
@@ -116,7 +116,7 @@ public :
      */
     Motif& recalibrate();
 
-    // Getters
+    // Getters ===================================================================================================
     /**
      *  @returns    Iterateur pointant sur le premier element cellule du motif
      */
@@ -134,7 +134,7 @@ public :
      */
     liste::const_iterator cend() const;
 
-    // Infos
+    // Infos ===================================================================================================
     /**
      *  @returns    la plus petite ligne d'une cellule du motif
      */
@@ -166,7 +166,7 @@ public :
 };
 bool sont_voisins(coord const& a, coord const& b);
 
-// Gestion des motifs enregsitres
+// Gestion des motifs enregsitres ===================================================================================================
 /**
  *  @returns    Liste des fichiers (sans extension) de motifs enregistres localement
  */
@@ -176,7 +176,7 @@ std::vector<std::string> existing_local_motifs();
  */
 std::vector<std::string> existing_presaved_motifs();
 
-// Calques Qt
+// Calques Qt ===================================================================================================
 struct Calque {
     Motif alive;
     std::pair<size_t, size_t> translate = {0,0};
@@ -184,7 +184,7 @@ struct Calque {
 };
 void translate(Calque& calque);
 
-// Construction de motifs géométriques
+// Construction de motifs géométriques ===================================================================================================
 /**
  *  @brief  Renvoie les coordonnees d'un segment reliant 2 points en utilisant l'algorithme de Bresenham
  *  @param x1,y1    coordonnees (dans [0,L[x[0,C[) du premier point

@@ -9,8 +9,15 @@
 using namespace std;
 
 int main() {
-    GameOfLife G(Motif("pentominoR", "local"), 20, 20);
-    //G.print();
-    cout << boolalpha << G.save_sim("pentominoR1", 5, "local") << std::endl;
+    // Enregistrement de simulation
+    //GameOfLifeView G;
+    //G.add_motif(Motif("lievres", local).translate(20,20));
+    //cout << boolalpha << G.save_sim("lievres", 5, local) << std::endl;
+
+    // Ouverture de simulation
+    Simulation sim;
+    sim.load("lievres", local);
+    sim.resize(176,226,176,226);
+    sim.print();
     return 0;
 }
