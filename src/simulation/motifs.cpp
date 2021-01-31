@@ -6,6 +6,23 @@
 #include <cmath> // pour std::abs
 #include <filesystem> // Pour trouver la liste des fichiers
 
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 std::ostream& operator<<(std::ostream& out, coord const& c) {
 	out << X(c) << ", " << Y(c);
@@ -178,10 +195,10 @@ Motif& Motif::translate(int const& x, int const& y) {
 	if (x < 0) xbis = std::min(size_t(-x),min_ligne());
 	if (y < 0) ybis = std::min(size_t(-y),min_colonne());
 	for (auto& el : cellules) {
-		if (xbis != 0) el.first -= xbis;
-		else el.first += x;
-		if (ybis != 0) el.second -= ybis;
-		else el.second += y;
+		if (xbis != 0) X(el) -= xbis;
+		else X(el) += x;
+		if (ybis != 0) Y(el) -= ybis;
+		else Y(el) += y;
 	}
 	return *this;
 }
@@ -250,22 +267,26 @@ size_t Motif::max_colonne() const {
 // Gestion des motifs enregsitres
 std::vector<std::string> existing_local_motifs() {
 	std::vector<std::string> res;
-	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
-	std::filesystem::path local_motifs("local/motifs");
-	for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-		if (file.path().extension() == ".csv") {
-			res.push_back(file.path().stem().string());
+	//std::cerr << RED << "loc_mot:" << std::filesystem::current_path().string() << RESET << std::endl;
+	std::filesystem::path local_motifs(std::string(LOCAL_PATH)+"/motifs");
+	if (std::filesystem::exists(local_motifs)) {
+		for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
+			if (file.path().extension() == ".csv") {
+				res.push_back(file.path().stem().string());
+			}
 		}
 	}
 	return res;
 }
 std::vector<std::string> existing_presaved_motifs() {
 	std::vector<std::string> res;
-	std::filesystem::current_path(std::filesystem::path(std::string(DATA_PATH)));
-	std::filesystem::path local_motifs("presaved/motifs");
-	for (auto const& file : std::filesystem::directory_iterator(local_motifs)) {
-		if (file.path().extension() == ".csv") {
-			res.push_back(file.path().stem().string());
+	//std::cerr << RED << "pre_mot:" << std::filesystem::current_path().string() << RESET << std::endl;
+	std::filesystem::path presaved_motifs(std::string(PRESAVED_PATH)+"/motifs");
+	if (std::filesystem::exists(presaved_motifs)) {
+		for (auto const& file : std::filesystem::directory_iterator(presaved_motifs)) {
+			if (file.path().extension() == ".csv") {
+				res.push_back(file.path().stem().string());
+			}
 		}
 	}
 	return res;

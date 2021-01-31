@@ -224,22 +224,28 @@ void GameOfLife::evolve() {
 
 std::vector<std::string> existing_local_sims() {
     std::vector<std::string> res;
-	std::filesystem::current_path(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"));
-    for (auto const& entry : std::filesystem::directory_iterator(std::filesystem::current_path())) {
-        if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
-            res.push_back(entry.path().stem().string());
-        }
-    }
+	//std::cerr << RED << "loc_sim:" << std::filesystem::current_path().string() << RESET << std::endl;
+	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
+	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
+		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
+			if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
+				res.push_back(entry.path().stem().string());
+			}
+		}
+	}
     return res;
 }
 std::vector<std::string> existing_presaved_sims() {
 	std::vector<std::string> res;
-    //std::filesystem::current_path(std::filesystem::path(std::string(PRESAVED_PATH)+"/sims"));
-    for (auto const& entry : std::filesystem::directory_iterator(std::filesystem::path(std::string(PRESAVED_PATH)+"/sims"))) {
-        if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
-            res.push_back(entry.path().stem().string());
-        }
-    }
+	//std::cerr << RED << "pre_sim:" << std::filesystem::current_path().string() << RESET << std::endl;
+	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
+    if (std::filesystem::exists(presaved_sims)) {
+		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {
+			if (entry.is_directory() && entry.path().stem().string().substr(0,4) == "sim-") {
+				res.push_back(entry.path().stem().string());
+			}
+		}
+	}
     return res;
 }
 

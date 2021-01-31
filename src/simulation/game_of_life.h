@@ -83,7 +83,7 @@ public :
     /**
      * @return référence constante sur la grille des cellules
      */
-    std::array<std::array<bool,500>,500> const& get_grille() const;
+    std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> const& get_grille() const;
     /**
      *  @returns    référence sur le nombre de générations
      *  @brief  (on renvoie une référence pour incrémenter le nombre de générations dans …)
@@ -187,7 +187,12 @@ public :
      */
     std::vector<size_t> sparseCLL();
 };
-
+/**
+ * @brief   Renvoie une repartition des cellules telle que chaque morceau est connexe (au sens des voisins)
+ *
+ * @return std::vector<Motif>
+ */
+std::vector<Motif> composants_connexes(GameOfLife const& jeu);
 // Gestion des simulations enregistrees
 /**
  *  @returns    Liste des simulations (sans extension) de motifs enregistres localement
@@ -465,15 +470,5 @@ class Simulation {
         void print(std::ostream& out = std::cout, bool avec_grille = false) const;
 
 };
-
-
-/**
- * @brief   Renvoie une repartition des cellules telle que chaque morceau est connexe (au sens des voisins)
- *
- * @return std::vector<Motif>
- */
-std::vector<Motif> composants_connexes(GameOfLife const& jeu);
-
-
 
 #endif // GAME_OF_LIFE_H
