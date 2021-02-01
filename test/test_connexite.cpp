@@ -10,8 +10,8 @@
 using namespace std::chrono;
 
 int main() {
-    GameOfLife G(20,20);
-    G.add_motif(Motif("planeur", "presaved"));
+    GameOfLifeView G;
+    G.add_motif(Motif("planeur", presaved));
     //G.add_motif(Motif("planeur", "presaved").translate(5,7));
     //G.add_motif(Motif("planeur", "presaved").translate(12,6));
     //G.add_motif(Motif("planeur", "presaved").translate(15,15));

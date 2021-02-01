@@ -2,7 +2,7 @@
 #define GAME_OF_LIFE_H
 
 #ifdef _WIN32
-    #define CLEAR() std::stystem("cls");
+    #define CLEAR() std::system("cls");
 #endif
 #ifndef _WIN32
     #define CLEAR() std::system("clear");

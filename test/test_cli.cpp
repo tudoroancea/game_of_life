@@ -5,6 +5,6 @@
 using namespace std::chrono;
 
 int main() {
-    CliApp app;
-    return app.exec();
+    std::cout << "hey" << std::endl;
+    return 0;
 }

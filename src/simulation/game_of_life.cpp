@@ -36,7 +36,7 @@ bool GameOfLife::access(size_t const& i, size_t const& j) const {
 	if (i < MAX_LIGNES+100 || j < MAX_COLONNES+100) return grille[i][j];
 	else {
 		#ifdef OVERFLOW_WARNINGS
-			std::cerr << "[GameOfLife::access(" << i << "," << j << ") a renvoyé false car les coordonées étaient trop grandes]";
+			std::cerr << termcolor::yellow << "[GameOfLife::access(" << i << "," << j << ") a renvoyé false car les coordonées étaient trop grandes]" << termcolor::reset;
 		#endif
 		return false;
 	}
@@ -53,7 +53,7 @@ GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {
 			grille[i+50][j+50] = true;
 		}
 	} else {
-		std::cerr << "[GameOfLife::add_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]";
+		std::cerr << termcolor::yellow << "[GameOfLife::add_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
 	}
 	#else
 	if (!access(i+50,j+50) && i < MAX_LIGNES && j < MAX_COLONNES) {
@@ -73,7 +73,7 @@ GameOfLife& GameOfLife::suppr_cell(size_t const& i, size_t const& j) {
 			if (a_effacer != vivantes.end()) vivantes.erase(a_effacer);
 		}
 	} else {
-		std::cerr << "[GameOfLife::suppr_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]";
+		std::cerr << termcolor::yellow << "[GameOfLife::suppr_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
 	}
 	#else
 	if (access(i+50, j+50)) {
@@ -97,7 +97,7 @@ GameOfLife& GameOfLife::inv_cell(size_t const& i, size_t const& j) {
 			vivantes.push_back({i+50,j+50});
 		}
 	} else {
-		std::cerr << "[GameOfLife::inv_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]";
+		std::cerr << termcolor::yellow << "[GameOfLife::inv_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
 	}
 	#else
 	if (access(i+50, j+50)) {
@@ -166,7 +166,7 @@ void GameOfLife::verif(size_t const& i, size_t const& j, liste& v) {
 			}
 		}
 	} else {
-		std::cerr << "[verif(" << i << "," << j << ",vivantes) n'a rien fait car les coords étaient trop grandes]";
+		std::cerr << termcolor::yellow << "[verif(" << i << "," << j << ",vivantes) n'a rien fait car les coords étaient trop grandes]" << termcolor::reset;
 	}
 	#else
 	if(!access(i,j) && std::find<liste::iterator, coord>(v.begin(),v.end(),{i,j}) == v.end()) {
@@ -208,7 +208,6 @@ void GameOfLife::evolve() {
 
 std::vector<std::string> existing_local_sims() {
     std::vector<std::string> res;
-	//std::cerr << termcolor::red << "loc_sim:" << std::filesystem::current_path().string() << termcolor::reset << std::endl;
 	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
 	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
 		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
@@ -221,7 +220,6 @@ std::vector<std::string> existing_local_sims() {
 }
 std::vector<std::string> existing_presaved_sims() {
 	std::vector<std::string> res;
-	//std::cerr << termcolor::red << "pre_sim:" << std::filesystem::current_path().string() << termcolor::reset << std::endl;
 	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
     if (std::filesystem::exists(presaved_sims)) {
 		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {

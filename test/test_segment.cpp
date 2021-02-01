@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-    GameOfLife G(51,51);
+    GameOfLifeView G;
 
     Motif M(segment(25,25,0,0));
     M.append(segment(25,25,0,13));
