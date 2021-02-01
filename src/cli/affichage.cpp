@@ -38,7 +38,7 @@
     }\
 }
 
-
+/*
 int CliApp::exec() {
     CLEAR()
     std::cout << "Debut d'une nouvelle simulation." << std::endl;
@@ -146,3 +146,4 @@ int CliApp::exec() {
         return 0;
     }
 }
+*/
