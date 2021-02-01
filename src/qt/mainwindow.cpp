@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QPalette>
 #include <time.h>
+#include <filesystem>
 
 Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 {
@@ -78,18 +79,20 @@ void Frame::paintEvent(QPaintEvent *event)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), new_taille(nullptr), new_entree(nullptr), new_state(false),
-      lance(nullptr), calque_mod(nullptr), calques(nullptr), reload_calques(nullptr),
+      calques(nullptr), reload_calques(nullptr),
       pause(nullptr),
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
+      x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false)
 {
-    init_styles();
+    std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
+    init_styles();    
     setMouseTracking(true);
     this->resize(520, 90);
     this->move(10, 10);
-    new_sim = new QPushButton("Nouvelle simulation", this);
+    QPushButton* new_sim = new QPushButton("Nouvelle simulation", this);
+    buttons["new_sim"] = new_sim;
     new_sim->resize(150, 35);
     new_sim->move(355, 15);
     connect(new_sim, SIGNAL (clicked()), this, SLOT (creer_s()));
@@ -113,7 +116,8 @@ MainWindow::MainWindow(QWidget *parent)
     for (std::string a : simul) {sim_presaved->addItem(QString::fromStdString(a));}
     sim_presaved->move(170, 30);
     sim_presaved->resize(150, 25);
-    sim_lance = new QPushButton("Lancer", this);
+    QPushButton* sim_lance = new QPushButton("Lancer", this);
+    buttons["sim_lance"] = sim_lance;
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
@@ -132,13 +136,14 @@ void MainWindow::init_styles()
 void MainWindow::creer()
 {
     this->resize(520, 600);
-    sim_loc->hide(); sim_presaved->hide(); sim_lance->hide();
-    new_sim->hide(); new_taille->hide(); new_entree->hide();
+    sim_loc->hide(); sim_presaved->hide(); buttons["sim_lance"]->hide();
+    buttons["new_sim"]->hide(); new_taille->hide(); new_entree->hide();
     labels["sim_choix"]->hide();
     //QString::fromWCharArray(L"\x27f2")
-    lance = new QPushButton("Lancer", this);
+    QPushButton* lance = new QPushButton("Lancer", this);
+    buttons["lance_new"] = lance;
     connect(lance, SIGNAL (clicked()), this, SLOT (lancer_s()));
-    lance->move(400, 10);
+    lance->move(410, 10);
     lance->show();
     pos_souris = new QLabel(this);
     pos_souris->move(290, 0);//480, 580
@@ -153,6 +158,8 @@ void MainWindow::creer()
     ptr.size_cell = 500/nb_lines;
     ptr.px_x = 500;
     ptr.px_y = 500;
+    ptr.nb_l_prec = nb_lines;
+    ptr.nb_c_prec = nb_col;
     QLabel* calques_saved = new QLabel("Calques disponibles :", this);
     labels["calques_saved"] = calques_saved;
     calques_saved->resize(140, 20);
@@ -179,7 +186,8 @@ void MainWindow::creer()
     detail_selectionne->setStyleSheet("background-color: white");
     this->setUpdatesEnabled(true);
     detail_selectionne->hide();
-    calque_mod = new QPushButton("calque actif", this);
+    QPushButton* calque_mod = new QPushButton("calque actif", this);
+    buttons["calque_mod"] = calque_mod;
     connect(calque_mod, SIGNAL (clicked()), this, SLOT (calque_switch_s()));
     calque_mod->move(60, 60);
     calque_mod->resize(90, 25);
@@ -214,6 +222,7 @@ void MainWindow::creer_s()
     else
     {
         new_state = true;
+        QPushButton* new_sim = buttons["new_sim"];
         new_sim->resize(50, 25);
         new_sim->move(405, 15);
         new_sim->setText("  Créer  ");
@@ -236,12 +245,44 @@ void MainWindow::paintEvent(QPaintEvent *event)
         Q_UNUSED(event);
         QRect rect1(10, 90, ptr.px_x, ptr.px_y);
         paint->fillRect(rect1, Qt::black);
+        bool ok_x(false);
+        if (nb_lines*ptr.size_cell < ptr.px_x)
+        {
+            int width_(ptr.px_x - nb_lines*ptr.size_cell - 1);
+            d_x = width_/2;
+            QRect rect2(11+nb_lines*ptr.size_cell + d_x, 90, (width_+1)/2, ptr.px_y);
+            QRect rect3(11, 90, d_x, ptr.px_y);
+            paint->fillRect(rect2, QColor(180,0,0,100));
+            paint->fillRect(rect3, QColor(180,0,0,100));            
+            ok_x = true;            
+        }
+        else {d_x = 0;}
+        if (nb_col*ptr.size_cell < ptr.px_y)
+        {
+            int height_(ptr.px_y - nb_col*ptr.size_cell);
+            d_y = height_/2;
+            QRect rect2(0,0,0,0);
+            QRect rect3(0,0,0,0);
+            if (ok_x)
+            {
+                rect2 = QRect(11 + d_x, 90+nb_col*ptr.size_cell + d_y, nb_lines*ptr.size_cell, (height_+1)/2);
+                rect3 = QRect(11 + d_x, 90, nb_lines*ptr.size_cell, d_y);
+            }
+            else 
+            {
+                rect2 = QRect(11 + d_x, 90+nb_col*ptr.size_cell + d_y, ptr.px_x,(height_+1)/2);
+                rect2 = QRect(11 + d_x, 90, ptr.px_x - 1, d_y);
+            }
+            paint->fillRect(rect2, QColor(180,0,0,100));
+            paint->fillRect(rect3, QColor(180,0,0,100));
+        }  
+        else {d_y = 0;}      
         bool in(false);
         for (auto a : ptr.vue->get_viv())
         {
             if (a.first < nb_lines && a.second < nb_col)
             {
-                Cell_ b(a.first*ptr.size_cell + 10, a.second*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
+                Cell_ b(a.first*ptr.size_cell + 10 + d_x, a.second*ptr.size_cell + 90 + d_y, ptr.size_cell, ptr.size_cell);
                 b.change_color();
                 if (b.state()) {paint->fillRect(b.rect(), b.color());}
                 if (a.first == size_t(x_current) && a.second == size_t(y_current)) {in = true;}
@@ -250,7 +291,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         if (in)
         {
             paint->setPen(Qt::black);
-            QRect rect(x_current*ptr.size_cell + 10, y_current*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
+            QRect rect(x_current*ptr.size_cell + 10 + d_x, y_current*ptr.size_cell + 90 + d_y, ptr.size_cell, ptr.size_cell);
             rect.setWidth(rect.width() - 1);
             rect.setHeight(rect.height() - 1);
             paint->drawRect(rect);
@@ -258,7 +299,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         else if (x_current >= 0 && y_current >= 0)
         {
             paint->setPen(Qt::white);
-            QRect rect(x_current*ptr.size_cell + 10, y_current*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
+            QRect rect(x_current*ptr.size_cell + 10 + d_x, y_current*ptr.size_cell + 90 + d_y, ptr.size_cell, ptr.size_cell);
             rect.setWidth(rect.width() - 1);
             rect.setHeight(rect.height() - 1);
             paint->drawRect(rect);
@@ -308,8 +349,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
 bool MainWindow::mouse_in(QMouseEvent* event)
 {
-    return ((event->x() >= 10) && (event->x() <= int(ptr.px_x) + 10))&&
-           ((event->y() >= 90) && (event->y() <= int(ptr.px_y) + 90));
+    return ((event->x() >= 10 + d_x) && (event->x() <= int(ptr.px_x) + 10 - d_x))&&
+           ((event->y() >= 90 + d_y) && (event->y() <= int(ptr.px_y) + 90 - d_y));
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -398,6 +439,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         if (mouse_in(event))
         {
             ptr.vue->translate(x_prec - x_current, y_prec - y_current);
+            ptr.lmin = ptr.vue->get_Lmin();
+            ptr.cmin = ptr.vue->get_Cmin();
+            ptr.lmax = ptr.vue->get_Lmax();
+            ptr.cmax = ptr.vue->get_Cmax();
+            //std::cout << "(" << ptr.lmin << ", " << ptr.lmax << ", " << ptr.cmin << ", " << ptr.cmax << ")" << std::endl;
             QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
             y_prec = y_current;
@@ -443,28 +489,96 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     if (mouv > 100 || mouv < -100)
     {
-        mouv /= 10;
+        mouv /= 100;
     }
     mouv = (mouv/10)*10;//cheat code
 
     //std::cout << mouv << std::endl;
 
     double taux = 1.0 + (double(mouv/10)/10.0);
+    int taux_2 = mouv/10;
 
     //std::cout << taux << std::endl;
-
+    /*
     if (!(taux < 1.0 && (nb_lines <= 2 || nb_col <= 2)))
     {
+        ptr.lmax = ptr.lmin + ptr.nb_l_prec;
+        ptr.cmax = ptr.cmin + ptr.nb_c_prec;
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);        
         ptr.vue->zoom({x_current, y_current}, taux);//en coord relatives parce que Tudor
 
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();
-
+        //std::cout << taux << " : " << ptr.px_x << " -> " << nb_lines << " | " << ptr.size_cell << std::endl;
         ptr.size_cell = ptr.px_x/nb_lines;
-        std::cout << nb_lines << " | " << nb_col << std::endl;
+        ptr.nb_l_prec = nb_lines;
+        ptr.nb_c_prec = nb_col;
+
+        //std::cout << (ptr.px_x - ptr.size_cell*nb_lines)/ptr.size_cell << std::endl;
+        nb_lines += (ptr.px_x - ptr.size_cell*nb_lines)/ptr.size_cell;
+        nb_col += (ptr.px_y - ptr.size_cell*nb_col)/ptr.size_cell;
+        //ptr.lmin -= nb_lines/2;
+        ptr.lmax = ptr.lmin + nb_lines;
+        //ptr.cmin -= nb_col/2;
+        ptr.cmax = ptr.cmin + nb_col;
+        if (ptr.lmax >= MAX_LIGNES)
+        {
+            ptr.lmin += MAX_LIGNES - ptr.lmax - 1;
+            ptr.lmax = MAX_LIGNES - 1;
+        }
+        if (ptr.cmax >= MAX_COLONNES)
+        {
+            ptr.cmin += MAX_COLONNES - ptr.cmax - 1;
+            ptr.cmax = MAX_COLONNES - 1;
+        } 
+        if (ptr.lmin < 0) {ptr.lmin = 0;}
+        if (ptr.cmin < 0) {ptr.cmin = 0;}
+
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        std::cout << ptr.lmin << " " << ptr.lmax << " " << ptr.cmin << " " << ptr.cmax << " ";
+        std::cout << taux << " : " << ptr.nb_l_prec << " -> " << nb_lines << " | " << ptr.size_cell << std::endl;
     }
+    */
     //std::cerr << "2: Lmin = " << ptr.vue->get_Lmin() << " Lmax = " << ptr.vue->get_Lmax() << " Cmin = " << ptr.vue->get_Cmin() << " Cmax = " << ptr.vue->get_Cmax() << std::endl;
     
+    //std::cout << taux_2 << std::endl;
+
+    double new_size(ptr.size_cell);
+    if (taux_2 < 0) {new_size /= (1.5*(-taux_2));}
+    else if (taux_2 > 0) {new_size *= (1.5*taux_2);}
+
+    switch (ptr.px_x < ptr.px_y)
+    {
+        case true:
+            if (new_size > ptr.px_x) {new_size = ptr.px_x;}
+            break;
+        case false:
+            if (new_size > ptr.px_y) {new_size = ptr.px_y;}
+            break;
+        default: break;
+    }
+    if (new_size == 1.5) {new_size = 2.0;}
+
+
+    if (new_size >= 1 && new_size <= ptr.px_x && new_size <= ptr.px_y)
+    {
+        ptr.size_cell = new_size;
+        nb_lines = ptr.px_x/ptr.size_cell;
+        nb_col = ptr.px_y/ptr.size_cell;
+        ptr.lmin += x_current - nb_lines/2;
+        if (ptr.lmin < 0) {ptr.lmin = 0;}
+        ptr.lmax = ptr.lmin + nb_lines;
+        if (ptr.lmax > MAX_LIGNES) {ptr.lmax = MAX_LIGNES;}
+        ptr.cmin += y_current - nb_col/2;
+        if (ptr.cmin < 0) {ptr.cmin = 0;}
+        ptr.cmax = ptr.cmin + nb_col;
+        if (ptr.cmax > MAX_COLONNES) {ptr.cmax = MAX_COLONNES;}
+        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        //std::cout << ptr.vue->nbr_lignes() << " | " << nb_lines << std::endl;  
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes(); 
+    }
+
     this->update();
     /*QPoint delta(event->angleDelta());
     // angleDelta en 8eme de degré
@@ -534,7 +648,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     if ((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) && state == 0)
     {
-        new_sim->click();
+        buttons["new_sim"]->click();
     }
 }
 
@@ -550,6 +664,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
         ptr.lmax = ptr.lmin + nb_lines;
         ptr.cmax = ptr.cmin + nb_col;
         ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes();         
     }
 }
 
@@ -598,7 +714,7 @@ void MainWindow::charger_calques()
 void MainWindow::lancer_s()
 {
     timer = startTimer(50);
-    lance->hide();
+    buttons["lance_new"]->hide();
     pause = new QPushButton("pause", this);
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
     pause->move(425, 0);
@@ -629,9 +745,9 @@ void MainWindow::calque_switch_s()
 {
     if (calque.on_off)
     {
-        calque_mod->setDown(false);
+        buttons["calque_mod"]->setDown(false);
     }
-    else {calque_mod->setDown(true);}
+    else {buttons["calque_mod"]->setDown(true);}
     calque.on_off = 1 - calque.on_off;
 }
 
@@ -660,7 +776,7 @@ void MainWindow::focus_frame(bool b)
 {
     if (b) {calques->setCurrentText("--select--");}
     frame_on = b;
-    if (calque.on_off) {calque_mod->setDown(true);}
+    if (calque.on_off) {buttons["calque_mod"]->setDown(true);}
 }
 
 void MainWindow::item_changed_s(QString const& entree)
@@ -691,19 +807,16 @@ MainWindow::~MainWindow()
 {
     delete sim_loc;
     delete sim_presaved;
-    delete sim_lance;
-    delete new_sim;
     delete new_taille;
     delete new_entree;
     delete paint;
-    delete lance;
     delete pause;
-    delete calque_mod;
     delete pos_souris;
     delete calques;
     delete detail_selectionne;
     delete ptr.vue;
     delete save_game;
     for (auto& a : labels) {delete a.second;}
+    for (auto& a : buttons) {delete a.second;}
     delete reload_calques;
 }

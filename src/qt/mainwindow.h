@@ -26,6 +26,7 @@ struct Vue
     GameOfLifeView* vue;
     int lmin, lmax, cmin, cmax;
     unsigned int size_cell, px_x, px_y;
+    size_t nb_l_prec, nb_c_prec;
 };
 
 class Combobox : public QComboBox
@@ -105,20 +106,17 @@ private:
 
     bool mouse_in(QMouseEvent* event);
 
-    QPoint pos_souris_rel(QMouseEvent* event) { return QPoint((event->x()-10)/ptr.size_cell, (event->y()-90)/ptr.size_cell);}
+    QPoint pos_souris_rel(QMouseEvent* event) { return QPoint(((event->x()-10 - d_x)/ptr.size_cell), ((event->y()-90 - d_y)/ptr.size_cell));}
 
     std::unordered_map<std::string, QLabel*> labels;
+    std::unordered_map<std::string, QPushButton*> buttons;
 
     QComboBox* sim_loc;
     QComboBox* sim_presaved;
-    QPushButton* sim_lance;
-    QPushButton* new_sim;
     QLabel* new_taille;
     QLineEdit* new_entree;
     bool new_state;
 
-    QPushButton* lance;
-    QPushButton* calque_mod;
     Combobox* calques;
     QPushButton* reload_calques;
 
@@ -138,6 +136,7 @@ private:
     int x_end;
     int y_end;
     int timer;
+    int d_x, d_y;
 
     Vue ptr;
 

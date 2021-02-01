@@ -45,7 +45,6 @@ QComboBox:!editable:on, QComboBox::drop-down:editable:on {
 }
 
 QComboBox::drop-down {
-    color: blue;
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 15px;
@@ -57,5 +56,5 @@ QComboBox::drop-down {
     border-bottom-right-radius: 3px;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
-    image: url(../../src/qt/3downarrow.png);    
+    image: url(3downarrow.png);    
 }
