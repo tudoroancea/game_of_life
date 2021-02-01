@@ -5,7 +5,9 @@
 #include "rapidcsv.h"
 #include <filesystem>
 #include "affichage.h"
-
+#include "termcolor.hpp"
+#include <thread>
+#include <chrono>
 using namespace std;
 
 int main() {
@@ -17,7 +19,10 @@ int main() {
     // Ouverture de simulation
     Simulation sim;
     sim.load("lievres", local);
-    sim.resize(176,226,176,226);
-    sim.print();
+    sim.resize(190,206,190,206);
+    do {
+        sim.print();
+        this_thread::sleep_for(std::chrono::milliseconds(500));
+    } while (sim.evolve());
     return 0;
 }

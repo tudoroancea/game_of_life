@@ -1,6 +1,7 @@
 #include "game_of_life.h"
 #include "motifs.h"
 #include "rapidcsv.h"
+#include "termcolor.hpp"
 
 #include <string>
 #include <fstream>
@@ -11,23 +12,6 @@
 #include <filesystem> // pour trouver les simulations existantes
 #include <chrono>
 
-#define RESET   "\033[0m"
-#define BLACK   "\033[30m"      /* Black */
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
-#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
-#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
-#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
-#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
-#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 // Constructeurs ========================================================================================
 GameOfLife::GameOfLife() : nbr_gen(0) {
@@ -224,7 +208,7 @@ void GameOfLife::evolve() {
 
 std::vector<std::string> existing_local_sims() {
     std::vector<std::string> res;
-	//std::cerr << RED << "loc_sim:" << std::filesystem::current_path().string() << RESET << std::endl;
+	//std::cerr << termcolor::red << "loc_sim:" << std::filesystem::current_path().string() << termcolor::reset << std::endl;
 	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
 	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
 		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
@@ -237,7 +221,7 @@ std::vector<std::string> existing_local_sims() {
 }
 std::vector<std::string> existing_presaved_sims() {
 	std::vector<std::string> res;
-	//std::cerr << RED << "pre_sim:" << std::filesystem::current_path().string() << RESET << std::endl;
+	//std::cerr << termcolor::red << "pre_sim:" << std::filesystem::current_path().string() << termcolor::reset << std::endl;
 	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
     if (std::filesystem::exists(presaved_sims)) {
 		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {
@@ -267,15 +251,15 @@ bool GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& c
 			file.Save();
 			return true;
 		} else {
-			std::cerr << CYAN << "GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car un motif du même nom existait déjà]" << RESET;
+			std::cerr << termcolor::cyan << "GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
 			return false;
 		}
 	} else {
 		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << RED << "[GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car /" DATA_PATH;
+			std::cerr << termcolor::red << "[GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
 			if (categorie == presaved) std::cerr << "presaved";
 			else std::cerr << "local";
-			std::cerr << "/motifs n'existe pas]" << RESET;
+			std::cerr << "/motifs n'existe pas]" << termcolor::reset;
 		#endif
 		return false;
 	}
@@ -287,10 +271,10 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
     else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/sims");
 	#ifdef NON_EXISTING_PATH_WARNINGS
 	if (!std::filesystem::exists(chemin)) {
-			std::cerr << RED << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car " DATA_PATH;
+			std::cerr << termcolor::red << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car " DATA_PATH;
 			if (categorie == presaved) std::cerr << "/presaved/sims n'existe pas]";
 			else std::cerr << "/local/sims n'existe pas]";
-			std::cerr << RESET;
+			std::cerr << termcolor::reset;
 		return false;
 	}
 	#endif
@@ -325,7 +309,7 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 		} while (gen <= duree_sim);
 		return true;
 	} else {
-		std::cerr << CYAN << "GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car une sim du même nom existait déjà]" << RESET;
+		std::cerr << termcolor::cyan << "GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car une sim du même nom existait déjà]" << termcolor::reset;
 		return false;
 	}
 }
@@ -333,10 +317,10 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 // Constructeurs ==================================================================================================================
 GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax)
 : GameOfLife(),
-	Lmin(lmin%MAX_LIGNES < lmax%MAX_LIGNES ? lmin%MAX_LIGNES : lmax%MAX_LIGNES),
-	Lmax(lmin%MAX_LIGNES < lmax%MAX_LIGNES ? lmax%MAX_LIGNES : lmin%MAX_LIGNES),
-	Cmin(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmin%MAX_COLONNES : cmax%MAX_COLONNES),
-	Cmax(cmin%MAX_COLONNES < cmax%MAX_COLONNES ? cmax%MAX_COLONNES : cmin%MAX_COLONNES)
+	Lmin(lmin%(MAX_LIGNES+1) < lmax%(MAX_LIGNES+1) ? lmin%(MAX_LIGNES+1) : lmax%(MAX_LIGNES+1)),
+	Lmax(lmin%(MAX_LIGNES+1) < lmax%(MAX_LIGNES+1) ? lmax%(MAX_LIGNES+1) : lmin%(MAX_LIGNES+1)),
+	Cmin(cmin%(MAX_COLONNES+1) < cmax%(MAX_COLONNES+1) ? cmin%(MAX_COLONNES+1) : cmax%(MAX_COLONNES+1)),
+	Cmax(cmin%(MAX_COLONNES+1) < cmax%(MAX_COLONNES+1) ? cmax%(MAX_COLONNES+1) : cmin%(MAX_COLONNES+1))
 {}
 
 bool GameOfLifeView::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
@@ -356,15 +340,15 @@ bool GameOfLifeView::save_motif(std::string const& nom_motif, FILE_CATEGORY cons
 			file.Save();
 			return true;
 		} else {
-			std::cerr << CYAN << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDCYAN << "FALSE" << CYAN << " car un motif du même nom existait déjà]" << RESET;
+			std::cerr << termcolor::cyan << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
 			return false;
 		}
 	} else {
 		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << RED << "[GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << BOLDRED << "FALSE" << RED << " car /" DATA_PATH;
+			std::cerr << termcolor::red << "[GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
 			if (categorie == presaved) std::cerr << "presaved";
 			else std::cerr << "local";
-			std::cerr << "/motifs n'existe pas]" << RESET;
+			std::cerr << "/motifs n'existe pas]" << termcolor::reset;
 		#endif
 		return false;
 	}
@@ -568,13 +552,13 @@ GameOfLifeView& GameOfLifeView::zoom(size_t const& x, size_t const& y, double gr
 		unsigned int Lminprime(x+Lmin-grossissement*x), Cminprime(y+Cmin-grossissement*y);
 		this->resize(Lminprime, nbr_l+Lminprime, Cminprime, nbr_c+Cminprime);
 		//auto stop(std::chrono::high_resolution_clock::now());
-		//std:: cerr << RED << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << " ns" << RESET << std::endl;
+		//std:: cerr << termcolor::red << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << " ns" << termcolor::reset << std::endl;
 	}
 	return *this;
 }
 void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 	if (avec_grille) {
-		out << "Génération n° " << nbr_gen << "\n";
+		out << "\nGénération n° " << nbr_gen << "\n";
 		for (size_t i(50); i < Lmin; ++i) {
 			// ON affiche la grille normale
 			for (size_t j(50); j < MAX_COLONNES+50; ++j) {
@@ -605,7 +589,7 @@ void GameOfLifeView::print(std::ostream& out, bool avec_grille) const {
 		}
 		out << "\n=================================\n";
 	} else {
-		out << "Sans grille | Génération n° " << nbr_gen << "\n";
+		out << "\nSans grille | Génération n° " << nbr_gen << "\n";
 		for (size_t i(0); i < Lmax-Lmin ; ++i) {
 			for (size_t j(0); j < Cmax-Cmin ; ++j) {
 				if (grille[i+Lmin+50][j+Cmin+50]) out << "0";
@@ -635,8 +619,8 @@ unsigned int Simulation::duree_sim() const {
 }
 
 Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& categorie) {
-	if (categorie == presaved) config_path /= "/presaved/sims/sim-"+nom_sim+".csv";
-	else config_path /= "/local/sims/sim-"+nom_sim+".csv";
+	if (categorie == presaved) config_path /= "presaved/sims/sim-"+nom_sim+".csv";
+	else config_path /= "local/sims/sim-"+nom_sim+".csv";
 	if (std::filesystem::exists(config_path)) {
 		config_file = new rapidcsv::Document(config_path, rapidcsv::LabelParams(-1,0));
 		// on vérifie que le fichier a l'air complet
@@ -647,18 +631,18 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 				grille = new GameOfLifeView(0,MAX_LIGNES,0,MAX_COLONNES);
 				grille->add_motif(this->get_motif(0));
 			} else {
-				std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car les dimensions de la simulation ne correspondaient pas aux dimensions actuelles de << " << MAX_LIGNES << "x" << MAX_COLONNES << "]" << RESET;
+				std::cerr << termcolor::red << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car les dimensions de la simulation ne correspondaient pas aux dimensions actuelles de << " << MAX_LIGNES << "x" << MAX_COLONNES << "]" << termcolor::reset;
 				config_path = std::filesystem::path(std::string(DATA_PATH));
 				//throw INCOMPATIBLE_DIMENSIONS;
 			}
 		} else {
-			std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car le fichier de configuration était incomplet]" << RESET;
+			std::cerr << termcolor::red << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car le fichier de configuration était incomplet]" << termcolor::reset;
 			config_path = std::filesystem::path(std::string(DATA_PATH));
 			//throw INCOMPLETE_SIM;
 		}
 	} else {
 		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << RED << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car la simulation indiquée n'existe pas]" << RESET;
+			std::cerr << termcolor::red << "[Simulation::load(" << nom_sim << "," << categorie << ") n'a rien fait car la simulation indiquée n'existe pas]" << termcolor::reset;
 		#endif
 		config_path = std::filesystem::path(std::string(DATA_PATH));
 		//throw NON_EXISTING_SIM;
@@ -679,13 +663,26 @@ Simulation& Simulation::release() {
 Motif Simulation::get_motif(unsigned int const& num_gen) const {
 	Motif res;
 	if (config_path.extension().string() == ".csv" && num_gen <= this->duree_sim()) {
-		std::vector<size_t> row(config_file->GetRow<size_t>(3+num_gen));
+
+		size_t j(0);
+		std::vector<size_t> row;
+		while (j < config_file->GetColumnCount()) {
+			try {
+				row.push_back(config_file->GetCell<size_t>(j,2+num_gen));
+				++j;
+			}
+			catch (...) {
+				std::cerr << termcolor::yellow << "[Simulation::get_motif(" << num_gen << ") n'a pas terminé de lire la ligne car il y a eu un problème de coversion à la position " << j << "]" << termcolor::reset;
+				break;
+			}
+		}
+
 		if (row.size()%2 == 0) {
 			for (size_t i(0); i < row.size() ; i+=2) {
 				res.push_back({row[i], row[i+1]});
 			}
 		} else {
-			std::cerr << RED << "[Simulation::get_motif(" << num_gen << ") n'a rien fait car le fichier de configuration était incomplet (pas un nombre pair de coordonnées sur la ligne)]" << RESET;
+			std::cerr << termcolor::red << "[Simulation::get_motif(" << num_gen << ") n'a rien fait car le fichier de configuration était incomplet (pas un nombre pair de coordonnées sur la ligne)]" << termcolor::reset;
 			//throw INCOMPLETE_SIM;
 		}
 	}

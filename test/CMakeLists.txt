@@ -1,6 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS -pthread)
 
+# Chemins des dossiers du projet
 add_definitions(-DGLOBAL_PATH="${CMAKE_SOURCE_DIR}")
 add_definitions(-DSRC_PATH="${CMAKE_SOURCE_DIR}/src")
 add_definitions(-DSIMULATION_PATH="${CMAKE_SOURCE_DIR}/src/simulation")
@@ -55,3 +56,6 @@ target_link_libraries(test_existing_sims LINK_PUBLIC simulation)
 
 add_executable(test_rapidcsv test_rapidcsv.cpp)
 target_link_libraries(test_rapidcsv LINK_PUBLIC simulation)
+
+add_executable(test_color test_color.cpp)
+target_link_libraries(test_color LINK_PUBLIC simulation)

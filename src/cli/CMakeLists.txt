@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(../simulation)
 
+# Chemins des dossiers du projet
 add_definitions(-DGLOBAL_PATH="${CMAKE_SOURCE_DIR}")
 add_definitions(-DSRC_PATH="${CMAKE_SOURCE_DIR}/src")
 add_definitions(-DSIMULATION_PATH="${CMAKE_SOURCE_DIR}/src/simulation")
