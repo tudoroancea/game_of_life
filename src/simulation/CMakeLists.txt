@@ -17,7 +17,7 @@ add_definitions(-DPRESAVED_PATH="${CMAKE_SOURCE_DIR}/data/presaved")
 
 # Comment the following lines depending on the debug information you need
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    # Leave uncommented if you want to know whenever GameOfLife(View)::add_cell() or suppr_cell() or inv_cell() are called on too big coordinates
+    # Leave uncommented if you want to know whenever GameOfLife(View)::add_cell() or suppr_cell() or inv_cell() or resize() are called on too big coordinates
     add_definitions(-DOVERFLOW_WARNINGS)
 
     # Leave uncommented if you want to know whenever
