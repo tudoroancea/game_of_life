@@ -146,6 +146,7 @@ private:
     int state;
     bool frame_on;
     int nb_motifs_locaux;
+    bool info_on;
 };
 
 #endif // MAINWINDOW_H

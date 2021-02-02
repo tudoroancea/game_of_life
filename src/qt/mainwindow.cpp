@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
       x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
-      frame_on(false)
+      frame_on(false), info_on(false)
 {
     std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
     init_styles();    
@@ -122,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
     #ifdef OVERFLOW_WARNINGS
-    std::cout << "debug" << std::endl;
+        std::cout << "debug" << std::endl;
     #endif
 }
 
@@ -150,7 +150,7 @@ void MainWindow::creer()
     lance->show();
     pos_souris = new QLabel(this);
     pos_souris->move(290, 0);//480, 580
-    pos_souris->show();
+    pos_souris->hide();
     ptr.lmin = (MAX_LIGNES - nb_lines)/2;
     ptr.cmin = (MAX_COLONNES - nb_col)/2;
     ptr.lmax = ptr.lmin + nb_lines;
@@ -207,7 +207,7 @@ void MainWindow::creer()
     QLabel* eps = new QLabel(" ", this);
     labels["eps"] = eps;
     eps->move(290, 15);
-    eps->show();
+    eps->hide();
 
     this->setFocus();
 }
@@ -472,6 +472,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     QPoint delta(event->angleDelta());
     QPoint delta_pix(event->pixelDelta());
+    std::cout << "(" << delta.x() << ", " << delta.y();
+    std::cout << ") | (" << delta_pix.x() << ", " << delta_pix.y() << ")" << std::endl;
     int mouv(0);
     /*
     if (!delta_pix.isNull())
@@ -485,15 +487,15 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     
     if (!delta.isNull())
     {
-        std::cout << "Not null";
+        //std::cout << "Not null ";
         mouv = delta.y()/12;
     }
     else 
     {
-        std::cout << "null";
+        //std::cout << "null";
         mouv = delta_pix.y()/100;
     }
-    std::cout << mouv << std::endl;
+    //std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
     if (mouv >= 0 && mouv <= 10) {
         mouv = 10;
@@ -696,11 +698,34 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         buttons["new_sim"]->click();
     }
+    if (event->key() == Qt::Key_I)
+    {
+        info_on = 1 - info_on;
+        if (info_on)
+        {
+            if (pos_souris != nullptr) {pos_souris->show();}
+            if (state != 0) {labels["eps"]->show();}
+        }
+        else
+        {
+            if (pos_souris != nullptr) {pos_souris->hide();}
+            if (state != 0) {labels["eps"]->hide();}            
+        }
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
+    if (buttons["lance_new"] != nullptr && !buttons["lance_new"]->isHidden())
+    {
+        buttons["lance_new"]->move(this->width()-110, 10);
+    }
+    if (pause != nullptr && save_game != nullptr && buttons["lance_new"] != nullptr)
+    {
+        pause->move(this->width()-110, 10);
+        save_game->move(this->width()-110, 50);
+    }
     if (state != 0)
     {
         ptr.px_x = (this->size().width() - 20);
@@ -714,7 +739,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
             ptr.lmin = 0;
             ptr.lmax = MAX_LIGNES;
         } else {
-            ptr.lmin += x_current - nb_lines/2;
+            //ptr.lmin += x_current - nb_lines/2;
             ptr.lmax = ptr.lmin + nb_lines;             
         }
         if (MAX_COLONNES*ptr.size_cell < ptr.px_y) 
@@ -723,7 +748,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
             ptr.cmin = 0;
             ptr.cmax = MAX_COLONNES;
         } else {
-            ptr.cmin += y_current - nb_col/2;
+            //ptr.cmin += y_current - nb_col/2;
             ptr.cmax = ptr.cmin + nb_col;              
         }
 
@@ -805,11 +830,11 @@ void MainWindow::lancer_s()
     buttons["lance_new"]->hide();
     pause = new QPushButton("pause", this);
     connect(pause, SIGNAL (clicked()), this, SLOT (pause_s()));
-    pause->move(425, 0);
+    pause->move(this->width()-110, 10);
     pause->show();
     save_game = new QPushButton("save", this);
     connect(save_game, SIGNAL (clicked()), this, SLOT (save_game_s()));
-    save_game->move(350, 0);
+    save_game->move(this->width()-110, 50);
     save_game->show();
     simul_on = true;
 }
