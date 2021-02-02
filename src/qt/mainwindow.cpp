@@ -121,6 +121,9 @@ MainWindow::MainWindow(QWidget *parent)
     sim_lance->resize(70, 25);
     sim_lance->move(250, 60);
     connect(sim_lance, SIGNAL (clicked()), this, SLOT (lancer_saved_s()));
+    #ifdef OVERFLOW_WARNINGS
+    std::cout << "debug" << std::endl;
+    #endif
 }
 
 void MainWindow::init_styles()
@@ -479,7 +482,17 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     */
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
-    mouv = delta.y()/12;
+    
+    if (!delta.isNull())
+    {
+        std::cout << "Not null";
+        mouv = delta.y()/12;
+    }
+    else 
+    {
+        std::cout << "null";
+        mouv = delta_pix.y()/100;
+    }
     std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
     if (mouv >= 0 && mouv <= 10) {
@@ -488,10 +501,6 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         mouv = -10;
     }
 
-    if (mouv > 100 || mouv < -100)
-    {
-        mouv /= 200;
-    }
     mouv = (mouv/10)*10;//cheat code
 
     //std::cout << mouv << std::endl;
