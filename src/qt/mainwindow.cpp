@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
       x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
-      frame_on(false), info_on(false)
+      frame_on(false), info_on(false), delta_pix_prec(0)
 {
     std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
     init_styles();    
@@ -472,8 +472,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     QPoint delta(event->angleDelta());
     QPoint delta_pix(event->pixelDelta());
-    std::cout << "(" << delta.x() << ", " << delta.y();
-    std::cout << ") | (" << delta_pix.x() << ", " << delta_pix.y() << ")" << std::endl;
+    //std::cout << "(" << delta.x() << ", " << delta.y();
+    //std::cout << ") | (" << delta_pix.x() << ", " << delta_pix.y() << ")" << std::endl;
     int mouv(0);
     /*
     if (!delta_pix.isNull())
@@ -485,23 +485,27 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
     
-    if (!delta.isNull())
+    if (delta_pix.isNull())
     {
         //std::cout << "Not null ";
         mouv = delta.y()/12;
+        if (mouv >= 0 && mouv <= 10) {
+            mouv = 10;
+        } else if (mouv < 0 && mouv >= -10) {
+            mouv = -10;
+        }
+    
     }
     else 
     {
         //std::cout << "null";
-        mouv = delta_pix.y()/100;
+        int delta_pix_current(delta_pix.y());
+        mouv = delta_pix_current - delta_pix_prec;
+        mouv *= 10;
+        delta_pix_prec = delta_pix_current;
     }
     //std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
-    if (mouv >= 0 && mouv <= 10) {
-        mouv = 10;
-    } else if (mouv < 0 && mouv >= -10) {
-        mouv = -10;
-    }
 
     mouv = (mouv/10)*10;//cheat code
 
@@ -509,6 +513,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     double taux = 1.0 + (double(mouv/10)/10.0);
     int taux_2 = mouv/10;
+    std::cout << taux_2 << std::endl;
 
     //std::cout << taux << std::endl;
     /*
@@ -728,8 +733,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     }
     if (state != 0)
     {
-        ptr.px_x = (this->size().width() - 20);
-        ptr.px_y = (this->size().height() - 100);
+        ptr.px_x = (this->width() - 20);
+        ptr.px_y = (this->height() - 100);
         nb_lines = ptr.px_x/ptr.size_cell;
         nb_col = ptr.px_y/ptr.size_cell;
         //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
