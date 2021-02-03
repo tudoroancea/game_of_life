@@ -485,7 +485,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
     
-    if (delta_pix.isNull())
+    if (delta.y()%120 == 0)
     {
         //std::cout << "Not null ";
         mouv = delta.y()/12;
