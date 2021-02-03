@@ -503,8 +503,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         mouv = delta_pix_current - delta_pix_prec;
         mouv *= 10;
         delta_pix_prec = delta_pix_current;
-        if (mouv < -50) {mouv = -50;}
-        if (mouv > 50) {mouv = 50;}
+        if (mouv < -30) {mouv = -30;}
+        if (mouv > 30) {mouv = 30;}
     }
     //std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
