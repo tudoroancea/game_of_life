@@ -14,7 +14,7 @@ std::ostream& operator<<(std::ostream& out, FILE_CATEGORY const& cat) {
     return out;
 }
 std::ostream& operator<<(std::ostream& out, coord const& c) {
-	out << X(c) << ", " << Y(c);
+	out << X(c) << "," << Y(c);
 	return out;
 }
 

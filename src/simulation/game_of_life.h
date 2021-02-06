@@ -10,8 +10,18 @@
 
 #include <array>
 #include <iostream>
+#include <unordered_map>
 #include "motifs.h"
 #include "rapidcsv.h"
+
+/**
+ * @brief Specialization of std::hash for pairs. Weak version due to the XOR
+ */
+struct pair_hash {
+	template<class T1, class T2>
+	std::size_t operator()(std::pair<T1,T2> const& p) const;
+};
+
 
 /**
  * @class GameOfLife
@@ -62,6 +72,9 @@ protected :
     bool access(size_t const& i, size_t const& j) const;
     const std::array<int,8> dx = {1,1,1,0,0,-1,-1,-1};
 	const std::array<int,8> dy = {1,0,-1,1,-1,1,0,-1};
+private :
+    // Recherche et analyse des structures et composantes connexes de la grille ============================================================
+    void dfs(std::unordered_map<coord, size_t, pair_hash>& labels, size_t x, size_t y, size_t label) const;
 public :
     // Constructeurs ========================================
     /**
@@ -180,20 +193,29 @@ public :
      * @return Nombre de cellules vivantes
      */
     unsigned int nbr_cell() const;
+
+    // Recherche et analyse des structures et composantes connexes de la grille ============================================================
     /**
-     * @brief Utilise l'algorithme sparseCLL du CERN pour trouver les composantes connexes
-     *
-     * @return std::vector<long int>
+     * @brief Direct recursive method to find the number of connected components (CC) among the living cells
+     * @return the number of connected components
      */
-    std::vector<long int> sparseCLL();
-    void dfs(std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100>& labels, size_t x, size_t y, size_t label) const;
+    size_t nbr_CC_rec() const;
     /**
-     * @brief One component at a time recursive method
-     *
-     * @return size_t
+     * @brief Direct iterative method to find the number of connected components (CC) among the living cells
+     * @return the number of connected components
      */
-    size_t nbr_CC_1() const;
-    size_t nbr_CC_2() const;
+    size_t nbr_CC_ite() const;
+
+    /**
+     * @brief Direct recursive method to find the connected components (CC) among the living cells
+     * @return a list of connected components
+     */
+    std::vector<Motif> find_CC_rec() const;
+    /**
+     * @brief Direct iterative method to find the connected components (CC) among the living cells
+     * @return a list of connected components
+     */
+    std::vector<Motif> find_CC_ite() const;
 };
 /**
  * @brief   Renvoie une repartition des cellules telle que chaque morceau est connexe (au sens des voisins)

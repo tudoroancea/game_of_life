@@ -7,12 +7,17 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
+#include <map>
 #include <array>
+#include <functional>
 #include <algorithm> //
 #include <typeinfo> // for typeid
 #include <filesystem> // pour trouver les simulations existantes
 #include <chrono>
 
+template<class T1, class T2>
+std::size_t pair_hash::operator()(std::pair<T1,T2> const& p) const {return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);}
 
 // Constructeurs ========================================================================================
 GameOfLife::GameOfLife() : nbr_gen(0) {
@@ -207,30 +212,6 @@ void GameOfLife::evolve() {
 }
 
 
-std::vector<std::string> existing_local_sims() {
-    std::vector<std::string> res;
-	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
-	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
-		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
-			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
-				res.push_back(entry.path().stem().string());
-			}
-		}
-	}
-    return res;
-}
-std::vector<std::string> existing_presaved_sims() {
-	std::vector<std::string> res;
-	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
-    if (std::filesystem::exists(presaved_sims)) {
-		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {
-			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
-				res.push_back(entry.path().stem().string());
-			}
-		}
-	}
-    return res;
-}
 
 // Enregistrement de motifs et simulations ========================================================================================
 bool GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
@@ -312,6 +293,144 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 		return false;
 	}
 }
+std::vector<std::string> existing_local_sims() {
+    std::vector<std::string> res;
+	std::filesystem::path local_sims(std::string(LOCAL_PATH)+"/sims");
+	if (std::filesystem::exists(std::filesystem::path(std::string(LOCAL_PATH)+"/sims"))) {
+		for (auto const& entry : std::filesystem::directory_iterator(local_sims)) {
+			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
+				res.push_back(entry.path().stem().string());
+			}
+		}
+	}
+    return res;
+}
+std::vector<std::string> existing_presaved_sims() {
+	std::vector<std::string> res;
+	std::filesystem::path presaved_sims(std::string(PRESAVED_PATH)+"/sims");
+    if (std::filesystem::exists(presaved_sims)) {
+		for (auto const& entry : std::filesystem::directory_iterator(presaved_sims)) {
+			if (entry.path().extension().string() == ".csv" && entry.path().stem().string().substr(0,4) == "sim-") {
+				res.push_back(entry.path().stem().string());
+			}
+		}
+	}
+    return res;
+}
+
+// Recherche et analyse des structures et composantes connexes de la grille ============================================================
+
+void GameOfLife::dfs(std::unordered_map<coord, size_t, pair_hash>& labels, size_t x, size_t y, size_t label) const {
+	if (access(x,y) && labels[{x,y}] == 0) {
+		// mark the current cell
+        labels[{x,y}] = label;
+
+        // recursively mark the neighbors
+        for (int direction = 0; direction < 8; ++direction) {
+            dfs(labels, x + dx[direction], y + dy[direction], label);
+        }
+	}
+}
+size_t GameOfLife::nbr_CC_rec() const {
+	std::unordered_map<coord, size_t, pair_hash> labels;
+	for (auto const& cell : vivantes) {
+		labels[cell] = 0;
+	}
+	size_t current_label(0);
+	for (auto const& cell : vivantes) {
+		if (access(X(cell), Y(cell)) && labels[cell] == 0) {
+			dfs(labels, X(cell), Y(cell), ++current_label);
+		}
+	}
+	return current_label;
+}
+size_t GameOfLife::nbr_CC_ite() const {
+	std::unordered_map<coord, size_t, pair_hash> labels;
+	for (auto const& cell : vivantes) {
+		labels[cell] = 0;
+	}
+	size_t current_label(0);
+	std::queue<coord> q;
+	for(auto const& cell : vivantes) {
+		if (access(X(cell), Y(cell)) && labels[cell] == 0) {
+			++current_label;
+			labels[cell] = current_label;
+			q.push(cell);
+		} else {
+			continue;
+		}
+		while (!q.empty()) {
+			coord c(q.front());
+			q.pop();
+			for (size_t direction(0); direction < 8; ++direction) {
+				if (access(X(c)+dx[direction], Y(c)+dy[direction]) && labels[{X(c)+dx[direction], Y(c)+dy[direction]}] == 0) {
+					labels[{X(c)+dx[direction], Y(c)+dy[direction]}] = current_label;
+					q.push({X(c)+dx[direction], Y(c)+dy[direction]});
+				}
+			}
+		}
+	}
+	return current_label;
+}
+std::vector<Motif> GameOfLife::find_CC_rec() const {
+	std::unordered_map<coord, size_t, pair_hash> labels;
+	for (auto const& cell : vivantes) {
+		labels[cell] = 0;
+	}
+	size_t current_label(0);
+	for (auto const& cell : vivantes) {
+		if (access(X(cell), Y(cell)) && labels[cell] == 0) {
+			dfs(labels, X(cell), Y(cell), ++current_label);
+		}
+	}
+	std::vector<Motif> res(current_label);
+	for (size_t i(0); i < current_label ; ++i) {
+		for (auto const& pair : labels) {
+			if (pair.second == i) {
+				res[i].push_back(pair.first);
+			}
+		}
+	}
+	return res;
+}
+std::vector<Motif> GameOfLife::find_CC_ite() const {
+	std::unordered_map<coord, size_t, pair_hash> labels;
+	for (auto const& cell : vivantes) {
+		labels[cell] = 0;
+	}
+	size_t current_label(0);
+	std::queue<coord> q;
+	for(auto const& cell : vivantes) {
+		if (access(X(cell), Y(cell)) && labels[cell] == 0) {
+			++current_label;
+			labels[cell] = current_label;
+			q.push(cell);
+		} else {
+			continue;
+		}
+		while (!q.empty()) {
+			coord c(q.front());
+			q.pop();
+			for (size_t direction(0); direction < 8; ++direction) {
+				if (access(X(c)+dx[direction], Y(c)+dy[direction]) && labels[{X(c)+dx[direction], Y(c)+dy[direction]}] == 0) {
+					labels[{X(c)+dx[direction], Y(c)+dy[direction]}] = current_label;
+					q.push({X(c)+dx[direction], Y(c)+dy[direction]});
+				}
+			}
+		}
+	}
+	std::vector<Motif> res(current_label);
+	for (size_t i(0); i < current_label ; ++i) {
+		for (auto const& pair : labels) {
+			if (pair.second == i+1) {
+				res[i].push_back(pair.first);
+			}
+		}
+	}
+	return res;
+}
+
+// GameOfLifeView ================================================
 
 // Constructeurs ==================================================================================================================
 GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lmax, unsigned int const& cmin, unsigned int const& cmax)
@@ -713,139 +832,73 @@ Simulation& Simulation::resize(unsigned int const& lmin, unsigned int const& lma
 	return *this;
 }
 
-std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
-	liste vivantes(jeu.get_viv());
-	std::vector<Motif> res;
-	for (auto const& cell : vivantes) {
-		if (!res.empty()) {
-			std::vector<Motif>::iterator it(res.begin());
-			bool test(true);
-			while (it != res.end() && test) {
-				test = !it->a_pour_voisin(cell);
-				++it;
-			}
-			if (it != res.end()) it->push_back(cell);
-			else res.push_back(Motif({cell}));
-		} else {
-			res.push_back(Motif({cell}));
-		}
-	}
-	return res;
-}
+//std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
+//	liste vivantes(jeu.get_viv());
+//	std::vector<Motif> res;
+//	for (auto const& cell : vivantes) {
+//		if (!res.empty()) {
+//			std::vector<Motif>::iterator it(res.begin());
+//			bool test(true);
+//			while (it != res.end() && test) {
+//				test = !it->a_pour_voisin(cell);
+//				++it;
+//			}
+//			if (it != res.end()) it->push_back(cell);
+//			else res.push_back(Motif({cell}));
+//		} else {
+//			res.push_back(Motif({cell}));
+//		}
+//	}
+//	return res;
+//}
 
-long int find(std::vector<long int> const& L, long int const& e) {
-	long int r(e);
-	while (L[r] != r) r = L[r];
-	return r;
-}
-long int unionn(std::vector<long int>& L, long int const& e1, long int const& e2) {
-	if (e1 < e2) {
-		L[e2] = e1;
-		return e1;
-	} else {
-		L[e1] = e2;
-		return e2;
-	}
-}
-bool is_adjacent(coord const& p1, coord const& p2) {return dist(X(p1),X(p2)) <= 1 && dist(Y(p1),Y(p2)) <= 1;}
-bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
-void init_features(size_t const& label, coord const& pixel);
-void accumulate_features(size_t const& label, coord const& pixel);
-std::vector<long int> GameOfLife::sparseCLL() {
-	// first scan: pixel association
-	long int start_j(0), n(vivantes.size()), tpr(0);
-	std::vector<long int> L(n);
-	for (long int i(0); i < n ; ++i) {
-		L[i] = i;
-		tpr = i;
-		for (long int j(start_j); j < i-1 ; ++j) {
-			if (is_adjacent(vivantes[i], vivantes[j])) {
-				tpr = unionn(L, tpr, find(L, j));
-			} else if (is_far_enough(vivantes[i], vivantes[j])) {
-				++start_j;
-			}
-		}
-	}
+//long int find(std::vector<long int> const& L, long int const& e) {
+//	long int r(e);
+//	while (L[r] != r) r = L[r];
+//	return r;
+//}
+//long int unionn(std::vector<long int>& L, long int const& e1, long int const& e2) {
+//	if (e1 < e2) {
+//		L[e2] = e1;
+//		return e1;
+//	} else {
+//		L[e1] = e2;
+//		return e2;
+//	}
+//}
+//bool is_adjacent(coord const& p1, coord const& p2) {return dist(X(p1),X(p2)) <= 1 && dist(Y(p1),Y(p2)) <= 1;}
+//bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
+//void init_features(size_t const& label, coord const& pixel);
+//void accumulate_features(size_t const& label, coord const& pixel);
+//std::vector<long int> GameOfLife::sparseCLL() {
+//	// first scan: pixel association
+//	long int start_j(0), n(vivantes.size()), tpr(0);
+//	std::vector<long int> L(n);
+//	for (long int i(0); i < n ; ++i) {
+//		L[i] = i;
+//		tpr = i;
+//		for (long int j(start_j); j < i-1 ; ++j) {
+//			if (is_adjacent(vivantes[i], vivantes[j])) {
+//				tpr = unionn(L, tpr, find(L, j));
+//			} else if (is_far_enough(vivantes[i], vivantes[j])) {
+//				++start_j;
+//			}
+//		}
+//	}
 
-	// Second scan:  transitive closure and analysis
-	long int labels(0), l(0);
-	for (long int i(0); i < n-1 ; ++i) {
-		if (L[i] == i) {
-			++labels;
-			l = labels;
-			//init_features(l, vivantes[i]);
-		} else {
-			l = L[L[i]];
-			//accumulate_features(l, vivantes[i]);
-		}
-		L[i] = l;
-	}
-	L.push_back(labels);
-	return L;
-}
-void GameOfLife::dfs(std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100>& labels, size_t x, size_t y, size_t label) const {
-	std::cerr << termcolor::green << "hey1" << termcolor::reset << std::endl;
-	if (x < MAX_LIGNES && y < MAX_COLONNES && labels[x][y] == 0) {
-		// mark the current cell
-		std::cerr << termcolor::green << "hey2" << termcolor::reset << std::endl;
-        labels[x][y] = label;
-		std::cerr << termcolor::green << "hey3" << termcolor::reset << std::endl;
-
-        // recursively mark the neighbors
-        for (int direction = 0; direction < 8; ++direction) {
-            dfs(labels, x + dx[direction], y + dy[direction], label);
-        }
-	}
-}
-size_t GameOfLife::nbr_CC_1() const {
-	std::cerr << termcolor::yellow << "hey1" << termcolor::reset << std::endl;
-	std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100> labels;
-	for (auto& line : labels) {
-		for (auto& cell : line) {
-			cell = 0;
-		}
-	}
-	std::cerr << termcolor::yellow << "hey2" << termcolor::reset << std::endl;
-	size_t label(0);
-	for (size_t i(0); i < MAX_LIGNES ; ++i) {
-		for (size_t j(0); j < MAX_COLONNES ; ++j) {
-			if (access(i,j) && labels[i][j] == 0) {
-				std::cerr << termcolor::green << "appel dfs(labels," << i << "," << j << "," << label << ")" << termcolor::reset << std::endl;
-				dfs(labels,i,j,++label);
-			}
-		}
-	}
-	return label;
-}
-size_t GameOfLife::nbr_CC_2() const {
-	std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100> labels;
-	for (auto& line : labels) {
-		for (auto& cell : line) {
-			cell = 0;
-		}
-	}
-	std::queue<coord> q;
-	size_t current_label(0);
-	for (size_t i(0); i < MAX_LIGNES ; ++i) {
-        for (size_t j(0); j < MAX_COLONNES ; ++j) {
-            ++current_label;
-            if (grille[i][j] && labels[i][j] == 0) {
-                labels[i][j] = current_label;
-                q.push({i,j});
-            } else {
-                continue;
-            }
-            while (!q.empty()) {
-                coord c(q.front());
-				q.pop();
-                for (size_t direction(0); direction < 8; ++direction) {
-                    if (X(c)+dx[direction] < MAX_LIGNES && Y(c)+dy[direction] < MAX_COLONNES && grille[X(c)+dx[direction]][Y(c)+dy[direction]] && labels[X(c)+dx[direction]][Y(c)+dy[direction]] == 0) {
-                        labels[X(c)+dx[direction]][Y(c)+dy[direction]] = current_label;
-                        q.push({X(c)+dx[direction],Y(c)+dy[direction]});
-                    }
-                }
-            }
-        }
-    }
-    return current_label;
-}
+//	// Second scan:  transitive closure and analysis
+//	long int labels(0), l(0);
+//	for (long int i(0); i < n-1 ; ++i) {
+//		if (L[i] == i) {
+//			++labels;
+//			l = labels;
+//			//init_features(l, vivantes[i]);
+//		} else {
+//			l = L[L[i]];
+//			//accumulate_features(l, vivantes[i]);
+//		}
+//		L[i] = l;
+//	}
+//	L.push_back(labels);
+//	return L;
+//}
