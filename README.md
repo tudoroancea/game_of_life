@@ -30,7 +30,7 @@ mkdir build
 cmake -B build -DCMAKE_PREFIX_PATH=Qt5
 cmake --build build --target main
 ```
-where Qt5 represents the path to the file "Qt5Config.cmake" or "qt5-config.cmake". Execute the main program using :
+where `Qt5` represents the path to the file "Qt5Config.cmake" or "qt5-config.cmake". Execute the main program using :
 ```
 ./build/src/main
 ```

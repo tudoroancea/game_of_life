@@ -1,5 +1,6 @@
 #ifndef MOTIFS_H
 #define MOTIFS_H
+
 #include <array>
 #include <vector>
 #include <string>
@@ -8,24 +9,15 @@
 
 typedef std::pair<size_t,size_t> coord;
 typedef std::vector<coord> liste;
+size_t dist(size_t const& a, size_t const& b);
+std::ostream& operator<<(std::ostream& out, coord const& c);
 
 enum FILE_CATEGORY{local, presaved};
 std::ostream& operator<<(std::ostream& out, FILE_CATEGORY const& cat);
-//std::string to_string(FILE_CATEGORY const& FILE_CAT) {
-//    switch (FILE_CAT) {
-//        case local:
-//            return "local";
-//        case presaved:
-//            return "presaved";
-//        default:
-//            return "";
-//    }
-//}
 
 #define X(c) c.first
 #define Y(c) c.second
 
-std::ostream& operator<<(std::ostream& out, coord const& c);
 
 class Motif {
 private :

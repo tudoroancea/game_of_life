@@ -10,22 +10,16 @@
 using namespace std::chrono;
 
 int main() {
-    GameOfLifeView G;
+    GameOfLifeView G(0,10,0,10);
     G.add_motif(Motif("planeur", presaved));
-    //G.add_motif(Motif("planeur", "presaved").translate(5,7));
-    //G.add_motif(Motif("planeur", "presaved").translate(12,6));
-    //G.add_motif(Motif("planeur", "presaved").translate(15,15));
+    G.add_motif(Motif("planeur", presaved).translate(0,5));
+    G.add_motif(Motif("planeur", presaved).translate(5,5));
+    G.add_motif(Motif("planeur", presaved).translate(5,0));
     G.print();
-    std::this_thread::sleep_for(3s);
-    CLEAR()
-    //std::cout << "calculs des composants connexes : " << std::endl;
-    //std::vector<Motif> comp(composants_connexes(G));
-    //std::cout << " Il y a " << comp.size() << " composantes connexes" << std::endl;
-    //for (auto const& m : comp) {
-    //    for (liste::const_iterator it(m.cbegin()); it != m.cend(); ++it) std::cout << it->first << ", " << it->second << std::endl;
-    //    std::cout << std::endl;
-    //}
-    std::vector<size_t> labels(G.sparseCLL());
-    std::cout << " Il y a " << labels.back()+1 << " composantes connexes" << std::endl;
+    //std::cout << " Il y a " << G.nbr_CC_2() << " composantes connexes" << std::endl;
+    #ifdef TEST_DEF
+        std::cout << "hey" << std::endl;
+    #endif
+
     return 0;
 }

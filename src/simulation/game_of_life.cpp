@@ -3,6 +3,7 @@
 #include "rapidcsv.h"
 #include "termcolor.hpp"
 
+#include <queue>
 #include <string>
 #include <fstream>
 #include <vector>
@@ -33,7 +34,7 @@ GameOfLife::GameOfLife(Motif const& a_marquer) : nbr_gen(0) {
 
 // Getters & Setters ========================================================================================
 bool GameOfLife::access(size_t const& i, size_t const& j) const {
-	if (i < MAX_LIGNES+100 || j < MAX_COLONNES+100) return grille[i][j];
+	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) return grille[i][j];
 	else {
 		#ifdef OVERFLOW_WARNINGS
 			std::cerr << termcolor::yellow << "[GameOfLife::access(" << i << "," << j << ") a renvoyé false car les coordonées étaient trop grandes]" << termcolor::reset;
@@ -732,12 +733,12 @@ std::vector<Motif> composants_connexes(GameOfLife const& jeu) {
 	return res;
 }
 
-size_t find(std::vector<size_t> const& L, size_t const& e) {
-	size_t r(e);
+long int find(std::vector<long int> const& L, long int const& e) {
+	long int r(e);
 	while (L[r] != r) r = L[r];
 	return r;
 }
-size_t unionn(std::vector<size_t>& L, size_t const& e1, size_t const& e2) {
+long int unionn(std::vector<long int>& L, long int const& e1, long int const& e2) {
 	if (e1 < e2) {
 		L[e2] = e1;
 		return e1;
@@ -746,39 +747,105 @@ size_t unionn(std::vector<size_t>& L, size_t const& e1, size_t const& e2) {
 		return e2;
 	}
 }
-bool is_adjacent(coord const& p1, coord const& p2) {return sont_voisins(p1, p2);}
+bool is_adjacent(coord const& p1, coord const& p2) {return dist(X(p1),X(p2)) <= 1 && dist(Y(p1),Y(p2)) <= 1;}
 bool is_far_enough(coord const& p1, coord const& p2) {return Y(p1)-Y(p2) > 1;}
 void init_features(size_t const& label, coord const& pixel);
 void accumulate_features(size_t const& label, coord const& pixel);
-std::vector<size_t> GameOfLife::sparseCLL() {
+std::vector<long int> GameOfLife::sparseCLL() {
 	// first scan: pixel association
-	size_t start_j(0), n(vivantes.size()), tpr(0);
-	std::vector<size_t> Liste(n);
-	for (size_t i(0); i < n ; ++i) {
-		Liste[i] = i;
+	long int start_j(0), n(vivantes.size()), tpr(0);
+	std::vector<long int> L(n);
+	for (long int i(0); i < n ; ++i) {
+		L[i] = i;
 		tpr = i;
-		for (size_t j(start_j); j < i-1 ; ++j) {
+		for (long int j(start_j); j < i-1 ; ++j) {
 			if (is_adjacent(vivantes[i], vivantes[j])) {
-				tpr = unionn(Liste, tpr, find(Liste, j));
+				tpr = unionn(L, tpr, find(L, j));
 			} else if (is_far_enough(vivantes[i], vivantes[j])) {
 				++start_j;
 			}
 		}
 	}
 
-	// Second scan:  transittive closure and analysis
-	size_t labels(0), l(0);
-	for (size_t i(0); i < n-1 ; ++i) {
-		if (Liste[i] == i) {
+	// Second scan:  transitive closure and analysis
+	long int labels(0), l(0);
+	for (long int i(0); i < n-1 ; ++i) {
+		if (L[i] == i) {
 			++labels;
 			l = labels;
 			//init_features(l, vivantes[i]);
 		} else {
-			l = Liste[Liste[i]];
+			l = L[L[i]];
 			//accumulate_features(l, vivantes[i]);
 		}
-		Liste[i] = l;
+		L[i] = l;
 	}
-	Liste.push_back(labels);
-	return Liste;
+	L.push_back(labels);
+	return L;
+}
+void GameOfLife::dfs(std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100>& labels, size_t x, size_t y, size_t label) const {
+	std::cerr << termcolor::green << "hey1" << termcolor::reset << std::endl;
+	if (x < MAX_LIGNES && y < MAX_COLONNES && labels[x][y] == 0) {
+		// mark the current cell
+		std::cerr << termcolor::green << "hey2" << termcolor::reset << std::endl;
+        labels[x][y] = label;
+		std::cerr << termcolor::green << "hey3" << termcolor::reset << std::endl;
+
+        // recursively mark the neighbors
+        for (int direction = 0; direction < 8; ++direction) {
+            dfs(labels, x + dx[direction], y + dy[direction], label);
+        }
+	}
+}
+size_t GameOfLife::nbr_CC_1() const {
+	std::cerr << termcolor::yellow << "hey1" << termcolor::reset << std::endl;
+	std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100> labels;
+	for (auto& line : labels) {
+		for (auto& cell : line) {
+			cell = 0;
+		}
+	}
+	std::cerr << termcolor::yellow << "hey2" << termcolor::reset << std::endl;
+	size_t label(0);
+	for (size_t i(0); i < MAX_LIGNES ; ++i) {
+		for (size_t j(0); j < MAX_COLONNES ; ++j) {
+			if (access(i,j) && labels[i][j] == 0) {
+				std::cerr << termcolor::green << "appel dfs(labels," << i << "," << j << "," << label << ")" << termcolor::reset << std::endl;
+				dfs(labels,i,j,++label);
+			}
+		}
+	}
+	return label;
+}
+size_t GameOfLife::nbr_CC_2() const {
+	std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100> labels;
+	for (auto& line : labels) {
+		for (auto& cell : line) {
+			cell = 0;
+		}
+	}
+	std::queue<coord> q;
+	size_t current_label(0);
+	for (size_t i(0); i < MAX_LIGNES ; ++i) {
+        for (size_t j(0); j < MAX_COLONNES ; ++j) {
+            ++current_label;
+            if (grille[i][j] && labels[i][j] == 0) {
+                labels[i][j] = current_label;
+                q.push({i,j});
+            } else {
+                continue;
+            }
+            while (!q.empty()) {
+                coord c(q.front());
+				q.pop();
+                for (size_t direction(0); direction < 8; ++direction) {
+                    if (X(c)+dx[direction] < MAX_LIGNES && Y(c)+dy[direction] < MAX_COLONNES && grille[X(c)+dx[direction]][Y(c)+dy[direction]] && labels[X(c)+dx[direction]][Y(c)+dy[direction]] == 0) {
+                        labels[X(c)+dx[direction]][Y(c)+dy[direction]] = current_label;
+                        q.push({X(c)+dx[direction],Y(c)+dy[direction]});
+                    }
+                }
+            }
+        }
+    }
+    return current_label;
 }

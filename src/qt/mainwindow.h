@@ -102,7 +102,7 @@ public slots:
 
 private:
 
-    void init_styles();    
+    void init_styles();
 
     bool mouse_in(QMouseEvent* event);
 
@@ -164,12 +164,12 @@ private:
 
 /* nouveau système d'affichage :
 un conserve la taille d'une cellule et nb lines et nb col
-nb lines et nb col en commun avec la vue ensuite la vue 
+nb lines et nb col en commun avec la vue ensuite la vue
 les état des cellules auquels on donne la bonne taille
 il faut modifier la taille au moment du zoom
-et il faut modifier nb_lines et nb_col au moment du resize 
+et il faut modifier nb_lines et nb_col au moment du resize
 de la fenêtre.
-Etape 1 : 
+Etape 1 :
 adapter le code à la nouvelle architecture
 Etape 2 :
 implémenter resize event

@@ -8,9 +8,6 @@
     #define CLEAR() std::system("clear");
 #endif
 
-#define MAX_LIGNES 400
-#define MAX_COLONNES 400
-
 #include <array>
 #include <iostream>
 #include "motifs.h"
@@ -63,6 +60,8 @@ protected :
      *  @returns	L'etat de la cellule si elle existe (true si elle est vivante, false si elle est morte), et false sinon
      */
     bool access(size_t const& i, size_t const& j) const;
+    const std::array<int,8> dx = {1,1,1,0,0,-1,-1,-1};
+	const std::array<int,8> dy = {1,0,-1,1,-1,1,0,-1};
 public :
     // Constructeurs ========================================
     /**
@@ -184,9 +183,17 @@ public :
     /**
      * @brief Utilise l'algorithme sparseCLL du CERN pour trouver les composantes connexes
      *
-     * @return std::vector<size_t>
+     * @return std::vector<long int>
      */
-    std::vector<size_t> sparseCLL();
+    std::vector<long int> sparseCLL();
+    void dfs(std::array<std::array<size_t,MAX_LIGNES+100>,MAX_COLONNES+100>& labels, size_t x, size_t y, size_t label) const;
+    /**
+     * @brief One component at a time recursive method
+     *
+     * @return size_t
+     */
+    size_t nbr_CC_1() const;
+    size_t nbr_CC_2() const;
 };
 /**
  * @brief   Renvoie une repartition des cellules telle que chaque morceau est connexe (au sens des voisins)
