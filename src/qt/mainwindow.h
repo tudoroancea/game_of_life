@@ -174,3 +174,14 @@ adapter le code à la nouvelle architecture
 Etape 2 :
 implémenter resize event
 */
+/*
+zoom
+centre souris zoom
+trackpad (si possible)
+bouton pour mode sélectionner avec cadre qui disparait pas
+    switch add/suppr vs selectionner
+        add/suppr : ajouter supprimer
+        selec : copier coller
+update liste motifs automatique
+bouton pour reset (gameOfLife::wipe)
+*/
