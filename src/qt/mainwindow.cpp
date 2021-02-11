@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
       x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
-      frame_on(false), info_on(false), delta_pix_prec(0)
+      frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0)
 {
     std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
     init_styles();    
@@ -459,6 +459,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 void MainWindow::wheelEvent(QWheelEvent* event)
 {
+    //create buffer pour le trackpad
     //int nbr_degres = event->angleDelta().y() / 12;
     // 10% par cran = 10% par 15° = 10% par 120 huitième de degré = 1% par 12 huitièmes de degrés
 
@@ -499,12 +500,17 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     else 
     {
         //std::cout << "null";
-        int delta_pix_current(delta_pix.y());
-        mouv = delta_pix_current - delta_pix_prec;
-        mouv *= 10;
-        delta_pix_prec = delta_pix_current;
-        if (mouv < -30) {mouv = -30;}
-        if (mouv > 30) {mouv = 30;}
+        buffer_trackpad++;
+        if (buffer_trackpad >= 20)
+        {
+            buffer_trackpad = 0;
+            int delta_pix_current(delta_pix.y());
+            mouv = delta_pix_current - delta_pix_prec;
+            mouv *= 10;
+            delta_pix_prec = delta_pix_current;
+            if (mouv < -30) {mouv = -30;}
+            if (mouv > 30) {mouv = 30;}
+        } else { mouv = 0; }
     }
     //std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
@@ -515,7 +521,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     double taux = 1.0 + (double(mouv/10)/10.0);
     int taux_2 = mouv/10;
-    std::cout << taux_2 << std::endl;
+    std::cout << "[ZOOM] taux : " << taux_2 << std::endl;
 
     //std::cout << taux << std::endl;
     /*
@@ -562,6 +568,9 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     
     //std::cout << taux_2 << std::endl;
 
+    int x_(ptr.size_cell*x_current);
+    int y_(ptr.size_cell*y_current);
+
     double new_size(ptr.size_cell);
     if (taux_2 < 0) {new_size /= (1.5*(-taux_2));}
     else if (taux_2 > 0) {new_size *= (1.5*taux_2);}
@@ -582,6 +591,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     if (new_size >= 1 && new_size <= ptr.px_x && new_size <= ptr.px_y)
     {
         ptr.size_cell = new_size;
+        x_ /= ptr.size_cell;
+        y_ /= ptr.size_cell;        
         nb_lines = ptr.px_x/ptr.size_cell;
         nb_col = ptr.px_y/ptr.size_cell;
         //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
@@ -626,11 +637,21 @@ void MainWindow::wheelEvent(QWheelEvent* event)
             ptr.cmax = MAX_COLONNES;
         }
 
+
         //std::cout << ptr.lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
         //std::cout << ptr.lmax - ptr.lmin << " | " << ptr.cmax -ptr.cmin << std::endl;         
         ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        //std::cout << x_ << " " << y_ << std::endl;
         nb_lines = ptr.vue->nbr_lignes();
-        nb_col = ptr.vue->nbr_colonnes(); 
+        nb_col = ptr.vue->nbr_colonnes();  
+        //std::cout << -(x_ - int(nb_lines)/2) << " " << -(y_ - int(nb_col)/2) << std::endl;            
+        ptr.vue->translate(-(x_ - nb_lines/2), -(y_ - nb_col/2));             
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes();  
+        ptr.lmin = ptr.vue->get_Lmin();
+        ptr.lmax = ptr.vue->get_Lmax();
+        ptr.cmin = ptr.vue->get_Cmin();
+        ptr.cmax = ptr.vue->get_Cmax();
         //std::cout << nb_lines << " | " << nb_col << std::endl;
     }
 
@@ -705,7 +726,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         buttons["new_sim"]->click();
     }
-    if (event->key() == Qt::Key_I)
+    if (event->key() == Qt::Key_F3)
     {
         info_on = 1 - info_on;
         if (info_on)

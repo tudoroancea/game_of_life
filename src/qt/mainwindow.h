@@ -148,6 +148,7 @@ private:
     int nb_motifs_locaux;
     bool info_on;
     int delta_pix_prec;
+    unsigned int buffer_trackpad;
 };
 
 #endif // MAINWINDOW_H
