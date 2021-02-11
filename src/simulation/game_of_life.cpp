@@ -17,7 +17,14 @@
 #include <chrono>
 
 template<class T1, class T2>
-std::size_t pair_hash::operator()(std::pair<T1,T2> const& p) const {return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);}
+std::size_t pair_hash::operator()(std::pair<T1,T2> const& p) const {
+	if (p.first == p.second) {
+		size_t first = p.first, second = (p.first << 2)|(p.first >> (8*sizeof(size_t)-2));;
+		return std::hash<T1>()(first) ^ std::hash<T2>()(second);
+	} else {
+		return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);
+	}
+}
 
 // Constructeurs ========================================================================================
 GameOfLife::GameOfLife() : nbr_gen(0) {

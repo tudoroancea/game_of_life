@@ -194,17 +194,17 @@ size_t two_pass() {
                         neighbors.push_back({i+dx[direction], j+dy[direction]});
                     }
                 }
+                // On analyse ces voisins
                 if (neighbors.empty()) {
                     eqtable.make_set();
                     labels[i][j] = NextLabel;
                     ++NextLabel;
                 } else {
-                    std::vector<size_t> L(neighbors.size());
-                    for (size_t k(0); k < neighbors.size(); ++k) {L[k] = labels[X(neighbors[k])][Y(neighbors[k])];}
+                    // On associe à (i,j) le plus petit label de ses voisins et on crée des équivalences entre (i,j) et ses voisins
                     size_t min(0);
-                    for (auto const& m : L) if (m < min) min = m;
+                    for (auto const& cell : neighbors) if (labels[X(cell)][Y(cell)] < min) min = labels[X(cell)][Y(cell)];
                     labels[i][j] = min;
-                    for (auto const& m : L) eqtable.unionn(m,min);
+                    for (auto const& cell : neighbors) eqtable.unionn(min, labels[X(cell)][Y(cell)]);
                 }
             }
         }

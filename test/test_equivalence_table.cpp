@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define N 10000000
+#define N 100000000
 int main() {
     SimpleEquivalenceTable T1(N);
     for (size_t i(1); i < N ; ++i) T1[i]=i-1;
@@ -15,7 +15,7 @@ int main() {
     size_t root1(T1.find(N-1));
     auto stop1 = std::chrono::high_resolution_clock::now();
     auto start2(std::chrono::high_resolution_clock::now());
-    size_t root2(T2.find2(N-1));
+    size_t root2(T2.find(N-1));
     auto stop2 = std::chrono::high_resolution_clock::now();
     std::cout << root1 << " : " << std::chrono::duration_cast<std::chrono::microseconds>(stop1-start1).count() << std::endl << root2 << " : " << std::chrono::duration_cast<std::chrono::microseconds>(stop2-start2).count() << std::endl;
 

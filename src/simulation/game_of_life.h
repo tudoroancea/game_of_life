@@ -205,6 +205,7 @@ public :
      * @return the number of connected components
      */
     size_t nbr_CC_ite() const;
+    
 
     /**
      * @brief Direct recursive method to find the connected components (CC) among the living cells

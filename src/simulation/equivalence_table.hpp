@@ -26,7 +26,6 @@ class SimpleEquivalenceTable {
          * @brief Iterative version without parent update along the way
          */
         size_t find(size_t x) const;
-        size_t find2(size_t x);
         /**
          * @brief
          *
@@ -36,7 +35,9 @@ class SimpleEquivalenceTable {
          */
         size_t unionn(size_t x, size_t y);
 
-
+        /**
+         * @return number of different labels in the equivalence table (if )
+         */
         size_t nbr_classes() const;
 
         void print(std::ostream& out = std::cout) const;
@@ -68,25 +69,25 @@ class OptimalEquivalenceTable {
          * @param x
          * @return size_t
          */
-        size_t find1(size_t const& x);
+        size_t find_rec(size_t const& x);
         /**
          * @brief Iterative version with constant memory
          *
          * @param x
          * @return size_t
          */
-        size_t find2(size_t x);
+        size_t find_ite(size_t x);
         /**
          * @brief Path-splitting version (without full parent pointer update, ie not along the whole path)
          */
-        size_t find3(size_t x);
+        size_t find_split(size_t x);
         /**
          * @brief Path-halving version (without full parent pointer update, ie not along the whole path)
          *
          * @param x
          * @return size_t
          */
-        size_t find4(size_t x);
+        size_t find_half(size_t x);
         /**
          * @brief
          *
