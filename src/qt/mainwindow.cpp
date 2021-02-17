@@ -499,9 +499,10 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     }
     else 
     {
+        /*
         //std::cout << "null";
         buffer_trackpad++;
-        if (buffer_trackpad >= 20)
+        if (buffer_trackpad >= 50)
         {
             buffer_trackpad = 0;
             int delta_pix_current(delta_pix.y());
@@ -511,6 +512,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
             if (mouv < -30) {mouv = -30;}
             if (mouv > 30) {mouv = 30;}
         } else { mouv = 0; }
+        */
+        
     }
     //std::cout << mouv << std::endl;
     //std::cerr << delta.y() << " " << mouv << std::endl;
@@ -521,7 +524,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
     double taux = 1.0 + (double(mouv/10)/10.0);
     int taux_2 = mouv/10;
-    std::cout << "[ZOOM] taux : " << taux_2 << std::endl;
+    //std::cout << "[ZOOM] taux : " << taux_2 << std::endl;
 
     //std::cout << taux << std::endl;
     /*
@@ -645,7 +648,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();  
         //std::cout << -(x_ - int(nb_lines)/2) << " " << -(y_ - int(nb_col)/2) << std::endl;            
-        ptr.vue->translate(-(x_ - nb_lines/2), -(y_ - nb_col/2));             
+        ptr.vue->translate(-(x_ - (nb_lines)/2), -(y_ - (nb_col)/2));             
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();  
         ptr.lmin = ptr.vue->get_Lmin();
@@ -686,6 +689,46 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         //ptr.vue->resize(nb_lines, nb_col); A réimplémenter pour l'instant flemme.
         this->update();
     }*/
+}
+
+bool MainWindow::event(QEvent* event)
+{
+    if (event->type() == QEvent::TouchBegin  || 
+        event->type() == QEvent::TouchUpdate ||
+        event->type() == QEvent::TouchEnd)
+    {
+        std::cout << "touchEvent : ";
+        QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+        switch(touchEvent->type())
+        {
+            case QEvent::TouchBegin:
+                std::cout << "Begin; ";
+                break;
+            case QEvent::TouchUpdate:
+                std::cout << "Update; ";
+                break;
+            case QEvent::TouchEnd:
+                std::cout << "End; ";
+                break;
+            default : break;
+        }
+        std::cout << std::endl;
+        QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+        std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
+        if (touchPoints.count() == 2)
+        {
+            double x_1(touchPoints.first().lastPos().x() - touchPoints.first().startPos().x());
+            double y_1(touchPoints.first().lastPos().y() - touchPoints.first().startPos().y());
+            double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
+            double y_2(touchPoints.last().lastPos().y() - touchPoints.last().startPos().y());
+            double prod(x_1*x_2 + y_1*y_2);
+            if (prod > 0) { std::cout << "translate"; }
+            else if (prod < 0) { std::cout << "scale"; }
+            else { std::cout << "ortho"; }
+        }
+        std::cout << std::endl;
+    }
+    return QMainWindow::event(event);
 }
 
 void MainWindow::timerEvent(QTimerEvent *event)

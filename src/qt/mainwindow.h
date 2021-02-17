@@ -17,6 +17,7 @@
 #include <QString>
 #include <QTimer>
 #include <QResizeEvent>
+#include <QTouchEvent>
 #include <unordered_map>
 #include "game_of_life.h"
 #include "motifs.h"
@@ -76,6 +77,8 @@ public:
     void mouseMoveEvent(QMouseEvent* event) override;
 
     void wheelEvent(QWheelEvent* event) override;
+
+    bool event(QEvent* event) override;// pour touchEvent
 
     void timerEvent(QTimerEvent* event) override;
 
@@ -176,13 +179,13 @@ Etape 2 :
 implémenter resize event
 */
 /*
-zoom
-centre souris zoom
-trackpad (si possible)
-bouton pour mode sélectionner avec cadre qui disparait pas
-    switch add/suppr vs selectionner
-        add/suppr : ajouter supprimer
-        selec : copier coller
-update liste motifs automatique
-bouton pour reset (gameOfLife::wipe)
+[?] zoom
+[X] centre souris zoom
+[ ] trackpad (si possible)
+[ ] bouton pour mode sélectionner avec cadre qui disparait pas
+[ ]     switch add/suppr vs selectionner
+[ ]         add/suppr : ajouter supprimer
+[ ]         selec : copier coller
+[ ] update liste motifs automatique
+[ ] bouton pour reset (gameOfLife::wipe)
 */
