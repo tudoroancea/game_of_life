@@ -693,11 +693,12 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
 bool MainWindow::event(QEvent* event)
 {
+    std::cout << "Event : " << event->type();
     if (event->type() == QEvent::TouchBegin  || 
         event->type() == QEvent::TouchUpdate ||
         event->type() == QEvent::TouchEnd)
     {
-        std::cout << "touchEvent : ";
+        std::cout << " touchEvent : ";
         QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
         switch(touchEvent->type())
         {
@@ -726,8 +727,8 @@ bool MainWindow::event(QEvent* event)
             else if (prod < 0) { std::cout << "scale"; }
             else { std::cout << "ortho"; }
         }
-        std::cout << std::endl;
     }
+    std::cout << std::endl;    
     return QMainWindow::event(event);
 }
 
