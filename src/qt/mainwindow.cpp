@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
       x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0)
 {
+    this->setAttribute(Qt::WA_AcceptTouchEvents);    
     std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
     init_styles();    
     setMouseTracking(true);
@@ -693,7 +694,6 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
 bool MainWindow::event(QEvent* event)
 {
-    std::cout << "Event : " << event->type();
     if (event->type() == QEvent::TouchBegin  || 
         event->type() == QEvent::TouchUpdate ||
         event->type() == QEvent::TouchEnd)
@@ -728,7 +728,7 @@ bool MainWindow::event(QEvent* event)
             else { std::cout << "ortho"; }
         }
     }
-    std::cout << std::endl;    
+    //std::cout << std::endl;    
     return QMainWindow::event(event);
 }
 
@@ -772,6 +772,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     if (event->key() == Qt::Key_F3)
     {
+        std::cout << QEvent::TouchUpdate << std::endl;
         info_on = 1 - info_on;
         if (info_on)
         {
