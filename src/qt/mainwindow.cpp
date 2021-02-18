@@ -481,7 +481,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // 120 = 15°  (24 crans sur une souris standard)
     
     std::cout << "pas mod 120 normalement : " << delta.y() << std::endl;
-    if (delta.y()%120 == 0)
+    if (delta.y()%120 == 0 && delta.y() != 0)
     {
         //std::cout << "Not null ";
         mouv = delta.y()/12;
