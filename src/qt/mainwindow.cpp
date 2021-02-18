@@ -723,12 +723,28 @@ bool MainWindow::event(QEvent* event)
             double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
             double y_2(touchPoints.last().lastPos().y() - touchPoints.last().startPos().y());
             double prod(x_1*x_2 + y_1*y_2);
-            if (prod > 0) { std::cout << "translate"; }
+            if (prod > 0) 
+            { 
+                std::cout << "translate vector : "; 
+                double x_translate((x_1 + x_2)/2.0);
+                double y_translate((y_1 + y_2)/2.0);
+                std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                x_translate /= (ptr.size_cell/2);
+                y_translate /= (ptr.size_cell/2);
+                std::cout << "rel : ";
+                std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                ptr.vue->translate(x_translate, y_translate);    
+                ptr.lmin = ptr.vue->get_Lmin();
+                ptr.cmin = ptr.vue->get_Cmin();
+                ptr.lmax = ptr.vue->get_Lmax();
+                ptr.cmax = ptr.vue->get_Cmax();                
+            }
             else if (prod < 0) { std::cout << "scale"; }
             else { std::cout << "ortho"; }
         }
-    }
-    //std::cout << std::endl;    
+        std::cout << std::endl;
+        this->update();
+    } 
     return QMainWindow::event(event);
 }
 
