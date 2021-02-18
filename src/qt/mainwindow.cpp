@@ -83,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
       pause(nullptr),
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
+      x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0)
 {
     this->setAttribute(Qt::WA_AcceptTouchEvents);    
@@ -152,11 +152,9 @@ void MainWindow::creer()
     pos_souris = new QLabel(this);
     pos_souris->move(290, 0);//480, 580
     pos_souris->hide();
-    ptr.lmin = (MAX_LIGNES - nb_lines)/2;
-    ptr.cmin = (MAX_COLONNES - nb_col)/2;
-    ptr.lmax = ptr.lmin + nb_lines;
-    ptr.cmax = ptr.cmin + nb_col;
-    ptr.vue = new GameOfLifeView(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+    unsigned int lmin = (MAX_LIGNES - nb_lines)/2;
+    unsigned int cmin = (MAX_COLONNES - nb_col)/2;
+    ptr.vue = new GameOfLifeView(lmin, lmin + nb_lines, cmin, cmin + nb_col);
     if (nb_lines == 0) {nb_lines = 1;}
     if (nb_col == 0) {nb_col = 1;}
     ptr.size_cell = 500/nb_lines;
@@ -443,11 +441,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         if (mouse_in(event))
         {
             ptr.vue->translate(x_prec - x_current, y_prec - y_current);
-            ptr.lmin = ptr.vue->get_Lmin();
-            ptr.cmin = ptr.vue->get_Cmin();
-            ptr.lmax = ptr.vue->get_Lmax();
-            ptr.cmax = ptr.vue->get_Cmax();
-            //std::cout << "(" << ptr.lmin << ", " << ptr.lmax << ", " << ptr.cmin << ", " << ptr.cmax << ")" << std::endl;
             QPoint pos(pos_souris_rel(event));
             x_prec = x_current;
             y_prec = y_current;
@@ -599,52 +592,56 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         y_ /= ptr.size_cell;        
         nb_lines = ptr.px_x/ptr.size_cell;
         nb_col = ptr.px_y/ptr.size_cell;
+        int lmin(ptr.vue->get_Lmin()), 
+            lmax(ptr.vue->get_Lmax()),
+            cmin(ptr.vue->get_Cmin()), 
+            cmax(ptr.vue->get_Cmax());
         //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
         if (MAX_LIGNES*ptr.size_cell < ptr.px_x) 
         {
             nb_lines = MAX_LIGNES;
-            ptr.lmin = 0;
-            ptr.lmax = MAX_LIGNES;
+            lmin = 0;
+            lmax = MAX_LIGNES;
         } else {
-            ptr.lmin += x_current - nb_lines/2;
-            ptr.lmax = ptr.lmin + nb_lines;             
+            lmin += x_current - nb_lines/2;
+            lmax = lmin + nb_lines;             
         }
         if (MAX_COLONNES*ptr.size_cell < ptr.px_y) 
         {
             nb_col = MAX_COLONNES;
-            ptr.cmin = 0;
-            ptr.cmax = MAX_COLONNES;
+            cmin = 0;
+            cmax = MAX_COLONNES;
         } else {
-            ptr.cmin += y_current - nb_col/2;
-            ptr.cmax = ptr.cmin + nb_col;              
+            cmin += y_current - nb_col/2;
+            cmax = cmin + nb_col;              
         }
 
 
 
 
-        //std::cout << ptr.lmax << " , " << ptr.lmin << " , " << ptr.cmax << " , " << ptr.cmin << std::endl;                                
-        if (ptr.lmin < 0) {ptr.lmax -= ptr.lmin; ptr.lmin = 0;}
+        //std::cout << lmax << " , " << lmin << " , " << cmax << " , " << cmin << std::endl;                                
+        if (lmin < 0) {lmax -= lmin; lmin = 0;}
 
-        if (ptr.lmax > MAX_LIGNES) 
+        if (lmax > MAX_LIGNES) 
         {
-            ptr.lmin -= (ptr.lmax - MAX_LIGNES);
-            if (ptr.lmin < 0) {ptr.lmin = 0;}
-            ptr.lmax = MAX_LIGNES;
+            lmin -= (lmax - MAX_LIGNES);
+            if (lmin < 0) {lmin = 0;}
+            lmax = MAX_LIGNES;
         }
 
-        if (ptr.cmin < 0) {ptr.cmax -= ptr.cmin; ptr.cmin = 0;}
+        if (cmin < 0) {cmax -= cmin; cmin = 0;}
 
-        if (ptr.cmax > MAX_COLONNES) 
+        if (cmax > MAX_COLONNES) 
         {
-            ptr.cmin -= ptr.cmax - MAX_COLONNES;
-            if (ptr.cmin < 0) {ptr.cmin = 0;}
-            ptr.cmax = MAX_COLONNES;
+            cmin -= cmax - MAX_COLONNES;
+            if (cmin < 0) {cmin = 0;}
+            cmax = MAX_COLONNES;
         }
 
 
-        //std::cout << ptr.lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
+        //std::cout << lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
         //std::cout << ptr.lmax - ptr.lmin << " | " << ptr.cmax -ptr.cmin << std::endl;         
-        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        ptr.vue->resize(lmin, lmax, cmin, cmax);
         //std::cout << x_ << " " << y_ << std::endl;
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();  
@@ -652,10 +649,6 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         ptr.vue->translate(-(x_ - (nb_lines)/2), -(y_ - (nb_col)/2));             
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();  
-        ptr.lmin = ptr.vue->get_Lmin();
-        ptr.lmax = ptr.vue->get_Lmax();
-        ptr.cmin = ptr.vue->get_Cmin();
-        ptr.cmax = ptr.vue->get_Cmax();
         //std::cout << nb_lines << " | " << nb_col << std::endl;
     }
 
@@ -733,11 +726,7 @@ bool MainWindow::event(QEvent* event)
                 y_translate /= (ptr.size_cell/2);
                 std::cout << "rel : ";
                 std::cout << "(" << x_translate << ", " << y_translate << ") ";
-                ptr.vue->translate(x_translate, y_translate);    
-                ptr.lmin = ptr.vue->get_Lmin();
-                ptr.cmin = ptr.vue->get_Cmin();
-                ptr.lmax = ptr.vue->get_Lmax();
-                ptr.cmax = ptr.vue->get_Cmax();                
+                ptr.vue->translate(x_translate, y_translate);                   
             }
             else if (prod < 0) { std::cout << "scale"; }
             else { std::cout << "ortho"; }
@@ -821,51 +810,55 @@ void MainWindow::resizeEvent(QResizeEvent *event)
         ptr.px_y = (this->height() - 100);
         nb_lines = ptr.px_x/ptr.size_cell;
         nb_col = ptr.px_y/ptr.size_cell;
+        int lmin(ptr.vue->get_Lmin()), 
+            lmax(ptr.vue->get_Lmax()),
+            cmin(ptr.vue->get_Cmin()), 
+            cmax(ptr.vue->get_Cmax());        
         //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
         if (MAX_LIGNES*ptr.size_cell < ptr.px_x) 
         {
             nb_lines = MAX_LIGNES;
-            ptr.lmin = 0;
-            ptr.lmax = MAX_LIGNES;
+            lmin = 0;
+            lmax = MAX_LIGNES;
         } else {
-            //ptr.lmin += x_current - nb_lines/2;
-            ptr.lmax = ptr.lmin + nb_lines;             
+            //lmin += x_current - nb_lines/2;
+            lmax = lmin + nb_lines;             
         }
         if (MAX_COLONNES*ptr.size_cell < ptr.px_y) 
         {
             nb_col = MAX_COLONNES;
-            ptr.cmin = 0;
-            ptr.cmax = MAX_COLONNES;
+            cmin = 0;
+            cmax = MAX_COLONNES;
         } else {
-            //ptr.cmin += y_current - nb_col/2;
-            ptr.cmax = ptr.cmin + nb_col;              
+            //cmin += y_current - nb_col/2;
+            cmax = cmin + nb_col;              
         }
 
 
 
 
-        //std::cout << ptr.lmax << " , " << ptr.lmin << " , " << ptr.cmax << " , " << ptr.cmin << std::endl;                                
-        if (ptr.lmin < 0) {ptr.lmax -= ptr.lmin; ptr.lmin = 0;}
+        //std::cout << lmax << " , " << lmin << " , " << cmax << " , " << cmin << std::endl;                                
+        if (lmin < 0) {lmax -= lmin; lmin = 0;}
 
-        if (ptr.lmax > MAX_LIGNES) 
+        if (lmax > MAX_LIGNES) 
         {
-            ptr.lmin -= (ptr.lmax - MAX_LIGNES);
-            if (ptr.lmin < 0) {ptr.lmin = 0;}
-            ptr.lmax = MAX_LIGNES;
+            lmin -= (lmax - MAX_LIGNES);
+            if (lmin < 0) {lmin = 0;}
+            lmax = MAX_LIGNES;
         }
 
-        if (ptr.cmin < 0) {ptr.cmax -= ptr.cmin; ptr.cmin = 0;}
+        if (cmin < 0) {cmax -= cmin; cmin = 0;}
 
-        if (ptr.cmax > MAX_COLONNES) 
+        if (cmax > MAX_COLONNES) 
         {
-            ptr.cmin -= ptr.cmax - MAX_COLONNES;
-            if (ptr.cmin < 0) {ptr.cmin = 0;}
-            ptr.cmax = MAX_COLONNES;
+            cmin -= cmax - MAX_COLONNES;
+            if (cmin < 0) {cmin = 0;}
+            cmax = MAX_COLONNES;
         }
 
-        //std::cout << ptr.lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
-        //std::cout << ptr.lmax - ptr.lmin << " | " << ptr.cmax -ptr.cmin << std::endl;         
-        ptr.vue->resize(ptr.lmin, ptr.lmax, ptr.cmin, ptr.cmax);
+        //std::cout << lmax << " | " << lmin << " | " << cmax << " | " << cmin << std::endl; 
+        //std::cout << lmax - lmin << " | " << cmax -cmin << std::endl;         
+        ptr.vue->resize(lmin, lmax, cmin, cmax);
         nb_lines = ptr.vue->nbr_lignes();
         nb_col = ptr.vue->nbr_colonnes();    
     }
