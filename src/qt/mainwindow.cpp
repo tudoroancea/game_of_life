@@ -480,6 +480,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
     
+    std::cout << "pas mod 120 normalement : " << delta.y() << std::endl;
     if (delta.y()%120 == 0)
     {
         //std::cout << "Not null ";
@@ -692,48 +693,52 @@ bool MainWindow::event(QEvent* event)
         event->type() == QEvent::TouchUpdate ||
         event->type() == QEvent::TouchEnd)
     {
-        std::cout << " touchEvent : ";
-        QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
-        switch(touchEvent->type())
+        buffer_trackpad++;
+        if (buffer_trackpad >= 20)
         {
-            case QEvent::TouchBegin:
-                std::cout << "Begin; ";
-                break;
-            case QEvent::TouchUpdate:
-                std::cout << "Update; ";
-                break;
-            case QEvent::TouchEnd:
-                std::cout << "End; ";
-                break;
-            default : break;
-        }
-        std::cout << std::endl;
-        QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-        std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
-        if (touchPoints.count() == 2)
-        {
-            double x_1(touchPoints.first().lastPos().x() - touchPoints.first().startPos().x());
-            double y_1(touchPoints.first().lastPos().y() - touchPoints.first().startPos().y());
-            double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
-            double y_2(touchPoints.last().lastPos().y() - touchPoints.last().startPos().y());
-            double prod(x_1*x_2 + y_1*y_2);
-            if (prod > 0) 
-            { 
-                std::cout << "translate vector : "; 
-                double x_translate((x_1 + x_2)/2.0);
-                double y_translate((y_1 + y_2)/2.0);
-                std::cout << "(" << x_translate << ", " << y_translate << ") ";
-                x_translate /= (ptr.size_cell/2);
-                y_translate /= (ptr.size_cell/2);
-                std::cout << "rel : ";
-                std::cout << "(" << x_translate << ", " << y_translate << ") ";
-                ptr.vue->translate(x_translate, y_translate);                   
+            std::cout << " touchEvent : ";
+            QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+            switch(touchEvent->type())
+            {
+                case QEvent::TouchBegin:
+                    std::cout << "Begin; ";
+                    break;
+                case QEvent::TouchUpdate:
+                    std::cout << "Update; ";
+                    break;
+                case QEvent::TouchEnd:
+                    std::cout << "End; ";
+                    break;
+                default : break;
             }
-            else if (prod < 0) { std::cout << "scale"; }
-            else { std::cout << "ortho"; }
+            std::cout << std::endl;
+            QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+            std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
+            if (touchPoints.count() == 2)
+            {
+                double x_1(touchPoints.first().lastPos().x() - touchPoints.first().startPos().x());
+                double y_1(touchPoints.first().lastPos().y() - touchPoints.first().startPos().y());
+                double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
+                double y_2(touchPoints.last().lastPos().y() - touchPoints.last().startPos().y());
+                double prod(x_1*x_2 + y_1*y_2);
+                if (prod > 0) 
+                { 
+                    std::cout << "translate vector : "; 
+                    double x_translate((x_1 + x_2)/2.0);
+                    double y_translate((y_1 + y_2)/2.0);
+                    std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                    x_translate /= (ptr.size_cell/2);
+                    y_translate /= (ptr.size_cell/2);
+                    std::cout << "rel : ";
+                    std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                    ptr.vue->translate(x_translate, y_translate);                   
+                }
+                else if (prod < 0) { std::cout << "scale"; }
+                else { std::cout << "ortho"; }
+            }
+            std::cout << std::endl;
+            this->update();
         }
-        std::cout << std::endl;
-        this->update();
     } 
     return QMainWindow::event(event);
 }
