@@ -733,7 +733,12 @@ bool MainWindow::event(QEvent* event)
                     std::cout << "(" << x_translate << ", " << y_translate << ") ";
                     ptr.vue->translate(x_translate, y_translate);                   
                 }
-                else if (prod < 0) { std::cout << "scale"; }
+                else if (prod < 0) 
+                { 
+                    std::cout << "scale"; 
+                    double norm(sqrt(pow(x_1, 2) + pow(y_1, 2)) + sqrt(pow(x_2, 2) + pow(y_2, 2)));
+                    std::cout << "somme normes : " << norm; 
+                }
                 else { std::cout << "ortho"; }
             }
             std::cout << std::endl;
