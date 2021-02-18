@@ -19,6 +19,7 @@ target_link_libraries(test_save_motif LINK_PUBLIC simulation)
 
 add_executable(unittest unittest.cpp)
 target_link_libraries(unittest LINK_PUBLIC simulation)
+add_test(unit unittest)
 
 add_executable(test_rotation test_rotation.cpp)
 target_link_libraries(test_rotation LINK_PUBLIC simulation)

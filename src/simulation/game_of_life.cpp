@@ -645,7 +645,7 @@ GameOfLifeView& GameOfLifeView::translate(int const& l, int const& c) {
 		}
 	} else {
 		#ifdef OVERFLOW_WARNINGS
-		std::cerr << "[GameOfLifeView::translate(" << l << "," << c << ") n'a rien fait car bords dépassent la grille]";
+		std::cerr << termcolor::yellow << "[GameOfLifeView::translate(" << l << "," << c << ") n'a rien fait car bords dépassent la grille]" << termcolor::reset;
 		#endif
 	}
 	return *this;

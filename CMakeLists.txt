@@ -54,6 +54,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_definitions(WRONG_DIMENSIONS_WARNINGS)
 endif()
 
+include(CTest)
+enable_testing()
 
 # Verbose for extra compile information
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
