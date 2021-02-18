@@ -25,7 +25,6 @@
 struct Vue
 {
     GameOfLifeView* vue;
-    int lmin, lmax, cmin, cmax;
     unsigned int size_cell, px_x, px_y;
     size_t nb_l_prec, nb_c_prec;
 };
