@@ -219,9 +219,15 @@ void MainWindow::creer()
     QPushButton* copy = new QPushButton("copier", this);
     buttons["copier"] = copy;
     connect(copy, SIGNAL (clicked()), this, SLOT (charger_calque_s()));
-    copy->move(170, 40);
+    copy->move(170, 35);
     copy->resize(90, 25);
-    copy->show();    
+    copy->show();
+    QPushButton* wipe = new QPushButton("vider", this);       
+    buttons["wipe"] = wipe;
+    connect(wipe, SIGNAL (clicked()), this, SLOT (wipe_s()));
+    wipe->move(170, 65);
+    wipe->resize(90, 25);
+    wipe->show();        
 
     this->setFocus();
 }
@@ -1073,6 +1079,13 @@ void MainWindow::save_game_s()
 void MainWindow::reload_calques_s()
 {
     charger_calques();
+}
+
+void MainWindow::wipe_s()
+{
+    ptr.vue->GameOfLifeView::wipe();
+    ptr.vue->GameOfLife::wipe();
+    this->update();
 }
 
 MainWindow::~MainWindow()

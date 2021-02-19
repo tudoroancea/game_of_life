@@ -103,6 +103,7 @@ public slots:
     void save_game_s();
     void reload_calques_s();
     void charger_calque_s() {charger_calque();}
+    void wipe_s();
 
 
 private:
@@ -193,6 +194,6 @@ implémenter resize event
 [ ]     switch add/suppr vs selectionner
 [ ]         add/suppr : ajouter supprimer
 [X]         selec : copier coller
-[ ] update liste motifs automatique
-[ ] bouton pour reset (gameOfLife::wipe)
+[X] update liste motifs automatique
+[X] bouton pour reset (gameOfLife::wipe)
 */
