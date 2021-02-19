@@ -27,6 +27,7 @@ Combobox::Combobox(QWidget* parent) : QComboBox(parent)
 
 void Combobox::showPopup()
 {
+    emit clicked();
     emit focus(true);
     QComboBox::showPopup();
 }
@@ -177,11 +178,12 @@ void MainWindow::creer()
     calques->addItem("--select--");
     charger_calques();
     calques->move(10, 30);
-    calques->resize(115, 25);
+    calques->resize(140, 25);
     calques->show();
     connect(calques, SIGNAL(time_e(int)), this, SLOT(combo_time(int)));
     connect(calques, SIGNAL(focus(bool)), this, SLOT(focus_frame(bool)));
     connect(calques, SIGNAL(currentTextChanged(const QString&)), this, SLOT(item_changed_s(const QString&)));
+    connect(calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
     detail_selectionne = new Frame();
     detail_selectionne->resize(50, 50);
     detail_selectionne->move(400, 400);
@@ -195,11 +197,11 @@ void MainWindow::creer()
     calque_mod->move(60, 60);
     calque_mod->resize(90, 25);
     calque_mod->show();
-    reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
-    connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
-    reload_calques->resize(25, 25);
-    reload_calques->move(125, 30);
-    reload_calques->show();
+    //reload_calques = new QPushButton(QString::fromWCharArray(L"\x27f3"), this);
+    //connect(reload_calques, SIGNAL(clicked()), this, SLOT(reload_calques_s()));
+    //reload_calques->resize(25, 25);
+    //reload_calques->move(125, 30);
+    //reload_calques->show();
     calque.alive = Motif({{0,0}, {1,0}, {2, 0}});
     calque.alive.translate(calque.alive.max_ligne(), calque.alive.max_colonne());
     calque.alive.translate(calque.alive.max_colonne(), calque.alive.max_ligne());
@@ -742,7 +744,7 @@ bool MainWindow::event(QEvent* event)
         event->type() == QEvent::TouchEnd)
     {
         buffer_trackpad++;
-        if (buffer_trackpad >= 20)
+        if (buffer_trackpad >= 10)
         {
             buffer_trackpad = 0;
             std::cout << " touchEvent : ";
@@ -776,8 +778,8 @@ bool MainWindow::event(QEvent* event)
                     double x_translate((x_1 + x_2)/2.0);
                     double y_translate((y_1 + y_2)/2.0);
                     std::cout << "(" << x_translate << ", " << y_translate << ") ";
-                    x_translate /= (ptr.size_cell/2);
-                    y_translate /= (ptr.size_cell/2);
+                    x_translate /= (ptr.size_cell);
+                    y_translate /= (ptr.size_cell);
                     std::cout << "rel : ";
                     std::cout << "(" << x_translate << ", " << y_translate << ") ";
                     ptr.vue->translate(x_translate, y_translate);                   
@@ -1043,6 +1045,7 @@ void MainWindow::combo_time(int i)
 
 void MainWindow::focus_frame(bool b)
 {
+    //charger_calques();
     if (b) {calques->setCurrentText("--select--");}
     frame_on = b;
     if (calque.on_off) {buttons["calque_mod"]->setDown(true);}

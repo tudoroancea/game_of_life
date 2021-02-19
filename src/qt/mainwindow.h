@@ -44,6 +44,7 @@ public slots:
 signals:
     void time_e(int i = 1);
     void focus(bool);
+    void clicked();
 };
 
 class Frame : public QFrame
@@ -191,7 +192,7 @@ implémenter resize event
 [ ] bouton pour mode sélectionner avec cadre qui disparait pas
 [ ]     switch add/suppr vs selectionner
 [ ]         add/suppr : ajouter supprimer
-[ ]         selec : copier coller
+[X]         selec : copier coller
 [ ] update liste motifs automatique
 [ ] bouton pour reset (gameOfLife::wipe)
 */
