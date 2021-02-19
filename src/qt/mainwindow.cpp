@@ -324,10 +324,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
         if (ctrl_on)
         {
             int min_x, max_x, min_y, max_y;
-            if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
-            else {max_x = x_first; min_x = x_end;}
-            if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
-            else {max_y = y_first; min_y = y_end;}
+            if (x_end >= x_first) {min_x = std::max(x_first, 0); max_x = std::min(x_end, int(nb_lines-1));}
+            else {max_x = std::min(x_first, int(nb_lines-1)); min_x = std::max(x_end, 0);}
+            if (y_end >= y_first) {min_y = std::max(y_first, 0); max_y = std::min(y_end, int(nb_col-1));}
+            else {max_y = std::min(y_first, int(nb_col-1)); min_y = std::max(y_end, 0);}
             if (min_x >= 0 && size_t(max_x) < nb_lines && min_y >= 0 && size_t(max_y) < nb_col)
             {
                 for (size_t a(min_x); a<=size_t(max_x) && max_x >=0; a++)
@@ -472,17 +472,9 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
                 else if (state_select == 3)
                 {
                     x_first -= (x_prec_select - x_current);
-                    if (x_first <= 0) {x_first = 0;}
-                    if (size_t(x_first) >= nb_lines) {x_first = nb_lines-1;}
-                    x_end -= (x_prec_select - x_current);
-                    if (x_end <= 0) {x_end = 0;}
-                    if (size_t(x_end) >= nb_lines) {x_end = nb_lines-1;}                    
-                    y_first -= (y_prec_select - y_current);
-                    if (y_first <= 0) {y_first = 0;}
-                    if (size_t(y_first) >= nb_col) {y_first = nb_col-1;}                     
-                    y_end -= (y_prec_select - y_current);
-                    if (y_end <= 0) {y_end = 0;}
-                    if (size_t(y_end) >= nb_col) {y_end = nb_col-1;}                     
+                    x_end -= (x_prec_select - x_current);                  
+                    y_first -= (y_prec_select - y_current);                    
+                    y_end -= (y_prec_select - y_current);                    
                     x_prec_select = x_current;
                     y_prec_select = y_current;
                 }
@@ -937,10 +929,10 @@ void MainWindow::charger_calque()
     if (x_first != x_end || y_first != y_end)
     {
         int min_x, max_x, min_y, max_y;
-        if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
-        else {max_x = x_first; min_x = x_end;}
-        if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
-        else {max_y = y_first; min_y = y_end;}
+            if (x_end >= x_first) {min_x = std::max(x_first, 0); max_x = std::min(x_end, int(nb_lines-1));}
+            else {max_x = std::min(x_first, int(nb_lines-1)); min_x = std::max(x_end, 0);}
+            if (y_end >= y_first) {min_y = std::max(y_first, 0); max_y = std::min(y_end, int(nb_col-1));}
+            else {max_y = std::min(y_first, int(nb_col-1)); min_y = std::max(y_end, 0);}
         if (min_x >= 0 && max_x < int(nb_lines) && min_y >= 0 && max_y < int(nb_col))
         {
             Calque temp;
