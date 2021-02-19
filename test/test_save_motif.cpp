@@ -12,7 +12,7 @@ int main() {
     GameOfLifeView G(0,30,0,30);
     G.add_motif(M);
     G.print();
-    G.save_motif("lievres", local);
+	G.save_motif("lievres", local, false);
 
     std::cout << std::endl;
 
