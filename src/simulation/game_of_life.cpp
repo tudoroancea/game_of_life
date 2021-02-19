@@ -221,66 +221,71 @@ void GameOfLife::evolve() {
 
 
 // Enregistrement de motifs et simulations ========================================================================================
-bool GameOfLife::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
+bool GameOfLife::save_motif(std::string const& nom_motif, const FILE_CATEGORY& categorie, bool ecraser) const {
+//	On vérifie dans quel dossier on doit enregistrer le motif
 	std::filesystem::path chemin;
 	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs");
 	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs");
-	if (std::filesystem::exists(chemin)) {
-		chemin /= (nom_motif+".csv");
-		if (!std::filesystem::exists(chemin)) {
-			std::ofstream out(chemin);
-			out.close();
-			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
-			for (size_t cell(0); cell < vivantes.size(); ++cell) {
-				file.SetCell<size_t>(2*cell, 0, X(vivantes[cell])-50);
-				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes[cell])-50);
-			}
-			file.Save();
-			return true;
-		} else {
-			std::cerr << termcolor::cyan << "GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
-			return false;
-		}
-	} else {
+//	On vérifie que le dossier des motifs existe bien
+	if (!std::filesystem::exists(chemin)) {
 		#ifdef NON_EXISTING_PATH_WARNINGS
 			std::cerr << termcolor::red << "[GameOfLife::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
-			if (categorie == presaved) std::cerr << "presaved";
-			else std::cerr << "local";
+			std::cerr << (categorie == presaved ? "presaved" : "local");
 			std::cerr << "/motifs n'existe pas]" << termcolor::reset;
 		#endif
 		return false;
 	}
+	chemin /= (nom_motif+".csv");
+//	On vérifie qu'on a le droit d'écrire le motif (soit en en créant un nouveau, soit en écrasant l'existant)
+	if (!std::filesystem::exists(chemin) || ecraser) {
+//		On crée le fichier .csv
+		std::ofstream out(chemin);
+		out.close();
+//		On l'ouvre avec Rapidcsv pour pouvoir le traiter comme un tableau
+		rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+		for (size_t cell(0); cell < vivantes.size(); ++cell) {
+			file.SetCell<size_t>(2*cell, 0, X(vivantes[cell])-50);
+			file.SetCell<size_t>(2*cell+1, 0, Y(vivantes[cell])-50);
+		}
+		file.Save();
+		return true;
+	} else {
+		std::cerr << termcolor::cyan << "[GameOfLife::save_motif(" << nom_motif << "," << categorie << "," << std::boolalpha << ecraser << ") a renvoyé false car la simulation existait déjà où on avait pas le droit de l'écraser]" << termcolor::reset;
+		return false;
+	}
 }
-bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie) {
-	// On verifie dans quel dossier on doit enregistrer la simulation
+bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, const FILE_CATEGORY& categorie, bool ecraser) {
+	// On vérifie dans quel dossier on doit enregistrer la simulation
 	std::filesystem::path chemin;
 	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/sims");
     else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/sims");
-	#ifdef NON_EXISTING_PATH_WARNINGS
+//    On vérifie que le dossier sims existe bien
 	if (!std::filesystem::exists(chemin)) {
-			std::cerr << termcolor::red << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car " DATA_PATH;
-			if (categorie == presaved) std::cerr << "/presaved/sims n'existe pas]";
-			else std::cerr << "/local/sims n'existe pas]";
-			std::cerr << termcolor::reset;
+		#ifdef NON_EXISTING_PATH_WARNINGS
+			std::cerr << termcolor::red << "[GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
+			std::cerr << (categorie == presaved ? "presaved" : "local");
+			std::cerr << "/sims n'existe pas]" << termcolor::reset;
+		#endif
 		return false;
 	}
-	#endif
-	// On verifie si une simulation du même nom existe déjà, et si ce n'est pas le cas on crée la simulation
+	//	On vérifie qu'on a le droit d'écrire la simulation (soit en en créant une nouvelle, soit en écrasant l'existante)
 	chemin /= ("sim-"+nom_simulation+".csv");
-	if (!std::filesystem::exists(chemin)) {
+	if (!std::filesystem::exists(chemin) || (std::filesystem::exists(chemin) && ecraser)) {
+//		On crée le fichier .csv
 		std::ofstream file(chemin);
 		file.close();
+//		On l'ouvre avec Rapidcsv pour le traiter comme un tableau
 		rapidcsv::Document res(chemin.string(), rapidcsv::LabelParams(-1,0));
-
+//      On indique les dimensions de la simulation,
 		res.SetCell<unsigned int>(0,0,MAX_LIGNES);
 		res.SetCell<unsigned int>(1,0,MAX_COLONNES);
 		res.SetRowName(0,"dimensions (lignes x colonnes)");
 		res.Save();
-
+//      On indique la durée de la simulation (nombre de générations)
 		res.SetCell<int>(0,1,duree_sim);
 		res.SetRowName(1,"nombre de générations");
 		res.Save();
-
+//		On enregistre les différentes générations.
 		size_t gen(0);
 		do {
 			// On ajoute les cellules vivantes à la génétation i
@@ -296,7 +301,7 @@ bool GameOfLife::save_sim(std::string const& nom_simulation, unsigned int const&
 		} while (gen <= duree_sim);
 		return true;
 	} else {
-		std::cerr << termcolor::cyan << "GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car une sim du même nom existait déjà]" << termcolor::reset;
+		std::cerr << termcolor::cyan << "GameOfLife::save_sim(" << nom_simulation << "," << duree_sim << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " (la simulation n'a pas été enregistrée) ]" << termcolor::reset;
 		return false;
 	}
 }
@@ -448,33 +453,38 @@ GameOfLifeView::GameOfLifeView(unsigned int const& lmin, unsigned int const& lma
 	Cmax(cmin%(MAX_COLONNES+1) < cmax%(MAX_COLONNES+1) ? cmax%(MAX_COLONNES+1) : cmin%(MAX_COLONNES+1))
 {}
 
-bool GameOfLifeView::save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie) const {
-	std::filesystem::path chemin;
-	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs");
-	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs");
-	if (std::filesystem::exists(chemin)) {
-		chemin /= (nom_motif+".csv");
-		if (!std::filesystem::exists(chemin)) {
-			std::ofstream out(chemin);
-			out.close();
-			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
-			for (size_t cell(0); cell < vivantes_visibles.size(); ++cell) {
-				file.SetCell<size_t>(2*cell, 0, X(vivantes_visibles[cell])-Lmin-50);
-				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes_visibles[cell])-Cmin-50);
+bool GameOfLifeView::save_motif(std::string const& nom_motif, const FILE_CATEGORY& categorie, bool ecraser) const {
+	if (ecraser) {
+		std::filesystem::path chemin;
+		if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs");
+		else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs");
+		if (std::filesystem::exists(chemin)) {
+			chemin /= (nom_motif+".csv");
+			if (!std::filesystem::exists(chemin)) {
+				std::ofstream out(chemin);
+				out.close();
+				rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+				for (size_t cell(0); cell < vivantes_visibles.size(); ++cell) {
+					file.SetCell<size_t>(2*cell, 0, X(vivantes_visibles[cell])-Lmin-50);
+					file.SetCell<size_t>(2*cell+1, 0, Y(vivantes_visibles[cell])-Cmin-50);
+				}
+				file.Save();
+				return true;
+			} else {
+				std::cerr << termcolor::cyan << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
+				return false;
 			}
-			file.Save();
-			return true;
 		} else {
-			std::cerr << termcolor::cyan << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
+			#ifdef NON_EXISTING_PATH_WARNINGS
+				std::cerr << termcolor::red << "[GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
+				if (categorie == presaved) std::cerr << "presaved";
+				else std::cerr << "local";
+				std::cerr << "/motifs n'existe pas]" << termcolor::reset;
+			#endif
 			return false;
 		}
 	} else {
-		#ifdef NON_EXISTING_PATH_WARNINGS
-			std::cerr << termcolor::red << "[GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::red << " car /" DATA_PATH;
-			if (categorie == presaved) std::cerr << "presaved";
-			else std::cerr << "local";
-			std::cerr << "/motifs n'existe pas]" << termcolor::reset;
-		#endif
+		std::cerr << termcolor::cyan << "GameOfLifeView::save_motif(" << nom_motif << "," << categorie << ") a renvoyé " << termcolor::bold << "FALSE" << termcolor::reset << termcolor::cyan << " car un motif du même nom existait déjà]" << termcolor::reset;
 		return false;
 	}
 }

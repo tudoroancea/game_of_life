@@ -170,7 +170,7 @@ public :
      *  @param  categorie La catégorie dans lequel le fichier sera enregistré.
      *  @return true si on a réussi à enregistrer le motif, false sinon
      */
-    bool save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
+    [[nodiscard]] bool save_motif(std::string const& nom_motif, const FILE_CATEGORY& categorie = local, bool ecraser = true) const;
     /**
      *  @brief  Fait appel à la methode evolve() et calcule une simulation sur un nombre pré-défini de generations, et l'enregistre en .csv. Si une simulation du même nom existe déjà ne fait rien.
      *  Voir le fichier convention.md pour la structure de ces fichiers.
@@ -179,7 +179,7 @@ public :
      *  @param  FILE_CAT   La catégorie dans lequel le fichier sera enregistré.
      *  @returns    true si la simulation a pu être créée, false sinon
      */
-    bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, FILE_CATEGORY const& categorie = local);
+    bool save_sim(std::string const& nom_simulation, unsigned int const& duree_sim, const FILE_CATEGORY& categorie = local, bool ecraser = true);
 
     // Affichage ========================================
     /**
@@ -303,7 +303,7 @@ class GameOfLifeView : public GameOfLife {
          *  @param  categorie La catégorie dans lequel le fichier sera enregistré.
          *  @return true si on a réussi à enregistrer le motif, false sinon
          */
-        bool save_motif(std::string const& nom_motif, FILE_CATEGORY const& categorie = local) const;
+        [[nodiscard]] bool save_motif(std::string const& nom_motif, const FILE_CATEGORY& categorie = local, bool ecraser = true) const;
         // Setters du jeu =======================================================================
         /**
          *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
