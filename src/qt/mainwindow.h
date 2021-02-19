@@ -95,11 +95,13 @@ public slots:
     void lancer_s();
     void pause_s();
     void calque_switch_s();
+    void ctrl_switch_s();
     void combo_time(int);
     void focus_frame(bool);
     void item_changed_s(const QString&);
     void save_game_s();
     void reload_calques_s();
+    void charger_calque_s() {charger_calque();}
 
 
 private:
@@ -133,6 +135,8 @@ private:
     int y_current;
     int x_prec;
     int y_prec;
+    int x_prec_select;
+    int y_prec_select;
     int x_first;
     int y_first;
     int x_end;
@@ -151,6 +155,9 @@ private:
     bool info_on;
     int delta_pix_prec;
     unsigned int buffer_trackpad;
+
+    unsigned int state_select;
+    // 0 au début; 1 à l'activation; 2 au premier clic; 3 au release
 };
 
 #endif // MAINWINDOW_H
@@ -178,9 +185,9 @@ Etape 2 :
 implémenter resize event
 */
 /*
-[?] zoom
+[X] zoom
 [X] centre souris zoom
-[ ] trackpad (si possible)
+[-] trackpad (si possible)
 [ ] bouton pour mode sélectionner avec cadre qui disparait pas
 [ ]     switch add/suppr vs selectionner
 [ ]         add/suppr : ajouter supprimer

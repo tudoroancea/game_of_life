@@ -82,9 +82,10 @@ MainWindow::MainWindow(QWidget *parent)
       calques(nullptr), reload_calques(nullptr),
       pause(nullptr),
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
-      nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_first(-1), y_first(-1),
+      nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_prec_select(-1), y_prec_select(-1),
+      x_first(-1), y_first(-1),
       x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
-      frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0)
+      frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0), state_select(0)
 {
     this->setAttribute(Qt::WA_AcceptTouchEvents);    
     std::filesystem::current_path(std::filesystem::path(std::string(QT_PATH)));
@@ -207,6 +208,18 @@ void MainWindow::creer()
     labels["eps"] = eps;
     eps->move(290, 15);
     eps->hide();
+    QPushButton* ctrl_mod = new QPushButton("select", this);
+    buttons["ctrl_mod"] = ctrl_mod;
+    connect(ctrl_mod, SIGNAL (clicked()), this, SLOT (ctrl_switch_s()));
+    ctrl_mod->move(170, 5);
+    ctrl_mod->resize(90, 25);
+    ctrl_mod->show();
+    QPushButton* copy = new QPushButton("copier", this);
+    buttons["copier"] = copy;
+    connect(copy, SIGNAL (clicked()), this, SLOT (charger_calque_s()));
+    copy->move(170, 40);
+    copy->resize(90, 25);
+    copy->show();    
 
     this->setFocus();
 }
@@ -245,6 +258,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
     if (state == 1)
     {
         Q_UNUSED(event);
+        paint->drawLine(160, 5, 160, 85);
         QRect rect1(10, 90, ptr.px_x, ptr.px_y);
         paint->fillRect(rect1, Qt::black);
         bool ok_x(false);
@@ -310,17 +324,17 @@ void MainWindow::paintEvent(QPaintEvent *event)
         if (ctrl_on)
         {
             int min_x, max_x, min_y, max_y;
-            if (x_current >= x_first) {min_x = x_first; max_x = x_current;}
-            else {max_x = x_first; min_x = x_current;}
-            if (y_current >= y_first) {min_y = y_first; max_y = y_current;}
-            else {max_y = y_first; min_y = y_current;}
+            if (x_end >= x_first) {min_x = x_first; max_x = x_end;}
+            else {max_x = x_first; min_x = x_end;}
+            if (y_end >= y_first) {min_y = y_first; max_y = y_end;}
+            else {max_y = y_first; min_y = y_end;}
             if (min_x >= 0 && size_t(max_x) < nb_lines && min_y >= 0 && size_t(max_y) < nb_col)
             {
                 for (size_t a(min_x); a<=size_t(max_x) && max_x >=0; a++)
                 {
                     for (size_t b(min_y); b<=size_t(max_y) && max_y >= 0; b++)
                     {
-                        QRect rect(a*ptr.size_cell + 10, b*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
+                        QRect rect(a*ptr.size_cell + 10 + d_x, b*ptr.size_cell + 90 + d_y, ptr.size_cell, ptr.size_cell);
                         paint->fillRect(rect, QColor(0,0,100,180));
                     }
                 }
@@ -335,7 +349,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                     a.first + x_current - calque.translate.first < nb_lines       &&
                     a.second + y_current - calque.translate.second < nb_col)
                 {
-                    QRect rect((a.first + x_current - calque.translate.first)*ptr.size_cell + 10, (a.second + y_current - calque.translate.second)*ptr.size_cell + 90, ptr.size_cell, ptr.size_cell);
+                    QRect rect((a.first + x_current - calque.translate.first)*ptr.size_cell + 10 + d_x, (a.second + y_current - calque.translate.second)*ptr.size_cell + 90 + d_y, ptr.size_cell, ptr.size_cell);
                     paint->fillRect(rect, QColor(128,128,128,180));
                     pos_souris->setText(QString::number(calque.translate.first) + " " + QString::number(calque.translate.second));
                 }
@@ -385,6 +399,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 this->update();
             }
         }
+        else if (ctrl_on && state_select < 3)
+        {
+            x_first = x_current;
+            y_first = y_current;
+            state_select = 2;
+        }
     }
     else if (event->button() == Qt::RightButton && state == 1)
     {
@@ -400,10 +420,21 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent* event)
-{
+{ 
     if (state == 1 && event->button() == Qt::RightButton)
-    {
+    {    
         ptr.vue->translate(x_prec - x_current, y_prec - y_current);
+    }
+    else if (state != 0 && ctrl_on && event->button() == Qt::LeftButton)
+    {
+        if (state_select == 2)
+        {
+            x_end = x_current;
+            y_end = y_current;
+            state_select = 3;
+            x_prec_select = x_current;
+            y_prec_select = y_current;    
+        }
     }
 }
 
@@ -412,6 +443,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     if (nb_lines >= 1 && event->buttons() != Qt::RightButton)
     {
         if (!(event->modifiers() == Qt::ControlModifier)) {ctrl_on = false;}
+        if (state != 0) { if (buttons["ctrl_mod"]->isDown()) {ctrl_on = true;}}
         if (mouse_in(event))
         {
             x_prec = x_current;
@@ -430,6 +462,30 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
                     }
                 }
                 //ptr.vue->inv_cell({x_current, y_current});
+            }
+            if (ctrl_on && event->buttons() == Qt::LeftButton)
+            {
+                if (state_select < 3)
+                {
+                    x_end = x_current; y_end = y_current;
+                }
+                else if (state_select == 3)
+                {
+                    x_first -= (x_prec_select - x_current);
+                    if (x_first <= 0) {x_first = 0;}
+                    if (size_t(x_first) >= nb_lines) {x_first = nb_lines-1;}
+                    x_end -= (x_prec_select - x_current);
+                    if (x_end <= 0) {x_end = 0;}
+                    if (size_t(x_end) >= nb_lines) {x_end = nb_lines-1;}                    
+                    y_first -= (y_prec_select - y_current);
+                    if (y_first <= 0) {y_first = 0;}
+                    if (size_t(y_first) >= nb_col) {y_first = nb_col-1;}                     
+                    y_end -= (y_prec_select - y_current);
+                    if (y_end <= 0) {y_end = 0;}
+                    if (size_t(y_end) >= nb_col) {y_end = nb_col-1;}                     
+                    x_prec_select = x_current;
+                    y_prec_select = y_current;
+                }
             }
         }
         else {x_current = -1; y_current = -1;}
@@ -696,6 +752,7 @@ bool MainWindow::event(QEvent* event)
         buffer_trackpad++;
         if (buffer_trackpad >= 20)
         {
+            buffer_trackpad = 0;
             std::cout << " touchEvent : ";
             QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
             switch(touchEvent->type())
@@ -767,11 +824,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->modifiers() == Qt::ControlModifier)
     {
         ctrl_on = true;
-        if (ctrl_on)
-        {
-            x_first = x_current;
-            y_first = y_current;
-        }
+        state_select = 1;
+        x_first = -1;
+        x_end = -1;
+        y_first = -1;
+        y_end = -1;
     }
     if (event->key() == Qt::Key_C) {this->charger_calque();}
     if (event->key() == Qt::Key_R && calque.on_off)
@@ -877,7 +934,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
 void MainWindow::charger_calque()
 {
-    x_end = x_current; y_end = y_current;
     if (x_first != x_end || y_first != y_end)
     {
         int min_x, max_x, min_y, max_y;
@@ -955,6 +1011,21 @@ void MainWindow::calque_switch_s()
     }
     else {buttons["calque_mod"]->setDown(true);}
     calque.on_off = 1 - calque.on_off;
+}
+
+void MainWindow::ctrl_switch_s()
+{
+    if (ctrl_on)
+    {
+        buttons["ctrl_mod"]->setDown(false);
+        state_select = 0;
+        x_first = -1;
+        x_end = -1;
+        y_first = -1;
+        y_end = -1;
+    }
+    else {buttons["ctrl_mod"]->setDown(true); state_select = 1;}
+    ctrl_on = 1 - ctrl_on;
 }
 
 void MainWindow::combo_time(int i)
