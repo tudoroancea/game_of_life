@@ -12,7 +12,7 @@ _deps
 build
 .vscode
 .idea
-cmake-build-debug
+cmake-build-*
 *.cbp
 
 test/googletest

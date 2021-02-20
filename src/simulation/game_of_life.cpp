@@ -5,14 +5,11 @@
 
 #include <queue>
 #include <string>
-#include <fstream>
 #include <vector>
 #include <unordered_map>
-#include <map>
 #include <array>
 #include <functional>
-#include <algorithm> //
-#include <typeinfo> // for typeid
+#include <algorithm>
 #include <filesystem> // pour trouver les simulations existantes
 #include <chrono>
 
@@ -78,23 +75,15 @@ GameOfLife& GameOfLife::add_cell(size_t const& i, size_t const& j) {
 }
 GameOfLife& GameOfLife::add_cell(coord const& c) {return add_cell(c.first, c.second);}
 GameOfLife& GameOfLife::suppr_cell(size_t const& i, size_t const& j) {
-	#ifdef OVERFLOW_WARNINGS
-	if (i < MAX_LIGNES && j < MAX_COLONNES) {
-		if (access(i+50, j+50)) {
-			grille[i+50][j+50] = false;
-			liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes.begin(),	vivantes.end(), {i+50,j+50}));
-			if (a_effacer != vivantes.end()) vivantes.erase(a_effacer);
-		}
-	} else {
-		std::cerr << termcolor::yellow << "[GameOfLife::suppr_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
-	}
-	#else
 	if (access(i+50, j+50)) {
 		grille[i+50][j+50] = false;
 		liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes.begin(),	vivantes.end(), {i+50,j+50}));
 		if (a_effacer != vivantes.end()) vivantes.erase(a_effacer);
+	} else {
+		#ifdef OVERFLOW_WARNINGS
+		std::cerr << termcolor::yellow << "[GameOfLife::suppr_cell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
+		#endif
 	}
-	#endif
 	return *this;
 }
 GameOfLife& GameOfLife::suppr_cell(coord const& c) {return suppr_cell(c.first, c.second);}
@@ -516,7 +505,7 @@ GameOfLifeView& GameOfLifeView::suppr_cell(size_t const& i, size_t const& j) {
 		if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
 		grille[i+Lmin+50][j+Cmin+50] = false;
 	} else {
-		if (access(i+Lmin+50, j+Cmin+50)) {
+		if (!access(i+Lmin+50, j+Cmin+50)) {
 			#ifdef ALREADY_MODIFIED_WARNINGS
 			std::cerr << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car cell déjà morte]";
 			#endif
