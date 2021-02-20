@@ -27,6 +27,7 @@ struct Vue
     GameOfLifeView* vue;
     unsigned int size_cell, px_x, px_y;
     size_t nb_l_prec, nb_c_prec;
+    double taux_zoom;
 };
 
 class Combobox : public QComboBox

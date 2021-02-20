@@ -85,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
       save_game(nullptr), pos_souris(nullptr), detail_selectionne(nullptr), nb_lines(0),
       nb_col(0), x_current(-1), y_current(-1), x_prec(-1), y_prec(-1), x_prec_select(-1), y_prec_select(-1),
       x_first(-1), y_first(-1),
-      x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
+      x_end(-1), y_end(-1), d_x(0), d_y(0), ptr({nullptr, 0, 0, 0, 0, 0, 0}), ctrl_on(false), simul_on(false),
       frame_on(false), info_on(false), delta_pix_prec(0), buffer_trackpad(0), state_select(0)
 {
     this->setAttribute(Qt::WA_AcceptTouchEvents);    
@@ -160,6 +160,7 @@ void MainWindow::creer()
     if (nb_lines == 0) {nb_lines = 1;}
     if (nb_col == 0) {nb_col = 1;}
     ptr.size_cell = 500/nb_lines;
+    ptr.taux_zoom = ptr.size_cell;
     ptr.px_x = 500;
     ptr.px_y = 500;
     ptr.nb_l_prec = nb_lines;
@@ -601,10 +602,10 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
         int x_(ptr.size_cell*x_current);
         int y_(ptr.size_cell*y_current);
-
-        double new_size(ptr.size_cell);
-        if (taux_2 < 0) {new_size /= (1.5*(-taux_2));}
-        else if (taux_2 > 0) {new_size *= (1.5*taux_2);}
+   
+        if (taux_2 < 0) {ptr.taux_zoom /= (1.5*(-taux_2));}
+        else if (taux_2 > 0) {ptr.taux_zoom *= (1.5*taux_2);}
+        double new_size(ptr.taux_zoom);
 
         switch (ptr.px_x < ptr.px_y)
         {
@@ -773,8 +774,12 @@ bool MainWindow::event(QEvent* event)
             std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
             if (touchPoints.count() == 2)
             {
-                double x_1(touchPoints.first().lastPos().x() - touchPoints.first().startPos().x());
-                double y_1(touchPoints.first().lastPos().y() - touchPoints.first().startPos().y());
+                double last_1_x(touchPoints.first().lastPos().x())
+                double start_1_x(touchPoints.first().startPos().x())
+                double last_1_y(touchPoints.first().lastPos().y())
+                double start_1_y(touchPoints.first().startPos().y())
+                double x_1(last_1_x - start_1_x);
+                double y_1(last_1_y - start_1_y);
                 double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
                 double y_2(touchPoints.last().lastPos().y() - touchPoints.last().startPos().y());
                 double prod(x_1*x_2 + y_1*y_2);
@@ -794,7 +799,19 @@ bool MainWindow::event(QEvent* event)
                 { 
                     std::cout << "scale"; 
                     double norm(sqrt(pow(x_1, 2) + pow(y_1, 2)) + sqrt(pow(x_2, 2) + pow(y_2, 2)));
-                    std::cout << "somme normes : " << norm; 
+                    std::cout << " somme normes : " << norm;
+                    int taux;
+                    if ((pow(last_1_x, 2) + pow(last_1_y, 2)) > (pow(start_1_x, 2) + pow(start_1_y, 2)))
+                    {
+                        if (norm < 40 && norm > 10) {taux = -1;}
+                        else if (norm > 40) { taux = -norm/40; }
+                    } 
+                    else
+                    {
+                        if (norm < 40 && norm > 10) {taux = 1;}
+                        else if (norm > 40) { taux = norm/40; }                        
+                    }
+                    std::cout << "taux experimental : " << taux;
                 }
                 else { std::cout << "ortho"; }
             }
