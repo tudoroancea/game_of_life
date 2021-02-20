@@ -774,10 +774,10 @@ bool MainWindow::event(QEvent* event)
             std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
             if (touchPoints.count() == 2)
             {
-                double last_1_x(touchPoints.first().lastPos().x())
-                double start_1_x(touchPoints.first().startPos().x())
-                double last_1_y(touchPoints.first().lastPos().y())
-                double start_1_y(touchPoints.first().startPos().y())
+                double last_1_x(touchPoints.first().lastPos().x());
+                double start_1_x(touchPoints.first().startPos().x());
+                double last_1_y(touchPoints.first().lastPos().y());
+                double start_1_y(touchPoints.first().startPos().y());
                 double x_1(last_1_x - start_1_x);
                 double y_1(last_1_y - start_1_y);
                 double x_2(touchPoints.last().lastPos().x() - touchPoints.last().startPos().x());
