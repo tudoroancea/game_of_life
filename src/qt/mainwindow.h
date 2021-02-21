@@ -28,6 +28,7 @@ struct Vue
     unsigned int size_cell, px_x, px_y;
     size_t nb_l_prec, nb_c_prec;
     double taux_zoom;
+    //double nb_lines_d, nb_col_d;
 };
 
 class Combobox : public QComboBox
@@ -114,6 +115,8 @@ private:
     bool mouse_in(QMouseEvent* event);
 
     QPoint pos_souris_rel(QMouseEvent* event) { return QPoint(((event->x()-10 - d_x)/ptr.size_cell), ((event->y()-90 - d_y)/ptr.size_cell));}
+
+    void zoom(int taux);
 
     std::unordered_map<std::string, QLabel*> labels;
     std::unordered_map<std::string, QPushButton*> buttons;

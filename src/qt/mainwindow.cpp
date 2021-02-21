@@ -508,6 +508,93 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void MainWindow::zoom(int taux)
+{
+    int x_(ptr.size_cell*x_current);
+    int y_(ptr.size_cell*y_current);
+
+    if (taux < 0) {ptr.taux_zoom /= (1.5*(-taux));}
+    else if (taux > 0) {ptr.taux_zoom *= (1.5*taux);}
+    double new_size(ptr.taux_zoom);
+
+    if (ptr.px_x < ptr.px_y)
+    {
+        if (new_size > ptr.px_x) {new_size = ptr.px_x;}
+    }
+    else 
+    {
+        if (new_size > ptr.px_y) {new_size = ptr.px_y;}            
+    }
+
+    if (new_size == 1.5) {new_size = 2.0;}
+
+
+    if (new_size >= 1 && new_size <= ptr.px_x && new_size <= ptr.px_y)
+    {
+        ptr.size_cell = new_size;
+        x_ /= ptr.size_cell;
+        y_ /= ptr.size_cell;        
+        nb_lines = ptr.px_x/ptr.size_cell;
+        nb_col = ptr.px_y/ptr.size_cell;
+        int lmin(ptr.vue->get_Lmin()), 
+            lmax(ptr.vue->get_Lmax()),
+            cmin(ptr.vue->get_Cmin()), 
+            cmax(ptr.vue->get_Cmax());
+        //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
+        if (MAX_LIGNES*ptr.size_cell < ptr.px_x) 
+        {
+            nb_lines = MAX_LIGNES;
+            lmin = 0;
+            lmax = MAX_LIGNES;
+        } else {
+            lmin += x_current - nb_lines/2;
+            lmax = lmin + nb_lines;             
+        }
+        if (MAX_COLONNES*ptr.size_cell < ptr.px_y) 
+        {
+            nb_col = MAX_COLONNES;
+            cmin = 0;
+            cmax = MAX_COLONNES;
+        } else {
+            cmin += y_current - nb_col/2;
+            cmax = cmin + nb_col;              
+        }
+
+        //std::cout << lmax << " , " << lmin << " , " << cmax << " , " << cmin << std::endl;                                
+        if (lmin < 0) {lmax -= lmin; lmin = 0;}
+
+        if (lmax > MAX_LIGNES) 
+        {
+            lmin -= (lmax - MAX_LIGNES);
+            if (lmin < 0) {lmin = 0;}
+            lmax = MAX_LIGNES;
+        }
+
+        if (cmin < 0) {cmax -= cmin; cmin = 0;}
+
+        if (cmax > MAX_COLONNES) 
+        {
+            cmin -= cmax - MAX_COLONNES;
+            if (cmin < 0) {cmin = 0;}
+            cmax = MAX_COLONNES;
+        }
+
+
+        //std::cout << lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
+        //std::cout << ptr.lmax - ptr.lmin << " | " << ptr.cmax -ptr.cmin << std::endl;         
+        ptr.vue->resize(lmin, lmax, cmin, cmax);
+        //std::cout << x_ << " " << y_ << std::endl;
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes();  
+        //std::cout << -(x_ - int(nb_lines)/2) << " " << -(y_ - int(nb_col)/2) << std::endl;            
+        ptr.vue->translate(-(x_ - (nb_lines-1)/2), -(y_ - (nb_col-1)/2));             
+        nb_lines = ptr.vue->nbr_lignes();
+        nb_col = ptr.vue->nbr_colonnes();  
+        //std::cout << nb_lines << " | " << nb_col << std::endl;
+    }    
+
+}
+
 void MainWindow::wheelEvent(QWheelEvent* event)
 {
     //create buffer pour le trackpad
@@ -537,7 +624,6 @@ void MainWindow::wheelEvent(QWheelEvent* event)
     // angleDelta en 8eme de degré
     // 120 = 15°  (24 crans sur une souris standard)
     
-    std::cout << "pas mod 120 normalement : " << delta.y() << std::endl;
     if (delta.y()%120 == 0 && delta.y() != 0)
     {
         //std::cout << "Not null ";
@@ -553,6 +639,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
 
         double taux = 1.0 + (double(mouv/10)/10.0);
         int taux_2 = mouv/10;
+        zoom(taux_2);
         //std::cout << "[ZOOM] taux : " << taux_2 << std::endl;
 
         //std::cout << taux << std::endl;
@@ -600,93 +687,7 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         
         //std::cout << taux_2 << std::endl;
 
-        int x_(ptr.size_cell*x_current);
-        int y_(ptr.size_cell*y_current);
-   
-        if (taux_2 < 0) {ptr.taux_zoom /= (1.5*(-taux_2));}
-        else if (taux_2 > 0) {ptr.taux_zoom *= (1.5*taux_2);}
-        double new_size(ptr.taux_zoom);
-        std::cout << ptr.taux_zoom << std::endl;
-
-        if (ptr.px_x < ptr.px_y)
-        {
-            if (new_size > ptr.px_x) {new_size = ptr.px_x;}
-        }
-        else 
-        {
-            if (new_size > ptr.px_y) {new_size = ptr.px_y;}            
-        }
-
-        if (new_size == 1.5) {new_size = 2.0;}
-
-
-        if (new_size >= 1 && new_size <= ptr.px_x && new_size <= ptr.px_y)
-        {
-            ptr.size_cell = new_size;
-            x_ /= ptr.size_cell;
-            y_ /= ptr.size_cell;        
-            nb_lines = ptr.px_x/ptr.size_cell;
-            nb_col = ptr.px_y/ptr.size_cell;
-            int lmin(ptr.vue->get_Lmin()), 
-                lmax(ptr.vue->get_Lmax()),
-                cmin(ptr.vue->get_Cmin()), 
-                cmax(ptr.vue->get_Cmax());
-            //std::cout << " >> " << nb_lines << " | " << nb_col << std::endl;        
-            if (MAX_LIGNES*ptr.size_cell < ptr.px_x) 
-            {
-                nb_lines = MAX_LIGNES;
-                lmin = 0;
-                lmax = MAX_LIGNES;
-            } else {
-                lmin += x_current - nb_lines/2;
-                lmax = lmin + nb_lines;             
-            }
-            if (MAX_COLONNES*ptr.size_cell < ptr.px_y) 
-            {
-                nb_col = MAX_COLONNES;
-                cmin = 0;
-                cmax = MAX_COLONNES;
-            } else {
-                cmin += y_current - nb_col/2;
-                cmax = cmin + nb_col;              
-            }
-
-
-
-
-            //std::cout << lmax << " , " << lmin << " , " << cmax << " , " << cmin << std::endl;                                
-            if (lmin < 0) {lmax -= lmin; lmin = 0;}
-
-            if (lmax > MAX_LIGNES) 
-            {
-                lmin -= (lmax - MAX_LIGNES);
-                if (lmin < 0) {lmin = 0;}
-                lmax = MAX_LIGNES;
-            }
-
-            if (cmin < 0) {cmax -= cmin; cmin = 0;}
-
-            if (cmax > MAX_COLONNES) 
-            {
-                cmin -= cmax - MAX_COLONNES;
-                if (cmin < 0) {cmin = 0;}
-                cmax = MAX_COLONNES;
-            }
-
-
-            //std::cout << lmax << " | " << ptr.lmin << " | " << ptr.cmax << " | " << ptr.cmin << std::endl; 
-            //std::cout << ptr.lmax - ptr.lmin << " | " << ptr.cmax -ptr.cmin << std::endl;         
-            ptr.vue->resize(lmin, lmax, cmin, cmax);
-            //std::cout << x_ << " " << y_ << std::endl;
-            nb_lines = ptr.vue->nbr_lignes();
-            nb_col = ptr.vue->nbr_colonnes();  
-            //std::cout << -(x_ - int(nb_lines)/2) << " " << -(y_ - int(nb_col)/2) << std::endl;            
-            std::cout << nb_lines << " " << nb_col << std::endl;
-            ptr.vue->translate(-(x_ - (nb_lines-1)/2), -(y_ - (nb_col-1)/2));             
-            nb_lines = ptr.vue->nbr_lignes();
-            nb_col = ptr.vue->nbr_colonnes();  
-            //std::cout << nb_lines << " | " << nb_col << std::endl;
-        }
+        
     
     }
     else 
@@ -813,6 +814,7 @@ bool MainWindow::event(QEvent* event)
                         else if (norm > 40) { taux = norm/40; }                        
                     }
                     std::cout << "taux experimental : " << taux;
+                    if (abs(taux) <= 5) {zoom(taux);}
                 }
                 else { std::cout << "ortho"; }
             }
