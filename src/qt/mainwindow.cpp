@@ -606,17 +606,17 @@ void MainWindow::wheelEvent(QWheelEvent* event)
         if (taux_2 < 0) {ptr.taux_zoom /= (1.5*(-taux_2));}
         else if (taux_2 > 0) {ptr.taux_zoom *= (1.5*taux_2);}
         double new_size(ptr.taux_zoom);
+        std::cout << ptr.taux_zoom << std::endl;
 
-        switch (ptr.px_x < ptr.px_y)
+        if (ptr.px_x < ptr.px_y)
         {
-            case true:
-                if (new_size > ptr.px_x) {new_size = ptr.px_x;}
-                break;
-            case false:
-                if (new_size > ptr.px_y) {new_size = ptr.px_y;}
-                break;
-            default: break;
+            if (new_size > ptr.px_x) {new_size = ptr.px_x;}
         }
+        else 
+        {
+            if (new_size > ptr.px_y) {new_size = ptr.px_y;}            
+        }
+
         if (new_size == 1.5) {new_size = 2.0;}
 
 
@@ -681,7 +681,8 @@ void MainWindow::wheelEvent(QWheelEvent* event)
             nb_lines = ptr.vue->nbr_lignes();
             nb_col = ptr.vue->nbr_colonnes();  
             //std::cout << -(x_ - int(nb_lines)/2) << " " << -(y_ - int(nb_col)/2) << std::endl;            
-            ptr.vue->translate(-(x_ - (nb_lines)/2), -(y_ - (nb_col)/2));             
+            std::cout << nb_lines << " " << nb_col << std::endl;
+            ptr.vue->translate(-(x_ - (nb_lines-1)/2), -(y_ - (nb_col-1)/2));             
             nb_lines = ptr.vue->nbr_lignes();
             nb_col = ptr.vue->nbr_colonnes();  
             //std::cout << nb_lines << " | " << nb_col << std::endl;
