@@ -263,6 +263,8 @@ void MainWindow::creer_s()
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
+    clock_t T2(clock());
+    
     paint->begin(this);
     if (state == 1)
     {
@@ -313,6 +315,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 if (a.first == size_t(x_current) && a.second == size_t(y_current)) {in = true;}
             }
         }
+        double ms2((double(clock() - T2)/CLOCKS_PER_SEC));   
         if (in)
         {
             paint->setPen(Qt::black);
@@ -369,7 +372,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     {
         paint->drawLine(335, 5, 335, 85);
     }
-    paint->end();
+    paint->end();    
+    //std::cout << "temps de rendu 2 : " << ms2 << " sec." << std::endl;         
 }
 
 bool MainWindow::mouse_in(QMouseEvent* event)
@@ -758,6 +762,7 @@ bool MainWindow::event(QEvent* event)
             buffer_trackpad = 0;
             std::cout << " touchEvent : ";
             QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+            /*
             switch(touchEvent->type())
             {
                 case QEvent::TouchBegin:
@@ -772,8 +777,9 @@ bool MainWindow::event(QEvent* event)
                 default : break;
             }
             std::cout << std::endl;
+            */
             QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
-            std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
+            //std::cout << " -> " << "nb doigts : " << touchPoints.count() << " | ";
             if (touchPoints.count() == 2)
             {
                 double last_1_x(touchPoints.first().lastPos().x());
@@ -787,21 +793,21 @@ bool MainWindow::event(QEvent* event)
                 double prod(x_1*x_2 + y_1*y_2);
                 if (prod > 0) 
                 { 
-                    std::cout << "translate vector : "; 
+                    //std::cout << "translate vector : "; 
                     double x_translate((x_1 + x_2)/2.0);
                     double y_translate((y_1 + y_2)/2.0);
-                    std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                    //std::cout << "(" << x_translate << ", " << y_translate << ") ";
                     x_translate /= (ptr.size_cell);
                     y_translate /= (ptr.size_cell);
-                    std::cout << "rel : ";
-                    std::cout << "(" << x_translate << ", " << y_translate << ") ";
+                    //std::cout << "rel : ";
+                    //std::cout << "(" << x_translate << ", " << y_translate << ") ";
                     ptr.vue->translate(x_translate, y_translate);                   
                 }
                 else if (prod < 0) 
                 { 
-                    std::cout << "scale"; 
+                    //std::cout << "scale"; 
                     double norm(sqrt(pow(x_1, 2) + pow(y_1, 2)) + sqrt(pow(x_2, 2) + pow(y_2, 2)));
-                    std::cout << " somme normes : " << norm;
+                    //std::cout << " somme normes : " << norm;
                     int taux;
                     if ((pow(last_1_x, 2) + pow(last_1_y, 2)) > (pow(start_1_x, 2) + pow(start_1_y, 2)))
                     {
@@ -813,12 +819,13 @@ bool MainWindow::event(QEvent* event)
                         if (norm < 40 && norm > 10) {taux = 1;}
                         else if (norm > 40) { taux = norm/40; }                        
                     }
-                    std::cout << "taux experimental : " << taux;
+                    //std::cout << "taux experimental : " << taux;
                     if (abs(taux) <= 5) {zoom(taux);}
                 }
-                else { std::cout << "ortho"; }
+                else { //std::cout << "ortho"; }
+                }
             }
-            std::cout << std::endl;
+            //std::cout << std::endl;
             this->update();
         }
     } 
@@ -831,11 +838,12 @@ void MainWindow::timerEvent(QTimerEvent *event)
     {
         Q_UNUSED(event);
         clock_t T1(clock());
-        ptr.vue->evolve();
+        ptr.vue->evolve();       
         double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
         if (ms < 50) {ms = 50;}
         labels["eps"]->setText(QString::number(1000/ms));
-        this->update();
+
+        this->update();    
     }
 }
 
