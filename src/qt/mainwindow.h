@@ -163,6 +163,7 @@ private:
     unsigned int buffer_trackpad;
 
     unsigned int state_select;
+
     // 0 au début; 1 à l'activation; 2 au premier clic; 3 au release
 };
 
@@ -193,7 +194,7 @@ implémenter resize event
 /*
 [X] zoom
 [X] centre souris zoom
-[-] trackpad (si possible)
+[X] trackpad (si possible)
 [ ] bouton pour mode sélectionner avec cadre qui disparait pas
 [ ]     switch add/suppr vs selectionner
 [ ]         add/suppr : ajouter supprimer
