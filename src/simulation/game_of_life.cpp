@@ -498,7 +498,7 @@ GameOfLifeView& GameOfLifeView::add_cell(size_t const& i, size_t const& j) {
 }
 GameOfLifeView& GameOfLifeView::add_cell(coord const& c) {return add_cell(c.first, c.second);}
 GameOfLifeView& GameOfLifeView::suppr_cell(size_t const& i, size_t const& j) {
-	if (i < Lmax-Lmin && j < Cmax-Cmin && !access(i+Lmin+50, j+Cmin+50)) {
+	if (i < Lmax-Lmin && j < Cmax-Cmin && access(i+Lmin+50, j+Cmin+50)) {
 		liste::iterator a_effacer(std::find<liste::iterator, coord>(vivantes.begin(),	vivantes.end(), {i+Lmin+50,j+Cmin+50}));
 		if (a_effacer != vivantes.end()) vivantes.erase(a_effacer);
 		a_effacer = std::find<liste::iterator, coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j});
