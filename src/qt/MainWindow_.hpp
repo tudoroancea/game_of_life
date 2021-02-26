@@ -2,7 +2,7 @@
 #define MAINWINDOW__H
 
 #include <QMainWindow>
-#include "cell_.h"
+#include "Cell.hpp"
 #include <QLabel>
 #include <vector>
 #include <QLineEdit>
@@ -21,9 +21,9 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <unordered_map>
-#include "game_of_life.h"
-#include "motifs.h"
-#include "mainwindow.h"
+#include "GameOfLife.hpp"
+#include "Motif.hpp"
+#include "MainWindow.hpp"
 
 /*
 struct Vue

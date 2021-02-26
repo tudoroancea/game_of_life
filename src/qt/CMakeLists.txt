@@ -8,9 +8,10 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 
 add_library(qt
-    STATIC
-    mainwindow.h cell_.h mainwindow_.h
-    mainwindow.cpp cell_.cpp mainwindow_.cpp
+			STATIC
+			MainWindow.hpp MainWindow.cpp
+			Cell.hpp Cell.cpp
+			MainWindow_.hpp MainWindow_.cpp
 )
 
 # permet les includes sans prefix

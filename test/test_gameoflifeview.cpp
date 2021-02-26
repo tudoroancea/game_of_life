@@ -1,5 +1,5 @@
 #include <iostream>
-#include "game_of_life.h"
+#include "GameOfLife.hpp"
 using namespace std;
 
 int main() {

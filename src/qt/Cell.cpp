@@ -1,4 +1,4 @@
-#include "cell_.h"
+#include "Cell.hpp"
 #include <Qt>
 
 Qt::GlobalColor Cell_::color() const

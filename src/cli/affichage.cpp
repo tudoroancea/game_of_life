@@ -1,6 +1,6 @@
 #include "affichage.h"
-#include "motifs.h"
-#include "game_of_life.h"
+#include "Motif.hpp"
+#include "GameOfLife.hpp"
 #include "rapidcsv.h"
 
 #include <vector>

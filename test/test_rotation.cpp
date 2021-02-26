@@ -1,6 +1,6 @@
 #include <iostream>
-#include "motifs.h"
-#include "game_of_life.h"
+#include "Motif.hpp"
+#include "GameOfLife.hpp"
 
 int main() {
     GameOfLifeView G;

@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include <thread>
 
-#include "motifs.h"
-#include "game_of_life.h"
+#include "Motif.hpp"
+#include "GameOfLife.hpp"
 
 int main() {
     Motif M;

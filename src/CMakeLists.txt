@@ -19,5 +19,5 @@ add_executable( main
         main.cpp
         qt/resources.qrc
 )
-target_link_libraries(main LINK_PUBLIC qt simulation)
-target_link_libraries(main PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
+#target_link_libraries(main LINK_PUBLIC )
+target_link_libraries(main PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui qt simulation)

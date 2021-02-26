@@ -1,5 +1,5 @@
-#include "game_of_life.h"
-#include "equivalence_table.hpp"
+#include "GameOfLife.hpp"
+#include "EquivalenceTable.hpp"
 
 #include <iostream>
 #include <iomanip>

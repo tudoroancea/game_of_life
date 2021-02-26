@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
-#include "game_of_life.h"
-#include "motifs.h"
+#include "GameOfLife.hpp"
+#include "Motif.hpp"
 #include "rapidcsv.h"
 #include <filesystem>
 #include "affichage.h"

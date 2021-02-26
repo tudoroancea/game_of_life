@@ -1,5 +1,5 @@
-#include "game_of_life.h"
-#include "motifs.h"
+#include "GameOfLife.hpp"
+#include "Motif.hpp"
 #include <iostream>
 #include <chrono>
 #include <fstream>

@@ -1,4 +1,4 @@
-#include "equivalence_table.hpp"
+#include "EquivalenceTable.hpp"
 #include "termcolor.hpp"
 
 #include <chrono>
