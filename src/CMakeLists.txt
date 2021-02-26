@@ -15,9 +15,9 @@ add_subdirectory(cli)
 # Permet les includes sans prefix
 include_directories(simulation qt cli)
 
-add_executable( main
-        main.cpp
-        qt/resources.qrc
+add_executable(main
+			   main.cpp
+			   qt/images.qrc
 )
-#target_link_libraries(main LINK_PUBLIC )
+
 target_link_libraries(main PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui qt simulation)
