@@ -1,0 +1,60 @@
+QMainWindow {
+    background-color: #efefef;
+}
+
+QLabel {
+    color:black;
+}
+
+QPushButton {
+    color: black;
+	background-color: rgb(230, 230, 230);
+	border-style: outset;
+	border-width: 1px;
+	border-radius: 3px;
+	border-color:grey;
+}
+
+QPushButton:pressed {
+	background-color: rgb(210, 210, 210);
+	border-style: inset;
+}
+
+QComboBox {
+    color:black;
+    border: 1px solid gray;
+    border-radius: 3px;
+    padding: 1px 18px 1px 3px;
+    border-style: outset;
+    selection-background-color: rgb(170, 170, 170);
+    selection-color: white;
+}
+
+
+QComboBox:editable {
+    background: white;
+}
+
+QComboBox:!editable, QComboBox::drop-down:editable {
+     background: qlineargradient(x1: 0, stop: 1.0 rgb(230, 230, 230));
+}
+
+/* QComboBox gets the "on" state when the popup is open */
+QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+     background: qlineargradient(x1: 0, stop: 1.0 rgb(210, 210, 210));
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 15px;
+
+    border-left-width: 1px;
+    border-left-color: rgb(150, 150, 150); 
+    border-left-style: solid; /* just a single line */
+    border-top-right-radius: 3px; /* same radius as the QComboBox */
+    border-bottom-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    image: url(3downarrow.png);    
+}

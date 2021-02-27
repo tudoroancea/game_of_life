@@ -11,9 +11,20 @@ CTestTestfile.cmake
 _deps
 build
 .vscode
-# .gitignore
+.idea
+cmake-build-*
+*.cbp
 
+test/googletest
+#data/local/**/*.csv
 .qmake.stash
 *.o
+*.a
 *.user
 *.app
+.DS_Store
+
+test_cli
+main
+*_autogen
+test/test.csv
