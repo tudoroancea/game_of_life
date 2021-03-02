@@ -9,6 +9,7 @@
 #include "termcolor.hpp"
 
 #include <QApplication>
+#include <QObject>
 #include <QGraphicsObject>
 #include <QPainter>
 #include <QPointF>
@@ -16,6 +17,8 @@
 #include <QtWidgets>
 #include <QEvent>
 
+#include <iterator>
+#include <list>
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -25,7 +28,8 @@ using namespace std::literals::chrono_literals;
 MainWindow::MainWindow()
 		: selectedArea(QRect(100,100,100,100)),
 		  newSelectedArea(QRect(100,100,100,100)),
-		  gridLabel(new QLabel("Future Grid", this)),
+		  historic(1,{true,Motif()}),
+		  lastModif(historic.begin()),
 		  scene(new QGraphicsScene(0.0, 0.0, MAX_LIGNES, MAX_COLONNES)),
 		  view(new GraphicsView(scene, this)),
 		  game(new GameOfLifeView)
@@ -33,13 +37,11 @@ MainWindow::MainWindow()
 	createActions();
 	createMenus();
 	createToolBars();
-	gridLabel->resize(200,100);
-	gridLabel->move(this->geometry().center() - gridLabel->geometry().center());
-	gridLabel->hide();
 	
 	this->setWindowTitle("golbis");
 	this->resize(500,500);
-	this->move(QGuiApplication::screens().at(0)->geometry().center() - frameGeometry().center());
+	QList<QScreen*> list(QGuiApplication::screens());
+	this->move(list.front()->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 	this->setCentralWidget(view);
 	this->createFrame();
@@ -56,10 +58,9 @@ MainWindow::MainWindow()
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
 	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::modifyCell);
+//	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::setMousePressed);
 	
 	this->setFocus();
-
-//	timerIdcreateAct = this->startTimer(period);
 }
 
 
@@ -74,51 +75,54 @@ void MainWindow::createActions() {
 	connect(openAct, &QAction::triggered, this, &MainWindow::open);
 	
 	saveMotifAct = new QAction("Save Motif", this);
+	saveMotifAct->setIcon(QIcon(":/images/icons8-save.png"));
 	connect(saveMotifAct, &QAction::triggered, this, &MainWindow::saveMotif);
 	
 	saveSimAct = new QAction("Save Simulation", this);
 	connect(saveSimAct, &QAction::triggered, this, &MainWindow::saveSim);
 	
-	aboutAct = new QAction("About", this);
+	aboutAct = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
 	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
 
 //	Edit Menu ========================================================================================
-	undoAct = new QAction("Undo", this);
+	undoAct = new QAction(QIcon(":/images/icons8-undo.png"),"Undo", this);
 	undoAct->setShortcut(QKeySequence::Undo);
 	connect(undoAct, &QAction::triggered, this, &MainWindow::undo);
 	
-	redoAct = new QAction("Redo", this);
+	redoAct = new QAction(QIcon(":/images/icons8-redo.png"), "Redo", this);
 	redoAct->setShortcut(QKeySequence::Redo);
 	connect(redoAct, &QAction::triggered, this, &MainWindow::redo);
 	
-	copyAct = new QAction("Copy", this);
+	copyAct = new QAction(QIcon(":/images/icons8-copy.png"), "Copy", this);
 	copyAct->setShortcut(QKeySequence::Copy);
 	connect(copyAct, &QAction::triggered, this, &MainWindow::copy);
 	
-	pasteAct = new QAction("Paste", this);
+	pasteAct = new QAction(QIcon(":/images/icons8-paste.png"), "Paste", this);
 	pasteAct->setShortcut(QKeySequence::Paste);
 	connect(pasteAct, &QAction::triggered, this, &MainWindow::paste);
 	
-	cutAct = new QAction("Cut", this);
+	cutAct = new QAction(QIcon(":/images/icons8-cut.png"), "Cut", this);
 	cutAct->setShortcut(QKeySequence::Cut);
 	connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
 	
-	clearAct = new QAction("Clear", this);
+	clearAct = new QAction(QIcon(":/images/icons8-delete.png"), "Clear", this);
 	clearAct->setShortcut(QKeySequence(Qt::Key_K));
 	connect(clearAct, &QAction::triggered, this, &MainWindow::clear);
 	
-	new QAction("Suppr", this);
-
 //	View Menu ========================================================================================
-	zoomInAct = new QAction("Zoom In", this);
+	zoomInAct = new QAction(QIcon(":/images/icons8-zoom_in.png"), "Zoom In", this);
 	zoomInAct->setShortcut(QKeySequence::ZoomIn);
 	connect(zoomInAct, &QAction::triggered, this, &MainWindow::zoomIn);
 	
-	zoomOutAct = new QAction("Zoom Out", this);
+	zoomOutAct = new QAction(QIcon(":/images/icons8-zoom_out.png"),"Zoom Out", this);
 	zoomOutAct->setShortcut(QKeySequence::ZoomOut);
 	connect(zoomOutAct, &QAction::triggered, this, &MainWindow::zoomOut);
 	
-	pauseResumeAct = new QAction("Pause/Resume", this);
+	resetZoomAct = new QAction(QIcon(":/images/icons8-zoom_to_actual_size.png"), "Reset Zoom", this);
+	resetZoomAct->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_0));
+	connect(resetZoomAct, &QAction::triggered, this, &MainWindow::resetZoom);
+	
+	pauseResumeAct = new QAction(QIcon(":/images/icons8-play.png"),"Pause/Resume", this);
 	pauseResumeAct->setShortcut(QKeySequence(Qt::Key_Space));
 	connect(pauseResumeAct, &QAction::triggered, this, &MainWindow::pauseResume);
 	
@@ -130,7 +134,6 @@ void MainWindow::createMenus() {
 	fileMenu->addAction(openAct);
 	fileMenu->addAction(saveMotifAct);
 	fileMenu->addAction(saveSimAct);
-	fileMenu->addAction(aboutAct);
 	
 	editMenu = menuBar()->addMenu("Edit");
 	editMenu->addAction(undoAct);
@@ -141,13 +144,15 @@ void MainWindow::createMenus() {
 	editMenu->addAction(clearAct);
 	
 	viewMenu = menuBar()->addMenu("View");
-	viewMenu->addAction(pauseResumeAct);
+	editMenu->addAction(pauseResumeAct);
 	viewMenu->addAction(zoomInAct);
 	viewMenu->addAction(zoomOutAct);
+
+	helpMenu = menuBar()->addMenu("Help");
+	helpMenu->addAction(aboutAct);
 }
 
 MainWindow::~MainWindow() {
-	delete gridLabel;
 	delete scene;
 	delete game;
 	delete view;
@@ -172,6 +177,7 @@ MainWindow::~MainWindow() {
 	delete fileMenu;
 	delete editMenu;
 	delete viewMenu;
+	delete helpMenu;
 }
 
 void MainWindow::placeholder(const char* str) {
@@ -191,11 +197,33 @@ void MainWindow::saveSim() {
 }
 
 void MainWindow::undo() {
-	placeholder("undo");
+	if (lastModif != historic.end()) {
+		if (lastModif->first) {
+			game->deleteMotif(lastModif->second);
+			++lastModif;
+		} else {
+			game->addMotif(lastModif->second);
+			++lastModif;
+		}
+		this->refreshScene();
+	} else {
+		std::cerr << termcolor::red << "Il n'y a pas de modification plus ancienne enregistrée." << termcolor::reset << std::endl;
+	}
 }
 
 void MainWindow::redo() {
-	placeholder("redo");
+	if (lastModif != historic.begin()) {
+		if (lastModif->first) {
+			game->addMotif(lastModif->second);
+			--lastModif;
+		} else {
+			game->deleteMotif(lastModif->second);
+			--lastModif;
+		}
+		this->refreshScene();
+	} else {
+		std::cerr << termcolor::red << "Il n'y a pas de modification plus récente enregistrée." << termcolor::reset << std::endl;
+	}
 }
 
 void MainWindow::copy() {
@@ -211,13 +239,13 @@ void MainWindow::cut() {
 }
 
 void MainWindow::zoomOut() {
-	view->scaleFactor() /= 2;
+	view->rscaleFactor() /= 2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
 
 void MainWindow::zoomIn() {
-	view->scaleFactor() *= 2;
+	view->rscaleFactor() *= 2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
@@ -233,16 +261,21 @@ void MainWindow::open() {
 
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
+	auto start(std::chrono::high_resolution_clock::now());
 	game->evolve();
 	this->refreshScene();
+	auto stop(std::chrono::high_resolution_clock::now());
+	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << termcolor::reset << " | ";
 }
 
 void MainWindow::pauseResume() {
 	if (timerId != 0) {
 		this->killTimer(timerId);
 		timerId = 0;
+		pauseResumeAct->setIcon(QIcon(":/images/icons8-play.png"));
 	} else {
 		timerId = this->startTimer(period);
+		pauseResumeAct->setIcon(QIcon(":/images/icons8-pause.png"));
 	}
 }
 
@@ -319,18 +352,44 @@ void MainWindow::createToolBars() {
 	mainToolBar->addAction(redoAct);
 	mainToolBar->addAction(zoomInAct);
 	mainToolBar->addAction(zoomOutAct);
+	mainToolBar->addAction(resetZoomAct);
 	
 }
 
-void MainWindow::modifyCell(const size_t& i, const size_t& j) {
+void MainWindow::modifyCell(const size_t& i, const size_t& j, bool mousePressed) {
 	if (game != nullptr) {
 		switch (modifyState_) {
-			case Adding:
+			case Adding: {
 				game->addCell(i,j);
+				if (mousePressed) {
+					historic.push_front({true,Motif({{i, j}} )} );
+					if (historic.size() >= 11) {
+						historic.pop_back();
+					}
+				} else {
+					historic.front().second.push_back({i,j});
+				}
+				if (lastModif != historic.begin()) {
+					historic.erase(historic.begin(), lastModif);
+				}
+//				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
 				break;
-			case Deleting:
+			}
+			case Deleting: {
 				game->deleteCell(i,j);
+				if (mousePressed) {
+					historic.push_front({false,Motif({{i, j}} )} );
+					if (historic.size() >= 11) {
+						historic.pop_back();
+					}
+				} else {
+					historic.front().second.push_back({i,j});
+				}
+				if (lastModif != historic.begin()) {
+					historic.erase(historic.begin(), lastModif);
+				}
 				break;
+			}
 			default:
 				break;
 		}
@@ -343,19 +402,16 @@ void MainWindow::setModifyState(const int& modifyState) {
 		case 1:{
 			this->modifyState_ = Adding;
 			stateBox->setCurrentIndex(1);
-			std::cout << "Adding" << std::endl;
 			break;
 		}
 		case 2:{
 			this->modifyState_ = Deleting;
 			stateBox->setCurrentIndex(2);
-			std::cout << "Deleting" << std::endl;
 			break;
 		}
 		default:{
 			this->modifyState_ = Selecting;
 			stateBox->setCurrentIndex(0);
-			std::cout << "Selecting" << std::endl;
 			break;
 		}
 	}
@@ -373,20 +429,34 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_D:
 			this->setModifyState(Deleting);
 			break;
+		case Qt::Key_L:
+		    break;
+	}
+	if (event->modifiers() & Qt::CTRL) {
+		ctrlPressed = true;
 	}
 }
 
 void MainWindow::mousePressEvent(QMouseEvent* event) {
 	QWidget::mousePressEvent(event);
 }
+void MainWindow::mouseMoveEvent(QMouseEvent* event) {
+	QWidget::mouseMoveEvent(event);
+}
+void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
+	QWidget::mouseReleaseEvent(event);
+}
 
 void MainWindow::wheelEvent(QWheelEvent* event) {
 	QWidget::wheelEvent(event);
-	if (!hasTouchEvent) {
+	if (!hasTouchEvent && ctrlPressed) {
+		std::cerr << termcolor::red << "wheelEvent ";
 		int steps(event->angleDelta().y() / 120);
-		view->scaleFactor() *= pow(2,steps);
+		std::cerr << event->angleDelta().y() << " " << steps << termcolor::reset << std::endl;
+		
+		view->rscaleFactor() *= pow(2, steps);
 		view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
-		view->update();
+//		view->update();
 	}
 }
 
@@ -405,14 +475,32 @@ bool MainWindow::event(QEvent* event) {
 }
 
 void MainWindow::paintEvent(QPaintEvent* event) {
+	auto start(std::chrono::high_resolution_clock::now());
 	QWidget::paintEvent(event);
-//	view->hide();
-	gridLabel->hide();
-	if (modifyState_ == Selecting) {
-		QPainter painter(this);
-		painter.begin(this);
-		painter.fillRect(QRect(100,100,100,100), Qt::blue);
-		painter.end();
-	}
-	
+	auto stop(std::chrono::high_resolution_clock::now());
+	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
 }
+
+void MainWindow::keyReleaseEvent(QKeyEvent* event) {
+	QWidget::keyReleaseEvent(event);
+	if (ctrlPressed && !(event->modifiers() & Qt::CTRL)) {
+		ctrlPressed = false;
+	}
+}
+
+void MainWindow::resetZoom() {
+	view->rscaleFactor() = 1;
+	view->setTransform(QTransform());
+	view->update();
+}
+
+void MainWindow::unsetMousePressed(const size_t& i, const size_t& j) {
+	mousePressed = false;
+}
+
+void MainWindow::setMousePressed() {
+	mousePressed = true;
+}
+
+
+

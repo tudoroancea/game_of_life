@@ -25,7 +25,7 @@ int main() {
     M.append(segment(25,25,38,0));
     M.append(segment(25,25,25,0));
     M.append(segment(25,25,13,0));
-    G.add_motif(M);
+    G.addMotif(M);
     G.print();
     return 0;
 }

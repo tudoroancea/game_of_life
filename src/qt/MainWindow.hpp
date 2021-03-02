@@ -2,8 +2,8 @@
 // Created by Tudor Oancea on 26/02/2021.
 //
 
-#ifndef GOLBIS_MAINWINDOW_HPP
-#define GOLBIS_MAINWINDOW_HPP
+#ifndef GAME_OF_LIFE_MAINWINDOW_HPP
+#define GAME_OF_LIFE_MAINWINDOW_HPP
 
 #include <QMainWindow>
 //#include <QObject>
@@ -14,6 +14,8 @@
 //#include <QActiongroup>
 //#include <QFrame>
 //#include <QWidget>
+#include <unordered_map>
+#include <list>
 
 #include "GraphicsView.hpp"
 #include "GameOfLife.hpp"
@@ -37,24 +39,37 @@ Q_OBJECT
 private:
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
+//	Etat des évenements
 	bool hasTouchEvent = false;
+	bool ctrlPressed = false;
+	bool mousePressed = false;
+//	Mode de modification
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
 	
-	Motif motif;
+//	Zone de séléction
 	QPolygon selectedArea;
 	QRect newSelectedArea;
 	
+//	Historiques
+	Motif addedMotif = Motif();
+	std::list<std::pair<bool,Motif>> historic;
+	std::list<std::pair<bool,Motif>>::iterator lastModif;
+//	Quand on fait undo on ajoute/supprime le motif désigné par lastModif, puis on l'incrémente. Si lastModif == historic.end()-1, on ne fait rien
+//	Quand on fait redo on ajoute/supprime le motif désiné par lastModif, puis on le décremente. SI lastModif == historic.begin(), on ne fait rien
+//  Quand on recommence à modifier, on supprime tous les motifs avant lastModif
 	
-	QLabel* gridLabel;
+	//	Stockage des infos
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
+	QLabel* label = nullptr;
 
 //  Menus
 	QMenu* fileMenu;
 	QMenu* editMenu;
 	QMenu* viewMenu;
+	QMenu* helpMenu;
 	QComboBox* stateBox;
 	QToolBar* mainToolBar;
 
@@ -74,6 +89,7 @@ private:
 	
 	QAction* zoomInAct;
 	QAction* zoomOutAct;
+	QAction* resetZoomAct;
 	QAction* pauseResumeAct;
 
 
@@ -103,6 +119,7 @@ private slots:
 	
 	void zoomIn();
 	void zoomOut();
+	void resetZoom();
 	void pauseResume();
 
 
@@ -114,7 +131,10 @@ public:
 	//	Events handlers
 	void timerEvent(QTimerEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 	void wheelEvent(QWheelEvent* event) override;
 	bool event(QEvent* event) override;
 	void paintEvent(QPaintEvent* event) override;
@@ -123,8 +143,10 @@ public slots:
 	void addCell(size_t const& i, size_t const& j);
 	void deleteCell(size_t const& i, size_t const& j);
 	void inverseCell(size_t const& i, size_t const& j);
-	void modifyCell(size_t const& i, size_t const& j);
+	void setMousePressed();
+	void unsetMousePressed(size_t const& i, size_t const& j);
+	void modifyCell(size_t const& i, size_t const& j, bool mousePressed);
 };
 
 
-#endif //GOLBIS_MAINWINDOW_HPP
+#endif //GAME_OF_LIFE_MAINWINDOW_HPP

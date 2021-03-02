@@ -67,7 +67,7 @@ GameOfLife& GameOfLife::addCell(size_t const& i, size_t const& j) {
 		std::cerr << termcolor::yellow << "[GameOfLife::addCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
 	}
 #else
-	if (!access(i+50,j+50) && i < MAX_LIGNES && j < MAX_COLONNES) {
+	if (!at(i+50,j+50) && i < MAX_LIGNES && j < MAX_COLONNES) {
 		vivantes_.push_back({i+50, j+50});
 		grille_[i+50][j+50] = true;
 	}
@@ -103,7 +103,7 @@ GameOfLife& GameOfLife::inverseCell(size_t const& i, size_t const& j) {
 		std::cerr << termcolor::yellow << "[GameOfLife::inverseCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
 	}
 #else
-	if (access(i+50, j+50)) {
+	if (at(i+50, j+50)) {
 		grille_[i+50][j+50] = false;
 		Liste::iterator a_effacer(std::find<Liste::iterator, Coord>(vivantes_.begin(),	vivantes_.end(), {i+50, j+50}));
 		if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
@@ -172,7 +172,7 @@ void GameOfLife::verif(size_t const& i, size_t const& j, Liste& v) {
 		std::cerr << termcolor::yellow << "[verif(" << i << "," << j << ",vivantes_) n'a rien fait car les coords étaient trop grandes]" << termcolor::reset;
 	}
 #else
-	if(!access(i,j) && std::find<Liste::iterator, Coord>(v.begin(),v.end(),{i,j}) == v.end()) {
+	if(!at(i,j) && std::find<Liste::iterator, Coord>(v.begin(),v.end(),{i,j}) == v.end()) {
 		if (next_state(i,j) && i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
 			v.push_back({i,j});
 		}
@@ -554,7 +554,7 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, Liste& v, Liste& v_
 		}
 	}
 #else
-	if(!access(i,j) && std::find<Liste::iterator, Coord>(v.begin(),v.end(),{i,j}) == v.end()) {
+	if(!at(i,j) && std::find<Liste::iterator, Coord>(v.begin(),v.end(),{i,j}) == v.end()) {
         if (next_state(i,j) && i<MAX_LIGNES+100 && j<MAX_COLONNES+100) {
 			v.push_back({i,j});
 			if (Lmin_+50 <= i && i < Lmax_+50 && Cmin_+50 <= j && j < Cmax_+50) v_visibles.push_back({i-Lmin_-50, j-Cmin_-50});

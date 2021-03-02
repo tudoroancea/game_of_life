@@ -51,7 +51,10 @@ bool GraphicsView::viewportEvent(QEvent *event) {
 	return QGraphicsView::viewportEvent(event);
 }
 
-qreal& GraphicsView::scaleFactor() {
+const qreal& GraphicsView::scaleFactor() const {
+	return currentScaleFactor;
+}
+qreal& GraphicsView::rscaleFactor() {
 	return currentScaleFactor;
 }
 
@@ -60,7 +63,7 @@ void GraphicsView::mousePressEvent(QMouseEvent* event) {
 	pressed = true;
 	auto pressEvent(dynamic_cast<QMouseEvent*>(event));
 	auto res(this->mapToScene(pressEvent->pos()));
-	emit modifyCellIntention(size_t(res.x()), size_t(res.y()));
+	emit modifyCellIntention(size_t(res.x()), size_t(res.y()), true);
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
@@ -68,11 +71,15 @@ void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
 	if (pressed) {
 		auto pressEvent(dynamic_cast<QMouseEvent*>(event));
 		auto res(this->mapToScene(pressEvent->pos()));
-		emit modifyCellIntention(size_t(res.x()), size_t(res.y()));
+		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), false);
 	}
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
 	QGraphicsView::mouseReleaseEvent(event);
 	pressed = false;
+	auto pressEvent(dynamic_cast<QMouseEvent*>(event));
+	auto res(this->mapToScene(pressEvent->pos()));
+	emit modifyCellIntention(size_t(res.x()), size_t(res.y()), false);
 }
+

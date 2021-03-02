@@ -17,13 +17,14 @@ public:
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
 	bool viewportEvent(QEvent *event) override;
 	
-	[[nodiscard]] qreal& scaleFactor();
+	[[nodiscard]] qreal& rscaleFactor();
+	[[nodiscard]] const qreal& scaleFactor() const;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
 signals:
-	void modifyCellIntention(size_t i, size_t j);
+	void modifyCellIntention(size_t const& i, size_t const& j, bool mousePressed);
 //	virtual void drawBackground(QPainter *painter, const QRectF &rect = this->rect()) override;
 };
 

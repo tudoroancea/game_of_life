@@ -9,24 +9,49 @@
 #include <chrono>
 #include <thread>
 #include <future>
-
-
+#include <list>
+#include <numeric>
 using namespace std;
 
-void f() {
-	auto start = std::chrono::high_resolution_clock::now();
-	std::array<int,48> dy{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,-1,-1,-1, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << "f : " << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << std::endl;
-}
-void g() {
-	auto start = std::chrono::high_resolution_clock::now();
-	std::array<int,48> dy{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,-1,-1,-1, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::cout << "g : " << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << std::endl;
-}
-enum  E{a,b,c};
 
 int main() {
+//	std::list<int> l (10);
+//	std::iota(l.begin(), l.end(),0);
+//	auto it(l.begin());
+//	++it;
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+//	l.pop_front();
+//	std::cout << *it << " | ";
+//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+//	std::cout << std::endl;
+	std::list<int> l;
+	auto it(l.begin());
+	l.push_front(1);
+	l.push_front(2);
+	l.push_front(3);
+	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
+	std::cout << std::endl << *it;
 	return 0;
 }
