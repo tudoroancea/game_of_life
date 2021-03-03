@@ -99,7 +99,7 @@ void MainWindow::createActions() {
 	connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
 	
 	clearAct = new QAction(QIcon(":/images/icons8-delete.png"), "Clear", this);
-	clearAct->setShortcut(QKeySequence(Qt::Key_K));
+	clearAct->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_K));
 	connect(clearAct, &QAction::triggered, this, &MainWindow::clear);
 	
 //	View Menu ========================================================================================
@@ -201,22 +201,31 @@ void MainWindow::saveSim() {
 
 void MainWindow::undo() {
 //	placeholder("undo Action");
-	if (std::distance(lastModif, historic.end()) > 1) {
-		std::cerr << termcolor::blue << "Undo :";
+//	if (std::distance(lastModif, historic.end()) > 1) {
+//		std::cerr << termcolor::blue << "Undo :";
+//		if (lastModif->first) {
+//			game->deleteMotif(lastModif->second);
+//			++lastModif;
+//			for (auto& jt : lastModif->second) {
+//				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+//			}
+//		} else {
+//			game->addMotif(lastModif->second);
+//			++lastModif;
+//			for (auto& jt : lastModif->second) {
+//				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+//			}
+//		}
+//		std::cout << termcolor::reset << std::endl;
+//		this->updateStatusBar();
+//		this->refreshScene();
+	if (lastModif != historic.end()) {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
-			++lastModif;
-			for (auto& jt : lastModif->second) {
-				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-			}
 		} else {
 			game->addMotif(lastModif->second);
-			++lastModif;
-			for (auto& jt : lastModif->second) {
-				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-			}
 		}
-		std::cout << termcolor::reset << std::endl;
+		++lastModif;
 		this->updateStatusBar();
 		this->refreshScene();
 	} else {
@@ -226,35 +235,42 @@ void MainWindow::undo() {
 
 void MainWindow::redo() {
 //	placeholder("redo Action");
+//	if (lastModif != historic.begin()) {
+//		std::cerr << termcolor::blue << "Redo : ";
+//		if (lastModif->first) {
+//			game->addMotif(lastModif->second);
+//			for (auto & jt : lastModif->second) {
+//				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+//			}
+//			--lastModif;
+//		} else {
+//			game->deleteMotif(lastModif->second);
+//			for (auto & jt : lastModif->second) {
+//				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+//			}
+//			--lastModif;
+//		}
+//		if (lastModif == historic.begin()) {
+//			if (lastModif->first) {
+//				game->addMotif(lastModif->second);
+//				for (auto & jt : lastModif->second) {
+//					std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+//				}
+//			} else {
+//				game->deleteMotif(lastModif->second);
+//				for (auto & jt : lastModif->second) {
+//					std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+//				}
+//			}
+//		}
+//		std::cout << termcolor::reset << std::endl;
 	if (lastModif != historic.begin()) {
-		std::cerr << termcolor::blue << "Redo : ";
+		--lastModif;
 		if (lastModif->first) {
 			game->addMotif(lastModif->second);
-			for (auto & jt : lastModif->second) {
-				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-			}
-			--lastModif;
 		} else {
 			game->deleteMotif(lastModif->second);
-			for (auto & jt : lastModif->second) {
-				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-			}
-			--lastModif;
 		}
-		if (lastModif == historic.begin()) {
-			if (lastModif->first) {
-				game->addMotif(lastModif->second);
-				for (auto & jt : lastModif->second) {
-					std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-				}
-			} else {
-				game->deleteMotif(lastModif->second);
-				for (auto & jt : lastModif->second) {
-					std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-				}
-			}
-		}
-		std::cout << termcolor::reset << std::endl;
 		this->updateStatusBar();
 		this->refreshScene();
 	} else {
