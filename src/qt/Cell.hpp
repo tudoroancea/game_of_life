@@ -1,24 +1,33 @@
-#ifndef CELL__H
-#define CELL__H
+//
+// Created by Tudor Oancea on 26/02/2021.
+//
 
-#include <Qt>
-#include <QRect>
+#ifndef GAME_OF_LIFE_CELL_HPP
+#define GAME_OF_LIFE_CELL_HPP
 
-class Cell_
-{
-public:
-    Cell_(unsigned int x_, unsigned int y_, unsigned int w, unsigned int h)
-        :  state_(false), pos_x(x_), pos_y(y_), width(w), heigth(h) {}
-    void change_color() {state_ = 1 - state_;}
-    Qt::GlobalColor color() const;
-    QRect rect() const {return QRect(pos_x, pos_y, width, heigth);}
-    bool state() {return state_;}
+#include <QGraphicsObject>
+
+QT_BEGIN_NAMESPACE
+class QRectF;
+class QStyleOptionGraphicsItem;
+class QWidget;
+class QPainter;
+QT_END_NAMESPACE
+
+class [[maybe_unused]] Cell : public QGraphicsObject {
+//	Q_OBJECT
+
 private:
-    bool state_;
-    unsigned int pos_x;
-    unsigned int pos_y;
-    unsigned int width;
-    unsigned int heigth;
+	QRectF rect_;
+
+public:
+	explicit Cell(qreal const& x, qreal const& y, qreal const& size = 1.0);
+	~Cell() override;
+	
+	[[maybe_unused]] void setSize(qreal const& size);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+	[[nodiscard]] QRectF boundingRect() const override;
 };
 
-#endif // CELL__H
+
+#endif //GAME_OF_LIFE_CELL_HPP

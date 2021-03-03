@@ -42,7 +42,7 @@ add_compile_definitions(MAX_COLONNES=400)
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     # Leave uncommented if you want to know whenever GameOfLife(View)::addCell() or deleteCell() or inverseCell() or resize() are called on too big coordinates
     #add_definitions(-DOVERFLOW_WARNINGS)
-    add_compile_definitions(OVERFLOW_WARNINGS)
+#    add_compile_definitions(OVERFLOW_WARNINGS)
 
     # Leave uncommented if you want to know whenever GameOfLife(View)::addCell() or deleteCell() or inverseCell() are called on already modified cells
     #add_compile_definitions(ALREADY_MODIFIED_WARNINGS)
@@ -57,7 +57,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     #    add_compile_definitions(THROW_SIMULATION_ERRORS)
 endif()
 
-include(CTest)
+#include(CTest)
 #enable_testing()
 
 # Verbose for extra compile information

@@ -1,0 +1,19 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>images/icons8-copy.png</file>
+        <file>images/icons8-paste.png</file>
+        <file>images/icons8-cut.png</file>
+        <file>images/icons8-blade.png</file>
+        <file>images/icons8-about.png</file>
+        <file>images/icons8-delete.png</file>
+        <file>images/icons8-save.png</file>
+
+        <file>images/icons8-undo.png</file>
+        <file>images/icons8-redo.png</file>
+        <file>images/icons8-zoom_out.png</file>
+        <file>images/icons8-zoom_in.png</file>
+        <file>images/icons8-pause.png</file>
+        <file>images/icons8-play.png</file>
+        <file>images/icons8-zoom_to_actual_size.png</file>
+    </qresource>
+</RCC>

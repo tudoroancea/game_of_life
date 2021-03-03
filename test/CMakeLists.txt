@@ -52,3 +52,6 @@ target_link_libraries(test_color LINK_PUBLIC simulation)
 
 add_executable(test_equivalence_table test_equivalence_table.cpp)
 target_link_libraries(test_equivalence_table LINK_PUBLIC simulation)
+
+add_executable(test_divers test_divers.cpp)
+target_link_libraries(test_divers LINK_PUBLIC qt simulation)
