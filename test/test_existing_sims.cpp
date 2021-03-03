@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-    vector<string> v(existing_presaved_sims()), u(existing_local_sims());
+    vector<string> v(existingPresavedSims()), u(existingLocalSims());
     copy(v.begin(), v.end(), ostream_iterator<string>(cout, "\n"));
     copy(u.begin(), u.end(), ostream_iterator<string>(cout, "\n"));
     return 0;

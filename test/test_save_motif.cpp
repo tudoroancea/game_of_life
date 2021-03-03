@@ -10,14 +10,14 @@ int main() {
     Motif M;
     M.append({{0,4},{0,6},{1,0},{1,2},{1,5},{2,1},{2,5},{3,1},{3,7}});
     GameOfLifeView G(0,30,0,30);
-    G.add_motif(M);
+    G.addMotif(M);
     G.print();
-	G.save_motif("lievres", local, false);
+	G.saveMotif("lievres", local);
 
     std::cout << std::endl;
 
     G.wipe();
-    G.add_motif(Motif("lievres", local));
+    G.addMotif(Motif("lievres", local));
     G.print();
 
     return 0;

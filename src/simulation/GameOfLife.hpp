@@ -138,19 +138,19 @@ public :
 	 *  @param   i,j    coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
 	 *  @returns    référence sur l'instance courante
 	 */
-	virtual GameOfLife& addCell(size_t const& i, size_t const& j);
+	virtual bool addCell(size_t const& i, size_t const& j);
 	/**
      *  @brief   Vérifie si la cellule indiquée est bien vivante et si oui la supprime de la grille_ (et dans la Liste des vivantes_)
      *  @param   i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
      *  @returns    référence sur l'instance courante
      */
-	virtual GameOfLife& deleteCell(size_t const& i, size_t const& j);
+	virtual bool deleteCell(size_t const& i, size_t const& j);
 	/**
      *  @brief  Inverse l'état de la cellule et met à jour les attributes de GameOfLife
      *  @param  i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
      *  @returns    référence sur l'instance courante
      */
-	virtual GameOfLife& inverseCell(size_t const& i, size_t const& j);
+	virtual bool inverseCell(size_t const& i, size_t const& j);
 	/**
 	 *  @brief  Ajoute un motif dans la grille_ à l'aide de addCell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
 	 *  @param  motif   Motif à rajouter (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
@@ -279,19 +279,19 @@ public :
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
 	 *  @returns référence sur l'instance courante
 	 */
-	GameOfLifeView& addCell(size_t const& i, size_t const& j) override;
+	bool addCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief   Vérifie si la cellule indiquée est bien vivante dans la grille_ et si oui la supprime. Ne marche que pour des cellules dans la partie visible.
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
 	 *  @returns référence sur l'instance courante
 	 */
-	GameOfLifeView& deleteCell(size_t const& i, size_t const& j) override;
+	bool deleteCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief  Inverse l'état de la cellule. Ne marche que pour des cellules dans la partie visible.
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
 	 *  @returns référence sur l'instance courante
 	 */
-	GameOfLifeView& inverseCell(size_t const& i, size_t const& j) override;
+	bool inverseCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief  Ajoute un motif dans la partie visible de la grille_ à l'aide de addCell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
 	 *  @param  motif   Motif à rajouter (avec coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ ))
