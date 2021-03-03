@@ -56,65 +56,60 @@ Liste const& GameOfLife::vivantes() const {return vivantes_;}
 [[maybe_unused]] std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> const& GameOfLife::grille() const {return grille_;}
 
 // Setters ================================================
-GameOfLife& GameOfLife::addCell(size_t const& i, size_t const& j) {
-#ifdef OVERFLOW_WARNINGS
-	if (i < MAX_LIGNES && j < MAX_COLONNES) {
-		if (!at(i + 50, j + 50)) {
-			vivantes_.push_back({i+50, j+50});
-			grille_[i+50][j+50] = true;
-		}
-	} else {
-		std::cerr << termcolor::yellow << "[GameOfLife::addCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
-	}
-#else
-	if (!at(i+50,j+50) && i < MAX_LIGNES && j < MAX_COLONNES) {
+
+bool GameOfLife::addCell(size_t const& i, size_t const& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && !at(i+50, j+50)) {
+
 		vivantes_.push_back({i+50, j+50});
 		grille_[i+50][j+50] = true;
-	}
+		return true;
+	} else {
+		if (at(i+50, j+50)) {
+#ifdef ALREADY_MODIFIED_WARNINGS
+			std::cerr << termcolor::yellow << "[GameOfLife::add_cell(" << i << "," << j << ") n'a rien fait car cell déjà vivante]" << termcolor::reset;
 #endif
-	return *this;
+		} else {
+#ifdef OVERFLOW_WARNINGS
+			std::cerr << termcolor::yellow << "[GameOfLife::addCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
+#endif
+		}
+		return false;
+	}
 }
 
-GameOfLife& GameOfLife::deleteCell(size_t const& i, size_t const& j) {
-	if (at(i + 50, j + 50)) {
+bool GameOfLife::deleteCell(size_t const& i, size_t const& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && at(i + 50, j + 50)) {
 		grille_[i+50][j+50] = false;
 		auto a_effacer(std::find<Liste::iterator, Coord>(vivantes_.begin(), vivantes_.end(), {i+50, j+50}));
 		if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
+		return true;
 	} else {
-#ifdef OVERFLOW_WARNINGS
-		std::cerr << termcolor::yellow << "[GameOfLife::deleteCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
+		if(!at(i+50, j+50)) {
+#ifdef ALREADY_MODIFIED_WARNINGS
+			std::cerr << termcolor::yellow << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car cell déjà morte]" << termcolor::reset;
 #endif
+		} else {
+#ifdef OVERFLOW_WARNINGS
+			std::cerr << termcolor::yellow << "[GameOfLife::deleteCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
+#endif
+		}
+		return false;
 	}
-	return *this;
 }
 
-GameOfLife& GameOfLife::inverseCell(size_t const& i, size_t const& j) {
-#ifdef OVERFLOW_WARNINGS
+bool GameOfLife::inverseCell(size_t const& i, size_t const& j) {
 	if (i < MAX_LIGNES && j < MAX_COLONNES) {
 		if (at(i + 50, j + 50)) {
-			grille_[i+50][j+50] = false;
-			auto a_effacer(std::find<Liste::iterator, Coord>(vivantes_.begin(), vivantes_.end(), {i+50, j+50}));
-			if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
+			return this->deleteCell(i,j);
 		} else {
-			grille_[i+50][j+50] = true;
-			vivantes_.push_back({i+50, j+50});
+			return this->addCell(i, j);
 		}
 	} else {
+#ifdef OVERFLOW_WARNINGS
 		std::cerr << termcolor::yellow << "[GameOfLife::inverseCell(" << i << "," << j << ") n'a rien fait car les coordonnées étaient trop grandes]" << termcolor::reset;
-	}
-#else
-	if (at(i+50, j+50)) {
-		grille_[i+50][j+50] = false;
-		Liste::iterator a_effacer(std::find<Liste::iterator, Coord>(vivantes_.begin(),	vivantes_.end(), {i+50, j+50}));
-		if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
-	} else {
-		if((i < MAX_LIGNES) && (j < MAX_COLONNES)) {
-			grille_[i+50][j+50] = true;
-			vivantes_.push_back({i+50,j+50});
-		}
-	}
 #endif
-	return *this;
+		return false;
+	}
 }
 
 GameOfLife& GameOfLife::addMotif(Motif const& motif) {
@@ -469,59 +464,61 @@ bool GameOfLifeView::saveMotif(std::string const& nomMotif, FILE_CATEGORY const&
 	}
 }
 // Setters du jeu GameOfLifeView ==========================================================================================================================================================================
-GameOfLifeView& GameOfLifeView::addCell(size_t const& i, size_t const& j) {
+bool GameOfLifeView::addCell(size_t const& i, size_t const& j) {
 	if (i < Lmax_-Lmin_ && j < Cmax_-Cmin_ && !at(i + Lmin_ + 50, j + Cmin_ + 50)) {
 		vivantes_.push_back({i+Lmin_+50, j+Cmin_+50});
 		vivantes_visibles.push_back({i,j});
 		grille_[i+Lmin_+50][j+Cmin_+50] = true;
+		return true;
 	} else {
 		if (at(i + Lmin_ + 50, j + Cmin_ + 50)) {
 #ifdef ALREADY_MODIFIED_WARNINGS
-			std::cerr << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car cell déjà vivante]";
+			std::cerr << termcolor::yellow << "[GameOfLifeView::add_cell(" << i << "," << j << ") n'a rien fait car cell déjà vivante]" << termcolor::reset;
 #endif
 		} else {
 #ifdef OVERFLOW_WARNINGS
-			std::cerr << "[GameOfLifeView::addCell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+			std::cerr << termcolor::yellow << "[GameOfLifeView::addCell(" << i << "," << j << ") n'a rien fait car coords trop grandes]" << termcolor::reset;
 #endif
 		}
+		return false;
 	}
-	return *this;
 }
 
-GameOfLifeView& GameOfLifeView::deleteCell(size_t const& i, size_t const& j) {
+bool GameOfLifeView::deleteCell(size_t const& i, size_t const& j) {
 	if (i < Lmax_-Lmin_ && j < Cmax_-Cmin_ && at(i + Lmin_ + 50, j + Cmin_ + 50)) {
 		Liste::iterator a_effacer(std::find<Liste::iterator, Coord>(vivantes_.begin(), vivantes_.end(), {i+Lmin_+50, j+Cmin_+50}));
 		if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
 		a_effacer = std::find<Liste::iterator, Coord>(vivantes_visibles.begin(), vivantes_visibles.end(), {i, j});
 		if (a_effacer != vivantes_visibles.end()) vivantes_visibles.erase(a_effacer);
 		grille_[i+Lmin_+50][j+Cmin_+50] = false;
+		return true;
 	} else {
 		if (!at(i + Lmin_ + 50, j + Cmin_ + 50)) {
 #ifdef ALREADY_MODIFIED_WARNINGS
-			std::cerr << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car cell déjà morte]";
+			std::cerr << termcolor::yellow << "[GameOfLifeView::suppr_cell(" << i << "," << j << ") n'a rien fait car cell déjà morte]" << termcolor::reset;
 #endif
 		} else {
 #ifdef OVERFLOW_WARNINGS
-			std::cerr << "[GameOfLifeView::deleteCell(" << i << "," << j << ") n'a rien fait car coords trop grandes]";
+			std::cerr << termcolor::yellow << "[GameOfLifeView::deleteCell(" << i << "," << j << ") n'a rien fait car coords trop grandes]" << termcolor::reset;
 #endif
 		}
+		return false;
 	}
-	return *this;
 }
 
-GameOfLifeView& GameOfLifeView::inverseCell(size_t const& i, size_t const& j) {
+bool GameOfLifeView::inverseCell(size_t const& i, size_t const& j) {
 	if (i < Lmax_-Lmin_ && j < Cmax_-Cmin_) {
 		if (this->at(i + Lmin_ + 50, j + Cmin_ + 50)) {
-			this->deleteCell(i, j);
+			return this->deleteCell(i, j);
 		} else {
-			this->addCell(i, j);
+			return this->addCell(i, j);
 		}
 	} else {
 #ifdef OVERFLOW_WARNINGS
-		std::cerr << "[GameOfLifeView::inverseCell(" << i << "," << j << ") n'a rien fait car coords trop grandes";
+		std::cerr << termcolor::yellow << "[GameOfLifeView::inverseCell(" << i << "," << j << ") n'a rien fait car coords trop grandes" << termcolor::reset;
 #endif
+		return false;
 	}
-	return *this;
 }
 
 GameOfLifeView& GameOfLifeView::addMotif(Motif const& motif) {
