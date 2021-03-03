@@ -32,6 +32,7 @@ class QEvent;
 class QToolBar;
 class QComboBox;
 class QPolygon;
+class QStatusBar;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
@@ -63,7 +64,8 @@ private:
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
-	QLabel* label = nullptr;
+	QLabel* label1 = nullptr;
+	QLabel* label2 = nullptr;
 
 //  Menus
 	QMenu* fileMenu;
@@ -72,6 +74,7 @@ private:
 	QMenu* helpMenu;
 	QComboBox* stateBox;
 	QToolBar* mainToolBar;
+//	QStatusBar* statusBar = nullptr;
 
 //	Actions
 	QAction* newSimAct;
@@ -97,6 +100,7 @@ private:
 	void createActions();
 	void createMenus();
 	void createToolBars();
+	void createStatusBar();
 	static void placeholder(const char* str);
 	void createFrame();
 	void refreshScene();
@@ -143,8 +147,6 @@ public slots:
 	void addCell(size_t const& i, size_t const& j);
 	void deleteCell(size_t const& i, size_t const& j);
 	void inverseCell(size_t const& i, size_t const& j);
-	void setMousePressed();
-	void unsetMousePressed(size_t const& i, size_t const& j);
 	void modifyCell(size_t const& i, size_t const& j, bool mousePressed);
 };
 

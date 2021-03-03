@@ -11,47 +11,23 @@
 #include <future>
 #include <list>
 #include <numeric>
+
+#include "termcolor.hpp"
+
 using namespace std;
 
 
 int main() {
-//	std::list<int> l (10);
-//	std::iota(l.begin(), l.end(),0);
-//	auto it(l.begin());
-//	++it;
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
-//	l.pop_front();
-//	std::cout << *it << " | ";
-//	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-//	std::cout << std::endl;
 	std::list<int> l;
-	auto it(l.begin());
-	l.push_front(1);
+	
 	l.push_front(2);
-	l.push_front(3);
-	std::copy(l.begin(), l.end(), std::ostream_iterator<int>(std::cout, " "));
-	std::cout << std::endl << *it;
+	l.push_front(1);
+	l.push_front(0);
+	auto it(l.begin());
+	++it;
+	std::cout << *it << std::endl;
+	l.erase(l.begin(), it);
+	std::cout << *it << std::endl;
+	if (it == l.begin()) std::cout << "\nhey\n";
 	return 0;
 }

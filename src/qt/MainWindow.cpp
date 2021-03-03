@@ -57,7 +57,8 @@ MainWindow::MainWindow()
 	view->setCacheMode(QGraphicsView::CacheBackground);
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
-	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::modifyCell);
+//	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::modifyCell);
+	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, bool)));
 //	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::setMousePressed);
 	
 	this->setFocus();
@@ -156,6 +157,8 @@ MainWindow::~MainWindow() {
 	delete scene;
 	delete game;
 	delete view;
+	delete label1;
+	delete label2;
 	
 	delete newSimAct;
 	delete openAct;
@@ -178,6 +181,9 @@ MainWindow::~MainWindow() {
 	delete editMenu;
 	delete viewMenu;
 	delete helpMenu;
+	delete stateBox;
+	delete mainToolBar;
+//	delete statusBar;
 }
 
 void MainWindow::placeholder(const char* str) {
@@ -197,6 +203,7 @@ void MainWindow::saveSim() {
 }
 
 void MainWindow::undo() {
+//	placeholder("undo Action");
 	if (lastModif != historic.end()) {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
@@ -212,6 +219,7 @@ void MainWindow::undo() {
 }
 
 void MainWindow::redo() {
+//	placeholder("redo Action");
 	if (lastModif != historic.begin()) {
 		if (lastModif->first) {
 			game->addMotif(lastModif->second);
@@ -261,11 +269,11 @@ void MainWindow::open() {
 
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
-	auto start(std::chrono::high_resolution_clock::now());
+//	auto start(std::chrono::high_resolution_clock::now());
 	game->evolve();
 	this->refreshScene();
-	auto stop(std::chrono::high_resolution_clock::now());
-	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << termcolor::reset << " | ";
+//	auto stop(std::chrono::high_resolution_clock::now());
+//	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << termcolor::reset << " | ";
 }
 
 void MainWindow::pauseResume() {
@@ -361,33 +369,42 @@ void MainWindow::modifyCell(const size_t& i, const size_t& j, bool mousePressed)
 		switch (modifyState_) {
 			case Adding: {
 				game->addCell(i,j);
+				if (lastModif != historic.begin()) {
+					historic.erase(historic.begin(), lastModif);
+				}
+//				Maintenant lastModif == historic.begin()
 				if (mousePressed) {
+					std::cerr << termcolor::blue << "mousePressed " << termcolor::cyan << historic.size() << " ";
 					historic.push_front({true,Motif({{i, j}} )} );
+					lastModif = historic.begin();
 					if (historic.size() >= 11) {
 						historic.pop_back();
 					}
 				} else {
 					historic.front().second.push_back({i,j});
 				}
-				if (lastModif != historic.begin()) {
-					historic.erase(historic.begin(), lastModif);
-				}
-//				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
+				
+				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
 				break;
 			}
 			case Deleting: {
 				game->deleteCell(i,j);
+				if (lastModif != historic.begin()) {
+					historic.erase(historic.begin(), lastModif);
+				}
+//				Maintenant lastModif == historic.begin()
 				if (mousePressed) {
+					std::cerr << termcolor::blue << "mousePressed " << termcolor::cyan << historic.size() << " ";
 					historic.push_front({false,Motif({{i, j}} )} );
+					lastModif = historic.begin();
 					if (historic.size() >= 11) {
 						historic.pop_back();
 					}
 				} else {
 					historic.front().second.push_back({i,j});
 				}
-				if (lastModif != historic.begin()) {
-					historic.erase(historic.begin(), lastModif);
-				}
+				
+				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
 				break;
 			}
 			default:
@@ -452,7 +469,7 @@ void MainWindow::wheelEvent(QWheelEvent* event) {
 	if (!hasTouchEvent && ctrlPressed) {
 		std::cerr << termcolor::red << "wheelEvent ";
 		int steps(event->angleDelta().y() / 120);
-		std::cerr << event->angleDelta().y() << " " << steps << termcolor::reset << std::endl;
+		std::cerr << pow(2, steps) << " " << steps << termcolor::reset << std::endl;
 		
 		view->rscaleFactor() *= pow(2, steps);
 		view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
@@ -475,10 +492,10 @@ bool MainWindow::event(QEvent* event) {
 }
 
 void MainWindow::paintEvent(QPaintEvent* event) {
-	auto start(std::chrono::high_resolution_clock::now());
+//	auto start(std::chrono::high_resolution_clock::now());
 	QWidget::paintEvent(event);
-	auto stop(std::chrono::high_resolution_clock::now());
-	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
+//	auto stop(std::chrono::high_resolution_clock::now());
+//	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* event) {
@@ -494,12 +511,10 @@ void MainWindow::resetZoom() {
 	view->update();
 }
 
-void MainWindow::unsetMousePressed(const size_t& i, const size_t& j) {
-	mousePressed = false;
-}
-
-void MainWindow::setMousePressed() {
-	mousePressed = true;
+void MainWindow::createStatusBar() {
+	statusBar()->showMessage("hey");
+	label1 = new QLabel("Hey");
+	statusBar()->addWidget(label1);
 }
 
 
