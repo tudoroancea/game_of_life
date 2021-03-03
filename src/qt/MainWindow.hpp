@@ -16,6 +16,7 @@
 //#include <QWidget>
 #include <unordered_map>
 #include <list>
+#include <deque>
 
 #include "GraphicsView.hpp"
 #include "GameOfLife.hpp"
@@ -40,22 +41,18 @@ Q_OBJECT
 private:
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
+	
 //	Etat des évenements
 	bool hasTouchEvent = false;
 	bool ctrlPressed = false;
-	bool mousePressed = false;
+
 //	Mode de modification
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
 	
-//	Zone de séléction
-	QPolygon selectedArea;
-	QRect newSelectedArea;
-	
-//	Historiques
-	Motif addedMotif = Motif();
-	std::list<std::pair<bool,Motif>> historic;
-	std::list<std::pair<bool,Motif>>::iterator lastModif;
+//	Historique
+	std::deque<std::pair<bool,Motif>> historic;
+	std::deque<std::pair<bool,Motif>>::iterator lastModif;
 //	Quand on fait undo on ajoute/supprime le motif désigné par lastModif, puis on l'incrémente. Si lastModif == historic.end()-1, on ne fait rien
 //	Quand on fait redo on ajoute/supprime le motif désiné par lastModif, puis on le décremente. SI lastModif == historic.begin(), on ne fait rien
 //  Quand on recommence à modifier, on supprime tous les motifs avant lastModif
@@ -64,8 +61,7 @@ private:
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
-	QLabel* label1 = nullptr;
-	QLabel* label2 = nullptr;
+	std::array<QLabel*,10> labels;
 
 //  Menus
 	QMenu* fileMenu;
@@ -105,6 +101,7 @@ private:
 	void createFrame();
 	void refreshScene();
 	void setModifyState(int const& modifyState);
+	void updateStatusBar();
 //	void setModifyState(CellModifier const& modifyState_);
 
 private slots:
@@ -144,9 +141,7 @@ public:
 	void paintEvent(QPaintEvent* event) override;
 
 public slots:
-	void addCell(size_t const& i, size_t const& j);
-	void deleteCell(size_t const& i, size_t const& j);
-	void inverseCell(size_t const& i, size_t const& j);
+	
 	void modifyCell(size_t const& i, size_t const& j, bool mousePressed);
 };
 

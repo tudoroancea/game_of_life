@@ -19,6 +19,7 @@
 
 #include <iterator>
 #include <list>
+#include <deque>
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -26,40 +27,33 @@
 using namespace std::literals::chrono_literals;
 
 MainWindow::MainWindow()
-		: selectedArea(QRect(100,100,100,100)),
-		  newSelectedArea(QRect(100,100,100,100)),
-		  historic(1,{true,Motif()}),
-		  lastModif(historic.begin()),
+		: lastModif(historic.begin()),
 		  scene(new QGraphicsScene(0.0, 0.0, MAX_LIGNES, MAX_COLONNES)),
 		  view(new GraphicsView(scene, this)),
 		  game(new GameOfLifeView)
 {
+	labels.fill(nullptr);
 	createActions();
 	createMenus();
 	createToolBars();
+	createStatusBar();
 	
 	this->setWindowTitle("golbis");
 	this->resize(500,500);
-	QList<QScreen*> list(QGuiApplication::screens());
-	this->move(list.front()->geometry().center() - frameGeometry().center());
+	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 	this->setCentralWidget(view);
-	this->createFrame();
-	this->addToolBar(mainToolBar);
 	
 	scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 	this->refreshScene();
 	
-	view->setScene(scene);
 	view->setBackgroundBrush(QBrush(Qt::white));
 	view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 	view->setRenderHint(QPainter::Antialiasing);
 	view->setCacheMode(QGraphicsView::CacheBackground);
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
-//	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::modifyCell);
 	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, bool)));
-//	connect(view, &GraphicsView::modifyCellIntention, this, &MainWindow::setMousePressed);
 	
 	this->setFocus();
 }
@@ -82,8 +76,6 @@ void MainWindow::createActions() {
 	saveSimAct = new QAction("Save Simulation", this);
 	connect(saveSimAct, &QAction::triggered, this, &MainWindow::saveSim);
 	
-	aboutAct = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
-	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
 
 //	Edit Menu ========================================================================================
 	undoAct = new QAction(QIcon(":/images/icons8-undo.png"),"Undo", this);
@@ -127,6 +119,9 @@ void MainWindow::createActions() {
 	pauseResumeAct->setShortcut(QKeySequence(Qt::Key_Space));
 	connect(pauseResumeAct, &QAction::triggered, this, &MainWindow::pauseResume);
 	
+//	Help Menu ========================================================================================
+	aboutAct = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
+	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
 }
 
 void MainWindow::createMenus() {
@@ -148,6 +143,7 @@ void MainWindow::createMenus() {
 	editMenu->addAction(pauseResumeAct);
 	viewMenu->addAction(zoomInAct);
 	viewMenu->addAction(zoomOutAct);
+	viewMenu->addAction(resetZoomAct);
 
 	helpMenu = menuBar()->addMenu("Help");
 	helpMenu->addAction(aboutAct);
@@ -157,8 +153,9 @@ MainWindow::~MainWindow() {
 	delete scene;
 	delete game;
 	delete view;
-	delete label1;
-	delete label2;
+	for (const auto & label : labels) {
+		delete label;
+	}
 	
 	delete newSimAct;
 	delete openAct;
@@ -204,14 +201,23 @@ void MainWindow::saveSim() {
 
 void MainWindow::undo() {
 //	placeholder("undo Action");
-	if (lastModif != historic.end()) {
+	if (std::distance(lastModif, historic.end()) > 1) {
+		std::cerr << termcolor::blue << "Undo :";
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
 			++lastModif;
+			for (auto& jt : lastModif->second) {
+				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+			}
 		} else {
 			game->addMotif(lastModif->second);
 			++lastModif;
+			for (auto& jt : lastModif->second) {
+				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+			}
 		}
+		std::cout << termcolor::reset << std::endl;
+		this->updateStatusBar();
 		this->refreshScene();
 	} else {
 		std::cerr << termcolor::red << "Il n'y a pas de modification plus ancienne enregistrée." << termcolor::reset << std::endl;
@@ -221,13 +227,35 @@ void MainWindow::undo() {
 void MainWindow::redo() {
 //	placeholder("redo Action");
 	if (lastModif != historic.begin()) {
+		std::cerr << termcolor::blue << "Redo : ";
 		if (lastModif->first) {
 			game->addMotif(lastModif->second);
+			for (auto & jt : lastModif->second) {
+				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+			}
 			--lastModif;
 		} else {
 			game->deleteMotif(lastModif->second);
+			for (auto & jt : lastModif->second) {
+				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+			}
 			--lastModif;
 		}
+		if (lastModif == historic.begin()) {
+			if (lastModif->first) {
+				game->addMotif(lastModif->second);
+				for (auto & jt : lastModif->second) {
+					std::cerr << termcolor::green << jt << " | " << termcolor::reset;
+				}
+			} else {
+				game->deleteMotif(lastModif->second);
+				for (auto & jt : lastModif->second) {
+					std::cerr << termcolor::red << jt << " | " << termcolor::reset;
+				}
+			}
+		}
+		std::cout << termcolor::reset << std::endl;
+		this->updateStatusBar();
 		this->refreshScene();
 	} else {
 		std::cerr << termcolor::red << "Il n'y a pas de modification plus récente enregistrée." << termcolor::reset << std::endl;
@@ -283,33 +311,45 @@ void MainWindow::pauseResume() {
 		pauseResumeAct->setIcon(QIcon(":/images/icons8-play.png"));
 	} else {
 		timerId = this->startTimer(period);
+		historic.erase(historic.begin(), historic.end());
+		lastModif = historic.begin();
+		this->updateStatusBar();
 		pauseResumeAct->setIcon(QIcon(":/images/icons8-pause.png"));
 	}
 }
 
 void MainWindow::clear() {
+	if (lastModif != historic.begin()) {
+		historic.erase(historic.begin(), lastModif);
+	}
+	historic.push_front({false, Motif(game->vivantes())});
+	lastModif = historic.begin();
+	if (historic.size() > 10) {
+		historic.pop_back();
+	}
+	this->updateStatusBar();
 	game->wipe();
 	this->refreshScene();
 }
 
 void MainWindow::createFrame() {
-	QGraphicsLineItem* xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2));
-	QGraphicsLineItem* yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES));
+	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2));
+	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES));
 	xaxis->setPen(QPen(Qt::red));
 	yaxis->setPen(QPen(Qt::green));
 	scene->addItem(xaxis);
 	scene->addItem(yaxis);
 	
-	QGraphicsLineItem* top(new QGraphicsLineItem(0.0, 0.0, MAX_COLONNES, 0.0));
+	auto top(new QGraphicsLineItem(0.0, 0.0, MAX_COLONNES, 0.0));
 	top->setPen(QPen(Qt::blue));
 	scene->addItem(top);
-	QGraphicsLineItem* left(new QGraphicsLineItem(0.0, 0.0, 0.0, MAX_LIGNES));
+	auto left(new QGraphicsLineItem(0.0, 0.0, 0.0, MAX_LIGNES));
 	left->setPen(QPen(Qt::blue));
 	scene->addItem(left);
-	QGraphicsLineItem* right(new QGraphicsLineItem(MAX_COLONNES, 0.0, MAX_COLONNES, MAX_LIGNES));
+	auto right(new QGraphicsLineItem(MAX_COLONNES, 0.0, MAX_COLONNES, MAX_LIGNES));
 	right->setPen(QPen(Qt::blue));
 	scene->addItem(right);
-	QGraphicsLineItem* bottom(new QGraphicsLineItem(0.0, MAX_LIGNES, MAX_COLONNES, MAX_LIGNES));
+	auto bottom(new QGraphicsLineItem(0.0, MAX_LIGNES, MAX_COLONNES, MAX_LIGNES));
 	bottom->setPen(QPen(Qt::blue));
 	scene->addItem(bottom);
 }
@@ -317,31 +357,8 @@ void MainWindow::createFrame() {
 void MainWindow::refreshScene() {
 	scene->clear();
 	this->createFrame();
-//	auto start(std::chrono::high_resolution_clock::now());
 	for (auto const& c : game->vivantes()) {
 		scene->addItem(new Cell((double) c.first, (double) c.second));
-	}
-//	auto stop(std::chrono::high_resolution_clock::now());
-}
-
-void MainWindow::addCell(const size_t& i, const size_t& j) {
-	if (game != nullptr) {
-		game->addCell(i,j);
-		this->refreshScene();
-	}
-}
-
-void MainWindow::deleteCell(const size_t& i, const size_t& j) {
-	if (game != nullptr) {
-		game->deleteCell(i, j);
-		this->refreshScene();
-	}
-}
-
-void MainWindow::inverseCell(size_t const& i, size_t const& j) {
-	if (game != nullptr) {
-		game->inverseCell(i, j);
-		this->refreshScene();
 	}
 }
 
@@ -361,6 +378,7 @@ void MainWindow::createToolBars() {
 	mainToolBar->addAction(zoomInAct);
 	mainToolBar->addAction(zoomOutAct);
 	mainToolBar->addAction(resetZoomAct);
+	this->addToolBar(mainToolBar);
 	
 }
 
@@ -368,43 +386,43 @@ void MainWindow::modifyCell(const size_t& i, const size_t& j, bool mousePressed)
 	if (game != nullptr) {
 		switch (modifyState_) {
 			case Adding: {
-				game->addCell(i,j);
+				bool modified(game->addCell(i,j));
 				if (lastModif != historic.begin()) {
 					historic.erase(historic.begin(), lastModif);
 				}
 //				Maintenant lastModif == historic.begin()
-				if (mousePressed) {
-					std::cerr << termcolor::blue << "mousePressed " << termcolor::cyan << historic.size() << " ";
-					historic.push_front({true,Motif({{i, j}} )} );
-					lastModif = historic.begin();
-					if (historic.size() >= 11) {
-						historic.pop_back();
+				if (modified) {
+					if (mousePressed) {
+						historic.push_front({true,Motif({{i, j}} )} );
+						lastModif = historic.begin();
+						if (historic.size() >= 11) {
+							historic.pop_back();
+						}
+					} else {
+						historic.front().second.push_back({i,j});
 					}
-				} else {
-					historic.front().second.push_back({i,j});
 				}
-				
-				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
+				this->updateStatusBar();
 				break;
 			}
 			case Deleting: {
-				game->deleteCell(i,j);
+				bool modified(game->deleteCell(i,j));
 				if (lastModif != historic.begin()) {
 					historic.erase(historic.begin(), lastModif);
 				}
 //				Maintenant lastModif == historic.begin()
-				if (mousePressed) {
-					std::cerr << termcolor::blue << "mousePressed " << termcolor::cyan << historic.size() << " ";
-					historic.push_front({false,Motif({{i, j}} )} );
-					lastModif = historic.begin();
-					if (historic.size() >= 11) {
-						historic.pop_back();
+				if (modified) {
+					if (mousePressed) {
+						historic.push_front({false,Motif({{i, j}} )} );
+						lastModif = historic.begin();
+						if (historic.size() >= 11) {
+							historic.pop_back();
+						}
+					} else {
+						historic.front().second.push_back({i,j});
 					}
-				} else {
-					historic.front().second.push_back({i,j});
 				}
-				
-				std::cerr << termcolor::cyan << historic.size() << termcolor::reset << std::endl;
+				this->updateStatusBar();
 				break;
 			}
 			default:
@@ -512,9 +530,22 @@ void MainWindow::resetZoom() {
 }
 
 void MainWindow::createStatusBar() {
-	statusBar()->showMessage("hey");
-	label1 = new QLabel("Hey");
-	statusBar()->addWidget(label1);
+	labels[0] = new QLabel("Historic size :");
+	statusBar()->addWidget(labels[0]);
+	labels[1] = new QLabel;
+	labels[1]->setNum(0);
+	statusBar()->addWidget(labels[1]);
+	labels[2] = new QLabel("lastModif :");
+	statusBar()->addWidget(labels[2]);
+	labels[3] = new QLabel;
+	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
+	statusBar()->addWidget(labels[3]);
+	
+}
+
+void MainWindow::updateStatusBar() {
+	labels[1]->setNum((int)historic.size());
+	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 }
 
 
