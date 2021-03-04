@@ -11,8 +11,10 @@
 class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
-	qreal currentScaleFactor;
-	bool pressed = false;
+	qreal currentScaleFactor = 1.0;
+	bool leftButtonPressed = false;
+	bool doubleLeftButtonPressed = false;
+	QPointF lastPos = QPointF();
 public:
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
 	bool viewportEvent(QEvent *event) override;
@@ -22,9 +24,11 @@ public:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
-
+	void paintEvent(QPaintEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
+	
 signals:
-	void modifyCellIntention(size_t const& i, size_t const& j, bool mousePressed);
+	void modifyCellIntention(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
 //	virtual void drawBackground(QPainter *painter, const QRectF &rect = this->rect()) override;
 };
 

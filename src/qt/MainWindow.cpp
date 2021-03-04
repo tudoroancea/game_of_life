@@ -9,7 +9,6 @@
 #include "termcolor.hpp"
 
 #include <QApplication>
-#include <QObject>
 #include <QGraphicsObject>
 #include <QPainter>
 #include <QPointF>
@@ -18,9 +17,7 @@
 #include <QEvent>
 
 #include <iterator>
-#include <list>
 #include <deque>
-#include <thread>
 #include <chrono>
 #include <iostream>
 
@@ -53,7 +50,7 @@ MainWindow::MainWindow()
 	view->setCacheMode(QGraphicsView::CacheBackground);
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
-	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, bool)));
+	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, size_t const&, size_t const&, bool)));
 	
 	this->setFocus();
 }
@@ -200,25 +197,6 @@ void MainWindow::saveSim() {
 }
 
 void MainWindow::undo() {
-//	placeholder("undo Action");
-//	if (std::distance(lastModif, historic.end()) > 1) {
-//		std::cerr << termcolor::blue << "Undo :";
-//		if (lastModif->first) {
-//			game->deleteMotif(lastModif->second);
-//			++lastModif;
-//			for (auto& jt : lastModif->second) {
-//				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-//			}
-//		} else {
-//			game->addMotif(lastModif->second);
-//			++lastModif;
-//			for (auto& jt : lastModif->second) {
-//				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-//			}
-//		}
-//		std::cout << termcolor::reset << std::endl;
-//		this->updateStatusBar();
-//		this->refreshScene();
 	if (lastModif != historic.end()) {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
@@ -229,41 +207,11 @@ void MainWindow::undo() {
 		this->updateStatusBar();
 		this->refreshScene();
 	} else {
-		std::cerr << termcolor::red << "Il n'y a pas de modification plus ancienne enregistrée." << termcolor::reset << std::endl;
+		statusBar()->showMessage("Pas de modif plus ancienne", 2000);
 	}
 }
 
 void MainWindow::redo() {
-//	placeholder("redo Action");
-//	if (lastModif != historic.begin()) {
-//		std::cerr << termcolor::blue << "Redo : ";
-//		if (lastModif->first) {
-//			game->addMotif(lastModif->second);
-//			for (auto & jt : lastModif->second) {
-//				std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-//			}
-//			--lastModif;
-//		} else {
-//			game->deleteMotif(lastModif->second);
-//			for (auto & jt : lastModif->second) {
-//				std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-//			}
-//			--lastModif;
-//		}
-//		if (lastModif == historic.begin()) {
-//			if (lastModif->first) {
-//				game->addMotif(lastModif->second);
-//				for (auto & jt : lastModif->second) {
-//					std::cerr << termcolor::green << jt << " | " << termcolor::reset;
-//				}
-//			} else {
-//				game->deleteMotif(lastModif->second);
-//				for (auto & jt : lastModif->second) {
-//					std::cerr << termcolor::red << jt << " | " << termcolor::reset;
-//				}
-//			}
-//		}
-//		std::cout << termcolor::reset << std::endl;
 	if (lastModif != historic.begin()) {
 		--lastModif;
 		if (lastModif->first) {
@@ -274,7 +222,7 @@ void MainWindow::redo() {
 		this->updateStatusBar();
 		this->refreshScene();
 	} else {
-		std::cerr << termcolor::red << "Il n'y a pas de modification plus récente enregistrée." << termcolor::reset << std::endl;
+		statusBar()->showMessage("Pas de modif plus récente", 2000);
 	}
 }
 
@@ -349,8 +297,8 @@ void MainWindow::clear() {
 }
 
 void MainWindow::createFrame() {
-	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2));
-	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES));
+	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
+	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES)); // NOLINT(bugprone-integer-division)
 	xaxis->setPen(QPen(Qt::red));
 	yaxis->setPen(QPen(Qt::green));
 	scene->addItem(xaxis);
@@ -398,44 +346,68 @@ void MainWindow::createToolBars() {
 	
 }
 
-void MainWindow::modifyCell(const size_t& i, const size_t& j, bool mousePressed) {
+void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed) {
+	Q_UNUSED(lastI)
+	Q_UNUSED(lastJ)
 	if (game != nullptr) {
 		switch (modifyState_) {
 			case Adding: {
-				bool modified(game->addCell(i,j));
 				if (lastModif != historic.begin()) {
 					historic.erase(historic.begin(), lastModif);
 				}
 //				Maintenant lastModif == historic.begin()
-				if (modified) {
-					if (mousePressed) {
-						historic.push_front({true,Motif({{i, j}} )} );
-						lastModif = historic.begin();
-						if (historic.size() >= 11) {
-							historic.pop_back();
+				if (dist(i,lastI) > 1 || dist(j,lastJ) > 1) {
+//					On sera toujours dans la situation où on a bougé, donc on ne doit pas créer un nouveau motif dans historic
+					Motif seg(segment(i,j,lastI,lastJ));
+					std::vector<bool> ajouts(game->addMotif(seg));
+					for (size_t k(0); k < ajouts.size(); ++k) {
+						if (ajouts[k]) {
+							historic.front().second.push_back(seg[k]);
 						}
-					} else {
-						historic.front().second.push_back({i,j});
+					}
+				} else {
+					bool modified(game->addCell(i,j));
+					if (modified) {
+						if (mousePressed) {
+							historic.push_front({true,Motif({{i, j}} )} );
+							lastModif = historic.begin();
+							if (historic.size() >= 11) {
+								historic.pop_back();
+							}
+						} else {
+							historic.front().second.push_back({i,j});
+						}
 					}
 				}
 				this->updateStatusBar();
 				break;
 			}
 			case Deleting: {
-				bool modified(game->deleteCell(i,j));
 				if (lastModif != historic.begin()) {
 					historic.erase(historic.begin(), lastModif);
 				}
 //				Maintenant lastModif == historic.begin()
-				if (modified) {
-					if (mousePressed) {
-						historic.push_front({false,Motif({{i, j}} )} );
-						lastModif = historic.begin();
-						if (historic.size() >= 11) {
-							historic.pop_back();
+				if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1) {
+					bool modified(game->deleteCell(i,j));
+					if (modified) {
+						if (mousePressed) {
+							historic.push_front({false,Motif({{i, j}} )} );
+							lastModif = historic.begin();
+							if (historic.size() >= 11) {
+								historic.pop_back();
+							}
+						} else {
+							historic.front().second.push_back({i,j});
 						}
-					} else {
-						historic.front().second.push_back({i,j});
+					}
+				} else {
+//					On sera toujours dans la situation où on a bougé, donc on ne doit pas créer un nouveau motif dans historic
+					Motif seg(segment(i,j,lastI,lastJ));
+					std::vector<bool> ajouts(game->deleteMotif(seg));
+					for (size_t k(0); k < ajouts.size(); ++k) {
+						if (ajouts[k]) {
+							historic.front().second.push_back(seg[k]);
+						}
 					}
 				}
 				this->updateStatusBar();
@@ -527,7 +499,13 @@ bool MainWindow::event(QEvent* event) {
 
 void MainWindow::paintEvent(QPaintEvent* event) {
 //	auto start(std::chrono::high_resolution_clock::now());
+//	view->hide();
 	QWidget::paintEvent(event);
+//	QPainter painter(view);
+//	painter.setBrush(Qt::blue);
+//	painter.setPen(Qt::red);
+//	painter.drawRect(QRect(0,0,200,200));
+//	painter.end();
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
 }
@@ -562,6 +540,10 @@ void MainWindow::createStatusBar() {
 void MainWindow::updateStatusBar() {
 	labels[1]->setNum((int)historic.size());
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
+}
+
+void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
+	statusBar()->showMessage(message.c_str(), timer);
 }
 
 

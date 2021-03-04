@@ -16,7 +16,7 @@
 #include "termcolor.hpp"
 #include "Cell.hpp"
 
-GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent) : QGraphicsView(scene, parent), currentScaleFactor(1.0) {
+GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent) : QGraphicsView(scene, parent) {
 	this->setMouseTracking(true);
 }
 
@@ -60,26 +60,54 @@ qreal& GraphicsView::rscaleFactor() {
 
 void GraphicsView::mousePressEvent(QMouseEvent* event) {
 	QGraphicsView::mousePressEvent(event);
-	pressed = true;
-	auto pressEvent(dynamic_cast<QMouseEvent*>(event));
-	auto res(this->mapToScene(pressEvent->pos()));
-	emit modifyCellIntention(size_t(res.x()), size_t(res.y()), true);
+	if (event->button() == Qt::LeftButton) {
+		leftButtonPressed = true;
+		auto pressEvent(dynamic_cast<QMouseEvent*>(event));
+		auto res(this->mapToScene(pressEvent->pos()));
+		lastPos = res;
+		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), true);
+	}
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
 	QGraphicsView::mouseMoveEvent(event);
-	if (pressed) {
+	if (leftButtonPressed) {
 		auto pressEvent(dynamic_cast<QMouseEvent*>(event));
 		auto res(this->mapToScene(pressEvent->pos()));
-		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), false);
+		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), false);
+		lastPos = res;
 	}
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
 	QGraphicsView::mouseReleaseEvent(event);
-	pressed = false;
-	auto pressEvent(dynamic_cast<QMouseEvent*>(event));
-	auto res(this->mapToScene(pressEvent->pos()));
-	emit modifyCellIntention(size_t(res.x()), size_t(res.y()), false);
+	if (leftButtonPressed && !(event->buttons() & Qt::LeftButton)) {
+		leftButtonPressed = false;
+		auto pressEvent(dynamic_cast<QMouseEvent*>(event));
+		auto res(this->mapToScene(pressEvent->pos()));
+		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), false);
+		lastPos = res;
+	}
+	if (doubleLeftButtonPressed && !(event->buttons() & Qt::LeftButton)) {
+		doubleLeftButtonPressed = false;
+		
+	}
+}
+
+void GraphicsView::paintEvent(QPaintEvent* event) {
+	QGraphicsView::paintEvent(event);
+//	QPainter painter(viewport());
+//	painter.setBrush(Qt::blue);
+//	painter.setPen(Qt::red);
+//	painter.drawRect(QRect(0,0,200,200));
+//	painter.end();
+}
+
+void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
+	QGraphicsView::mouseDoubleClickEvent(event);
+	if (event->button() == Qt::LeftButton) {
+		std::cerr << termcolor::red << "Double click" << termcolor::reset << std::endl;
+		doubleLeftButtonPressed = true;
+	}
 }
 

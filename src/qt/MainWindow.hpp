@@ -141,8 +141,8 @@ public:
 	void paintEvent(QPaintEvent* event) override;
 
 public slots:
-	
-	void modifyCell(size_t const& i, size_t const& j, bool mousePressed);
+	void showStatusBarMessage(const string& message, int const& timer);
+	void modifyCell(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
 };
 
 

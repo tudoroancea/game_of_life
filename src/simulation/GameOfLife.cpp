@@ -112,13 +112,15 @@ bool GameOfLife::inverseCell(size_t const& i, size_t const& j) {
 	}
 }
 
-GameOfLife& GameOfLife::addMotif(Motif const& motif) {
-	for (auto it(motif.cbegin()); it != motif.cend(); ++it) addCell(it->first, it->second);
-	return *this;
+std::vector<bool> GameOfLife::addMotif(Motif const& motif) {
+	std::vector<bool> res;
+	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(addCell(it->first, it->second));
+	return res;
 }
-GameOfLife& GameOfLife::deleteMotif(Motif const& motif) {
-	for (auto it(motif.cbegin()); it != motif.cend(); ++it) deleteCell(it->first, it->second);
-	return *this;
+std::vector<bool> GameOfLife::deleteMotif(Motif const& motif) {
+	std::vector<bool> res;
+	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(deleteCell(it->first, it->second));
+	return res;
 }
 GameOfLife& GameOfLife::wipe() {
 	for (auto it(vivantes_.begin()); it != vivantes_.end();) {
@@ -521,13 +523,15 @@ bool GameOfLifeView::inverseCell(size_t const& i, size_t const& j) {
 	}
 }
 
-GameOfLifeView& GameOfLifeView::addMotif(Motif const& motif) {
-	for (auto it(motif.cbegin()); it != motif.cend(); ++it) this->addCell(it->first, it->second);
-	return *this;
+std::vector<bool> GameOfLifeView::addMotif(Motif const& motif) {
+	std::vector<bool> res;
+	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(addCell(it->first, it->second));
+	return res;
 }
-GameOfLifeView& GameOfLifeView::deleteMotif(Motif const& motif) {
-	for (auto it(motif.cbegin()); it != motif.cend(); ++it) this->deleteCell(it->first, it->second);
-	return *this;
+std::vector<bool> GameOfLifeView::deleteMotif(Motif const& motif) {
+	std::vector<bool> res;
+	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(deleteCell(it->first, it->second));
+	return res;
 }
 GameOfLifeView& GameOfLifeView::wipe() {
 	for (auto it(vivantes_visibles.begin()); it != vivantes_visibles.end();) {
