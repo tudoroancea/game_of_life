@@ -27,7 +27,10 @@ MainWindow::MainWindow()
 		: lastModif(historic.begin()),
 		  scene(new QGraphicsScene(0.0, 0.0, MAX_LIGNES, MAX_COLONNES)),
 		  view(new GraphicsView(scene, this)),
-		  game(new GameOfLifeView)
+		  game(new GameOfLifeView),
+		  newSelectedZone(new QGraphicsRectItem()),
+		  currentSelectedZone(new QGraphicsPolygonItem()),
+		  path(QPointF(0.0,0.0))
 {
 	labels.fill(nullptr);
 	createActions();
@@ -51,6 +54,15 @@ MainWindow::MainWindow()
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
 	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, size_t const&, size_t const&, bool)));
+	
+//	Selection zone
+//	connect(view, SIGNAL(addSelectionIntention()), this, SLOT(addSelection()));
+//	connect(view, SIGNAL(changeSelectionIntention(qreal const&, qreal const&)), this, SLOT(changeSelection(qreal const&, qreal const&)));
+//	connect(view, SIGNAL(beginSelectionIntention(qreal const&, qreal const&)), this, SLOT(beginSelection(qreal const&, qreal const&)));
+//	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+//	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
+//	path.setFillRule(Qt::WindingFill);
+//	path.addRect(50.0,50.0,100.0,100.0);
 	
 	this->setFocus();
 }
@@ -147,6 +159,8 @@ void MainWindow::createMenus() {
 }
 
 MainWindow::~MainWindow() {
+	delete currentSelectedZone;
+	delete newSelectedZone;
 	delete scene;
 	delete game;
 	delete view;
@@ -319,11 +333,25 @@ void MainWindow::createFrame() {
 }
 
 void MainWindow::refreshScene() {
+//	auto items(scene->items());
+//	for (const auto & item : items) {
+//	    if (typeid(*item) == typeid(QGraphicsRectItem))
+//	}
 	scene->clear();
 	this->createFrame();
 	for (auto const& c : game->vivantes()) {
 		scene->addItem(new Cell((double) c.first, (double) c.second));
 	}
+//	scene->setSelectionArea(path);
+//	scene->addItem(newSelectedZone);
+//	scene->addItem(currentSelectedZone);
+
+//	auto ptr1(new QGraphicsPolygonItem(QRectF(0,0,200,200)));
+//	QColor col(Qt::cyan);
+//	col.setAlphaF(0.5);
+//	ptr1->setBrush(QBrush(col));
+////	selectedZone->setPolygon(selectedZone->polygon().united(newPolygon));
+//	scene->addItem(ptr1);
 }
 
 void MainWindow::createToolBars() {
@@ -363,6 +391,7 @@ void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& last
 					for (size_t k(0); k < ajouts.size(); ++k) {
 						if (ajouts[k]) {
 							historic.front().second.push_back(seg[k]);
+							scene->addItem(new Cell((double) X(seg[k]), (double) Y(seg[k])));
 						}
 					}
 				} else {
@@ -370,16 +399,18 @@ void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& last
 					if (modified) {
 						if (mousePressed) {
 							historic.push_front({true,Motif({{i, j}} )} );
+							scene->addItem(new Cell((double)i, (double)j));
 							lastModif = historic.begin();
 							if (historic.size() >= 11) {
 								historic.pop_back();
 							}
 						} else {
 							historic.front().second.push_back({i,j});
+							scene->addItem(new Cell((double)i, (double)j));
 						}
 					}
 				}
-				this->updateStatusBar();
+//				this->updateStatusBar();
 				break;
 			}
 			case Deleting: {
@@ -398,6 +429,7 @@ void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& last
 							}
 						} else {
 							historic.front().second.push_back({i,j});
+//							scene->itemAt((double)i, (double)j, QTransform())->setEnabled(false);
 						}
 					}
 				} else {
@@ -544,6 +576,32 @@ void MainWindow::updateStatusBar() {
 
 void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
 	statusBar()->showMessage(message.c_str(), timer);
+}
+
+void MainWindow::beginSelection(const qreal& i, const qreal& j) {
+	Q_UNUSED(i)
+	Q_UNUSED(j)
+	//	if (modifyState_ == Selecting) {
+//		newSelectedZone->setRect(i, j, 0.0, 0.0);
+//		this->refreshScene();
+//	}
+}
+
+void MainWindow::changeSelection(const qreal& i, const qreal& j) {
+	Q_UNUSED(i)
+	Q_UNUSED(j)
+	//	if (modifyState_ == Selecting) {
+//		newSelectedZone->setRect(newSelectedZone->x(), newSelectedZone->y(), i-newSelectedZone->x(), j-newSelectedZone->y());
+//		this->refreshScene();
+//	}
+}
+
+void MainWindow::addSelection() {
+//	if (modifyState_ == Selecting) {
+//		currentSelectedZone->setPolygon(currentSelectedZone->polygon().united(newSelectedZone->rect()));
+//		newSelectedZone->setRect(QRectF());
+//		this->refreshScene();
+//	}
 }
 
 

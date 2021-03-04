@@ -32,8 +32,6 @@ class QAction;
 class QEvent;
 class QToolBar;
 class QComboBox;
-class QPolygon;
-class QStatusBar;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
@@ -62,6 +60,11 @@ private:
 	GraphicsView* view;
 	GameOfLifeView* game;
 	std::array<QLabel*,10> labels;
+	
+//	Sélection
+	QGraphicsRectItem* newSelectedZone;
+	QGraphicsPolygonItem* currentSelectedZone;
+	QPainterPath path;
 
 //  Menus
 	QMenu* fileMenu;
@@ -143,6 +146,9 @@ public:
 public slots:
 	void showStatusBarMessage(const string& message, int const& timer);
 	void modifyCell(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
+	void beginSelection(qreal const& i, qreal const& j);
+	void changeSelection(qreal const& i, qreal const&j);
+	void addSelection();
 };
 
 

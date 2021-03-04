@@ -76,6 +76,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
 		auto res(this->mapToScene(pressEvent->pos()));
 		emit modifyCellIntention(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), false);
 		lastPos = res;
+		emit changeSelectionIntention(res.x(), res.y());
 	}
 }
 
@@ -90,7 +91,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
 	}
 	if (doubleLeftButtonPressed && !(event->buttons() & Qt::LeftButton)) {
 		doubleLeftButtonPressed = false;
-		
+		emit addSelectionIntention();
 	}
 }
 
@@ -108,6 +109,9 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
 	if (event->button() == Qt::LeftButton) {
 		std::cerr << termcolor::red << "Double click" << termcolor::reset << std::endl;
 		doubleLeftButtonPressed = true;
+		auto doubleClickEvent(dynamic_cast<QMouseEvent *>(event));
+		auto res(this->mapToScene(doubleClickEvent->pos()));
+		emit beginSelectionIntention(res.x(), res.y());
 	}
 }
 

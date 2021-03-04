@@ -29,6 +29,9 @@ public:
 	
 signals:
 	void modifyCellIntention(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
+	void beginSelectionIntention(qreal const& i, qreal const& j);
+	void changeSelectionIntention(qreal const& i, qreal const& j);
+	void addSelectionIntention();
 //	virtual void drawBackground(QPainter *painter, const QRectF &rect = this->rect()) override;
 };
 
