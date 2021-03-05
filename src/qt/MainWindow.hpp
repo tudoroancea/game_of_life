@@ -37,10 +37,11 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
+//	Timer
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
 	
-//	Etat des évenements
+//	Event/Keys state
 	bool hasTouchEvent = false;
 	bool ctrlPressed = false;
 
@@ -48,54 +49,32 @@ private:
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
 	
-//	Historique
+//	Historic for undo/redo modifications
 	std::deque<std::pair<bool,Motif>> historic;
 	std::deque<std::pair<bool,Motif>>::iterator lastModif;
-//	Quand on fait undo on ajoute/supprime le motif désigné par lastModif, puis on l'incrémente. Si lastModif == historic.end()-1, on ne fait rien
-//	Quand on fait redo on ajoute/supprime le motif désiné par lastModif, puis on le décremente. SI lastModif == historic.begin(), on ne fait rien
-//  Quand on recommence à modifier, on supprime tous les motifs avant lastModif
 	
-	//	Stockage des infos
+//	Simulation data
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
 	std::array<QLabel*,10> labels;
 	
-//	Sélection
+//	Zone de sélection et copy/paste
+	QRectF newSelectedZoneRect;
 	QGraphicsRectItem* newSelectedZone;
+	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
-	QPainterPath path;
+	Motif copiedMotif;
 
 //  Menus
-	QMenu* fileMenu;
-	QMenu* editMenu;
-	QMenu* viewMenu;
-	QMenu* helpMenu;
+	std::unordered_map<std::string, QMenu*> menus;
 	QComboBox* stateBox;
 	QToolBar* mainToolBar;
-//	QStatusBar* statusBar = nullptr;
 
 //	Actions
-	QAction* newSimAct;
-	QAction* openAct;
-	QAction* saveMotifAct;
-	QAction* saveSimAct;
-	QAction* aboutAct;
+	std::unordered_map<std::string, QAction*> actions;
 	
-	QAction* undoAct;
-	QAction* redoAct;
-	QAction* copyAct;
-	QAction* pasteAct;
-	QAction* cutAct;
-	QAction* clearAct;
-	
-	QAction* zoomInAct;
-	QAction* zoomOutAct;
-	QAction* resetZoomAct;
-	QAction* pauseResumeAct;
-
-
-//	utility methods
+//	Utility methods
 	void createActions();
 	void createMenus();
 	void createToolBars();
@@ -105,7 +84,7 @@ private:
 	void refreshScene();
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();
-//	void setModifyState(CellModifier const& modifyState_);
+	void setSelectionZoneColors();
 
 private slots:
 	void newSim();
@@ -113,14 +92,12 @@ private slots:
 	void saveMotif();
 	void saveSim();
 	void about();
-	
 	void undo();
 	void redo();
 	void copy();
 	void paste();
 	void cut();
 	void clear();
-	
 	void zoomIn();
 	void zoomOut();
 	void resetZoom();
@@ -132,7 +109,7 @@ public:
 	MainWindow();
 	~MainWindow() override;
 	
-	//	Events handlers
+//	Events handlers
 	void timerEvent(QTimerEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void keyReleaseEvent(QKeyEvent* event) override;
@@ -145,7 +122,7 @@ public:
 
 public slots:
 	void showStatusBarMessage(const string& message, int const& timer);
-	void modifyCell(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
+	void singleViewportClick(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
 	void beginSelection(qreal const& i, qreal const& j);
 	void changeSelection(qreal const& i, qreal const&j);
 	void addSelection();

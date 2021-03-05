@@ -15,6 +15,7 @@
 #include <QTransform>
 #include <QtWidgets>
 #include <QEvent>
+#include <QGraphicsPathItem>
 
 #include <iterator>
 #include <deque>
@@ -29,8 +30,7 @@ MainWindow::MainWindow()
 		  view(new GraphicsView(scene, this)),
 		  game(new GameOfLifeView),
 		  newSelectedZone(new QGraphicsRectItem()),
-		  currentSelectedZone(new QGraphicsPolygonItem()),
-		  path(QPointF(0.0,0.0))
+		  currentSelectedZone(new QGraphicsPolygonItem())
 {
 	labels.fill(nullptr);
 	createActions();
@@ -38,7 +38,7 @@ MainWindow::MainWindow()
 	createToolBars();
 	createStatusBar();
 	
-	this->setWindowTitle("golbis");
+	this->setWindowTitle("Conway's Game of Life Emulator");
 	this->resize(500,500);
 	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
@@ -53,16 +53,14 @@ MainWindow::MainWindow()
 	view->setCacheMode(QGraphicsView::CacheBackground);
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
-	connect(view, SIGNAL(modifyCellIntention(size_t const&, size_t const&, size_t const&, size_t const&, bool)), this, SLOT(modifyCell(size_t const&, size_t const&, size_t const&, size_t const&, bool)));
+	connect(view, SIGNAL(singleLeftClick(size_t const&, size_t const&, size_t const&, size_t const&, bool)), this, SLOT(singleViewportClick(size_t const&, size_t const&, size_t const&, size_t const&, bool)));
+//	connect(view, SIGNAL(singleRightClick(qreal const& i, qreal const& j)), this, SLOT(singleRightClick(qreal const& i, qreal const& j)));
 	
 //	Selection zone
-//	connect(view, SIGNAL(addSelectionIntention()), this, SLOT(addSelection()));
-//	connect(view, SIGNAL(changeSelectionIntention(qreal const&, qreal const&)), this, SLOT(changeSelection(qreal const&, qreal const&)));
-//	connect(view, SIGNAL(beginSelectionIntention(qreal const&, qreal const&)), this, SLOT(beginSelection(qreal const&, qreal const&)));
-//	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
-//	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
-//	path.setFillRule(Qt::WindingFill);
-//	path.addRect(50.0,50.0,100.0,100.0);
+	connect(view, SIGNAL(addSelectionIntention()), this, SLOT(addSelection()));
+	connect(view, SIGNAL(changeSelectionIntention(qreal const&, qreal const&)), this, SLOT(changeSelection(qreal const&, qreal const&)));
+	connect(view, SIGNAL(doubleLeftClick(qreal const&, qreal const&)), this, SLOT(beginSelection(qreal const&, qreal const&)));
+	this->setSelectionZoneColors();
 	
 	this->setFocus();
 }
@@ -70,128 +68,109 @@ MainWindow::MainWindow()
 
 void MainWindow::createActions() {
 //	File Menu ========================================================================================
-	newSimAct = new QAction("New Simulation", this);
-	newSimAct->setShortcut(QKeySequence::New);
-	connect(newSimAct, SIGNAL(triggered()), this, SLOT(newSim()));
+	actions["newSimAct"] = new QAction("New Simulation", this);
+	actions["newSimAct"]->setShortcut(QKeySequence::New);
+	connect(actions["newSimAct"], SIGNAL(triggered()), this, SLOT(newSim()));
 	
-	openAct = new QAction("Open");
-	openAct->setShortcut(QKeySequence::Open);
-	connect(openAct, &QAction::triggered, this, &MainWindow::open);
+	actions["openAct"] = new QAction("Open");
+	actions["openAct"]->setShortcut(QKeySequence::Open);
+	connect(actions["openAct"], &QAction::triggered, this, &MainWindow::open);
 	
-	saveMotifAct = new QAction("Save Motif", this);
-	saveMotifAct->setIcon(QIcon(":/images/icons8-save.png"));
-	connect(saveMotifAct, &QAction::triggered, this, &MainWindow::saveMotif);
+	actions["saveMotifAct"] = new QAction("Save Motif", this);
+	actions["saveMotifAct"]->setIcon(QIcon(":/images/icons8-save.png"));
+	connect(actions["saveMotifAct"], &QAction::triggered, this, &MainWindow::saveMotif);
 	
-	saveSimAct = new QAction("Save Simulation", this);
-	connect(saveSimAct, &QAction::triggered, this, &MainWindow::saveSim);
+	actions["saveSimAct"] = new QAction("Save Simulation", this);
+	connect(actions["saveSimAct"], &QAction::triggered, this, &MainWindow::saveSim);
 	
 
 //	Edit Menu ========================================================================================
-	undoAct = new QAction(QIcon(":/images/icons8-undo.png"),"Undo", this);
-	undoAct->setShortcut(QKeySequence::Undo);
-	connect(undoAct, &QAction::triggered, this, &MainWindow::undo);
+	actions["undoAct"] = new QAction(QIcon(":/images/icons8-undo.png"),"Undo", this);
+	actions["undoAct"]->setShortcut(QKeySequence::Undo);
+	connect(actions["undoAct"], &QAction::triggered, this, &MainWindow::undo);
 	
-	redoAct = new QAction(QIcon(":/images/icons8-redo.png"), "Redo", this);
-	redoAct->setShortcut(QKeySequence::Redo);
-	connect(redoAct, &QAction::triggered, this, &MainWindow::redo);
+	actions["redoAct"] = new QAction(QIcon(":/images/icons8-redo.png"), "Redo", this);
+	actions["redoAct"]->setShortcut(QKeySequence::Redo);
+	connect(actions["redoAct"], &QAction::triggered, this, &MainWindow::redo);
 	
-	copyAct = new QAction(QIcon(":/images/icons8-copy.png"), "Copy", this);
-	copyAct->setShortcut(QKeySequence::Copy);
-	connect(copyAct, &QAction::triggered, this, &MainWindow::copy);
+	actions["copyAct"] = new QAction(QIcon(":/images/icons8-copy.png"), "Copy", this);
+	actions["copyAct"]->setShortcut(QKeySequence::Copy);
+	connect(actions["copyAct"], &QAction::triggered, this, &MainWindow::copy);
 	
-	pasteAct = new QAction(QIcon(":/images/icons8-paste.png"), "Paste", this);
-	pasteAct->setShortcut(QKeySequence::Paste);
-	connect(pasteAct, &QAction::triggered, this, &MainWindow::paste);
+	actions["pasteAct"] = new QAction(QIcon(":/images/icons8-paste.png"), "Paste", this);
+	actions["pasteAct"]->setShortcut(QKeySequence::Paste);
+	connect(actions["pasteAct"], &QAction::triggered, this, &MainWindow::paste);
 	
-	cutAct = new QAction(QIcon(":/images/icons8-cut.png"), "Cut", this);
-	cutAct->setShortcut(QKeySequence::Cut);
-	connect(cutAct, &QAction::triggered, this, &MainWindow::cut);
+	actions["cutAct"] = new QAction(QIcon(":/images/icons8-cut.png"), "Cut", this);
+	actions["cutAct"]->setShortcut(QKeySequence::Cut);
+	connect(actions["cutAct"], &QAction::triggered, this, &MainWindow::cut);
 	
-	clearAct = new QAction(QIcon(":/images/icons8-delete.png"), "Clear", this);
-	clearAct->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_K));
-	connect(clearAct, &QAction::triggered, this, &MainWindow::clear);
+	actions["clearAct"] = new QAction(QIcon(":/images/icons8-delete.png"), "Clear", this);
+	actions["clearAct"]->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_K));
+	connect(actions["clearAct"], &QAction::triggered, this, &MainWindow::clear);
 	
 //	View Menu ========================================================================================
-	zoomInAct = new QAction(QIcon(":/images/icons8-zoom_in.png"), "Zoom In", this);
-	zoomInAct->setShortcut(QKeySequence::ZoomIn);
-	connect(zoomInAct, &QAction::triggered, this, &MainWindow::zoomIn);
+	actions["zoomInAct"] = new QAction(QIcon(":/images/icons8-zoom_in.png"), "Zoom In", this);
+	actions["zoomInAct"]->setShortcut(QKeySequence::ZoomIn);
+	connect(actions["zoomInAct"], &QAction::triggered, this, &MainWindow::zoomIn);
 	
-	zoomOutAct = new QAction(QIcon(":/images/icons8-zoom_out.png"),"Zoom Out", this);
-	zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-	connect(zoomOutAct, &QAction::triggered, this, &MainWindow::zoomOut);
+	actions["zoomOutAct"] = new QAction(QIcon(":/images/icons8-zoom_out.png"),"Zoom Out", this);
+	actions["zoomOutAct"]->setShortcut(QKeySequence::ZoomOut);
+	connect(actions["zoomOutAct"], &QAction::triggered, this, &MainWindow::zoomOut);
 	
-	resetZoomAct = new QAction(QIcon(":/images/icons8-zoom_to_actual_size.png"), "Reset Zoom", this);
-	resetZoomAct->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_0));
-	connect(resetZoomAct, &QAction::triggered, this, &MainWindow::resetZoom);
+	actions["resetZoomAct"] = new QAction(QIcon(":/images/icons8-zoom_to_actual_size.png"), "Reset Zoom", this);
+	actions["resetZoomAct"]->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_0));
+	connect(actions["resetZoomAct"], &QAction::triggered, this, &MainWindow::resetZoom);
 	
-	pauseResumeAct = new QAction(QIcon(":/images/icons8-play.png"),"Pause/Resume", this);
-	pauseResumeAct->setShortcut(QKeySequence(Qt::Key_Space));
-	connect(pauseResumeAct, &QAction::triggered, this, &MainWindow::pauseResume);
+	actions["pauseResumeAct"] = new QAction(QIcon(":/images/icons8-play.png"),"Pause/Resume", this);
+	actions["pauseResumeAct"]->setShortcut(QKeySequence(Qt::Key_Space));
+	connect(actions["pauseResumeAct"], &QAction::triggered, this, &MainWindow::pauseResume);
 	
 //	Help Menu ========================================================================================
-	aboutAct = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
-	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
+	actions["aboutAct"] = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
+	connect(actions["aboutAct"], &QAction::triggered, this, &MainWindow::about);
 }
 
 void MainWindow::createMenus() {
-	fileMenu = menuBar()->addMenu("File");
-	fileMenu->addAction(newSimAct);
-	fileMenu->addAction(openAct);
-	fileMenu->addAction(saveMotifAct);
-	fileMenu->addAction(saveSimAct);
+	menus["fileMenu"] = menuBar()->addMenu("File");
+	menus["fileMenu"]->addAction(actions["newSimAct"]);
+	menus["fileMenu"]->addAction(actions["openAct"]);
+	menus["fileMenu"]->addAction(actions["saveMotifAct"]);
+	menus["fileMenu"]->addAction(actions["saveSimAct"]);
 	
-	editMenu = menuBar()->addMenu("Edit");
-	editMenu->addAction(undoAct);
-	editMenu->addAction(redoAct);
-	editMenu->addAction(copyAct);
-	editMenu->addAction(cutAct);
-	editMenu->addAction(pasteAct);
-	editMenu->addAction(clearAct);
+	menus["editMenu"] = menuBar()->addMenu("Edit");
+	menus["editMenu"]->addAction(actions["undoAct"]);
+	menus["editMenu"]->addAction(actions["redoAct"]);
+	menus["editMenu"]->addAction(actions["copyAct"]);
+	menus["editMenu"]->addAction(actions["cutAct"]);
+	menus["editMenu"]->addAction(actions["pasteAct"]);
+	menus["editMenu"]->addAction(actions["clearAct"]);
 	
-	viewMenu = menuBar()->addMenu("View");
-	editMenu->addAction(pauseResumeAct);
-	viewMenu->addAction(zoomInAct);
-	viewMenu->addAction(zoomOutAct);
-	viewMenu->addAction(resetZoomAct);
+	menus["viewMenu"] = menuBar()->addMenu("View");
+	menus["viewMenu"]->addAction(actions["pauseResumeAct"]);
+	menus["viewMenu"]->addAction(actions["zoomInAct"]);
+	menus["viewMenu"]->addAction(actions["zoomOutAct"]);
+	menus["viewMenu"]->addAction(actions["resetZoomAct"]);
 
-	helpMenu = menuBar()->addMenu("Help");
-	helpMenu->addAction(aboutAct);
+	menus["helpMenu"] = menuBar()->addMenu("Help");
+	menus["helpMenu"]->addAction(actions["aboutAct"]);
 }
 
 MainWindow::~MainWindow() {
-	delete currentSelectedZone;
-	delete newSelectedZone;
 	delete scene;
 	delete game;
 	delete view;
+	for (auto const& action : actions) {
+		delete action.second;
+	}
 	for (const auto & label : labels) {
 		delete label;
 	}
-	
-	delete newSimAct;
-	delete openAct;
-	delete saveMotifAct;
-	delete saveSimAct;
-	delete aboutAct;
-	
-	delete undoAct;
-	delete redoAct;
-	delete copyAct;
-	delete pasteAct;
-	delete cutAct;
-	delete clearAct;
-	
-	delete zoomInAct;
-	delete zoomOutAct;
-	delete pauseResumeAct;
-	
-	delete fileMenu;
-	delete editMenu;
-	delete viewMenu;
-	delete helpMenu;
+	for (auto const& menu : menus) {
+	    delete menu.second;
+	}
 	delete stateBox;
 	delete mainToolBar;
-//	delete statusBar;
 }
 
 void MainWindow::placeholder(const char* str) {
@@ -286,13 +265,13 @@ void MainWindow::pauseResume() {
 	if (timerId != 0) {
 		this->killTimer(timerId);
 		timerId = 0;
-		pauseResumeAct->setIcon(QIcon(":/images/icons8-play.png"));
+		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-play.png"));
 	} else {
 		timerId = this->startTimer(period);
 		historic.erase(historic.begin(), historic.end());
 		lastModif = historic.begin();
 		this->updateStatusBar();
-		pauseResumeAct->setIcon(QIcon(":/images/icons8-pause.png"));
+		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-pause.png"));
 	}
 }
 
@@ -333,25 +312,16 @@ void MainWindow::createFrame() {
 }
 
 void MainWindow::refreshScene() {
-//	auto items(scene->items());
-//	for (const auto & item : items) {
-//	    if (typeid(*item) == typeid(QGraphicsRectItem))
-//	}
 	scene->clear();
 	this->createFrame();
 	for (auto const& c : game->vivantes()) {
 		scene->addItem(new Cell((double) c.first, (double) c.second));
 	}
-//	scene->setSelectionArea(path);
-//	scene->addItem(newSelectedZone);
-//	scene->addItem(currentSelectedZone);
-
-//	auto ptr1(new QGraphicsPolygonItem(QRectF(0,0,200,200)));
-//	QColor col(Qt::cyan);
-//	col.setAlphaF(0.5);
-//	ptr1->setBrush(QBrush(col));
-////	selectedZone->setPolygon(selectedZone->polygon().united(newPolygon));
-//	scene->addItem(ptr1);
+	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
+	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
+	this->setSelectionZoneColors();
+	scene->addItem(newSelectedZone);
+	scene->addItem(currentSelectedZone);
 }
 
 void MainWindow::createToolBars() {
@@ -363,18 +333,18 @@ void MainWindow::createToolBars() {
 	connect(stateBox, QOverload<int>::of(&QComboBox::activated), this, &MainWindow::setModifyState);
 	mainToolBar = new QToolBar;
 	mainToolBar->addWidget(stateBox);
-	mainToolBar->addAction(pauseResumeAct);
-	mainToolBar->addAction(clearAct);
-	mainToolBar->addAction(undoAct);
-	mainToolBar->addAction(redoAct);
-	mainToolBar->addAction(zoomInAct);
-	mainToolBar->addAction(zoomOutAct);
-	mainToolBar->addAction(resetZoomAct);
+	mainToolBar->addAction(actions["pauseResumeAct"]);
+	mainToolBar->addAction(actions["clearAct"]);
+	mainToolBar->addAction(actions["undoAct"]);
+	mainToolBar->addAction(actions["redoAct"]);
+	mainToolBar->addAction(actions["zoomInAct"]);
+	mainToolBar->addAction(actions["zoomOutAct"]);
+	mainToolBar->addAction(actions["resetZoomAct"]);
 	this->addToolBar(mainToolBar);
 	
 }
 
-void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed) {
+void MainWindow::singleViewportClick(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed) {
 	Q_UNUSED(lastI)
 	Q_UNUSED(lastJ)
 	if (game != nullptr) {
@@ -445,6 +415,15 @@ void MainWindow::modifyCell(size_t const& i, size_t const& j, size_t const& last
 				this->updateStatusBar();
 				break;
 			}
+			case Selecting: {
+//				if (!currentSelectedZonePolygon.contains(QPointF(i,j))) {
+//				    newSelectedZoneRect = QRectF();
+//				    newSelectedZone->setRect(newSelectedZoneRect);
+//				    currentSelectedZonePolygon = QPolygonF();
+//				    currentSelectedZone->setPolygon(currentSelectedZonePolygon);
+//				}
+			    break;
+			}
 			default:
 				break;
 		}
@@ -484,8 +463,13 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_D:
 			this->setModifyState(Deleting);
 			break;
-		case Qt::Key_L:
+		case Qt::Key_L: {
+			newSelectedZoneRect = QRectF();
+			newSelectedZone->setRect(newSelectedZoneRect);
+			currentSelectedZonePolygon = QPolygonF();
+			currentSelectedZone->setPolygon(currentSelectedZonePolygon);
 		    break;
+		}
 	}
 	if (event->modifiers() & Qt::CTRL) {
 		ctrlPressed = true;
@@ -579,29 +563,40 @@ void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
 }
 
 void MainWindow::beginSelection(const qreal& i, const qreal& j) {
-	Q_UNUSED(i)
-	Q_UNUSED(j)
-	//	if (modifyState_ == Selecting) {
-//		newSelectedZone->setRect(i, j, 0.0, 0.0);
-//		this->refreshScene();
-//	}
+	if (modifyState_ == Selecting) {
+		newSelectedZoneRect.moveTo(i,j);
+		newSelectedZone->setRect(newSelectedZoneRect);
+		this->refreshScene();
+	}
 }
 
 void MainWindow::changeSelection(const qreal& i, const qreal& j) {
-	Q_UNUSED(i)
-	Q_UNUSED(j)
-	//	if (modifyState_ == Selecting) {
-//		newSelectedZone->setRect(newSelectedZone->x(), newSelectedZone->y(), i-newSelectedZone->x(), j-newSelectedZone->y());
-//		this->refreshScene();
-//	}
+	if (modifyState_ == Selecting) {
+		newSelectedZoneRect.setHeight(j-newSelectedZoneRect.y());
+		newSelectedZoneRect.setWidth(i-newSelectedZoneRect.x());
+		newSelectedZone->setRect(newSelectedZoneRect);
+		this->refreshScene();
+	}
 }
 
 void MainWindow::addSelection() {
-//	if (modifyState_ == Selecting) {
-//		currentSelectedZone->setPolygon(currentSelectedZone->polygon().united(newSelectedZone->rect()));
-//		newSelectedZone->setRect(QRectF());
-//		this->refreshScene();
-//	}
+	if (modifyState_ == Selecting) {
+		if (currentSelectedZonePolygon.empty() || currentSelectedZonePolygon.intersects(newSelectedZoneRect)) {
+			currentSelectedZonePolygon = currentSelectedZonePolygon.united(newSelectedZoneRect);
+			newSelectedZoneRect = QRectF();
+			this->refreshScene();
+		} else {
+			newSelectedZoneRect =QRectF();
+			newSelectedZone->setRect(newSelectedZoneRect);
+			this->refreshScene();
+			this->showStatusBarMessage("La zone de sélection doit être connexe", 1000);
+		}
+	}
+}
+
+void MainWindow::setSelectionZoneColors() {
+	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
 }
 
 
