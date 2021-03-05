@@ -12,15 +12,17 @@ class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
 	qreal currentScaleFactor = 1.0;
-	bool leftButtonPressed = false;
-	bool doubleLeftButtonPressed = false;
-	QPointF lastPos = QPointF();
+
 public:
+//	Constructors & Destructors ========================================================================================
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
-	bool viewportEvent(QEvent *event) override;
 	
+//	Getters & Setters ========================================================================================
 	[[nodiscard]] qreal& rscaleFactor();
 	[[nodiscard]] const qreal& scaleFactor() const;
+	
+//	Event handlers ========================================================================================
+	bool viewportEvent(QEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
@@ -28,12 +30,10 @@ public:
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	
 signals:
-	void singleLeftClick(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
-	void doubleLeftClick(qreal const& i, qreal const& j);
-	void singleRightClick(qreal const& i, qreal const& j);
-	void changeSelectionIntention(qreal const& i, qreal const& j);
-	void addSelectionIntention();
-//	virtual void drawBackground(QPainter *painter, const QRectF &rect = this->rect()) override;
+	void sendMousePressEvent(QMouseEvent *event);
+	void sendMouseDoubleClickEvent(QMouseEvent *event);
+	void sendMouseMoveEvent(QMouseEvent *event);
+	void sendMouseReleaseEvent(QMouseEvent *event);
 };
 
 

@@ -16,9 +16,22 @@
 #include "termcolor.hpp"
 #include "Cell.hpp"
 
+//	Constructors & Destructors ========================================================================================
+
 GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent) : QGraphicsView(scene, parent) {
 	this->setMouseTracking(true);
 }
+
+//	Getters & Setters ========================================================================================
+
+const qreal& GraphicsView::scaleFactor() const {
+	return currentScaleFactor;
+}
+qreal& GraphicsView::rscaleFactor() {
+	return currentScaleFactor;
+}
+
+//	Event handlers ========================================================================================
 
 bool GraphicsView::viewportEvent(QEvent *event) {
 	switch (event->type()) {
@@ -51,65 +64,27 @@ bool GraphicsView::viewportEvent(QEvent *event) {
 	return QGraphicsView::viewportEvent(event);
 }
 
-const qreal& GraphicsView::scaleFactor() const {
-	return currentScaleFactor;
-}
-qreal& GraphicsView::rscaleFactor() {
-	return currentScaleFactor;
-}
-
 void GraphicsView::mousePressEvent(QMouseEvent* event) {
 	QGraphicsView::mousePressEvent(event);
-	if (event->button() == Qt::LeftButton) {
-		leftButtonPressed = true;
-		auto res(this->mapToScene(event->pos()));
-		lastPos = res;
-		emit singleLeftClick(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), true);
-	}
-//	} else if (event->button() == Qt::RightButton) {
-//		auto res(this->mapToScene(event->pos()));
-//		emit singleRightClick(res.x(), res.y());
-//	}
+	emit sendMousePressEvent(event);
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
 	QGraphicsView::mouseMoveEvent(event);
-	if (leftButtonPressed) {
-		auto res(this->mapToScene(event->pos()));
-		emit singleLeftClick(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), false);
-		lastPos = res;
-	}
-	if (doubleLeftButtonPressed) {
-		auto res(this->mapToScene(event->pos()));
-		emit changeSelectionIntention(res.x(), res.y());
-		
-	}
+	emit sendMouseMoveEvent(event);
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
 	QGraphicsView::mouseReleaseEvent(event);
-	if (leftButtonPressed && !(event->buttons() & Qt::LeftButton)) {
-		leftButtonPressed = false;
-		auto res(this->mapToScene(event->pos()));
-		emit singleLeftClick(size_t(res.x()), size_t(res.y()), size_t(lastPos.x()), size_t(lastPos.y()), false);
-		lastPos = res;
-	}
-	if (doubleLeftButtonPressed && !(event->buttons() & Qt::LeftButton)) {
-		doubleLeftButtonPressed = false;
-		emit addSelectionIntention();
-	}
+	emit sendMouseReleaseEvent(event);
+}
+void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
+	QGraphicsView::mouseDoubleClickEvent(event);
+	emit sendMouseDoubleClickEvent(event);
 }
 
 void GraphicsView::paintEvent(QPaintEvent* event) {
 	QGraphicsView::paintEvent(event);
 }
 
-void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
-	QGraphicsView::mouseDoubleClickEvent(event);
-	if (event->button() == Qt::LeftButton) {
-		doubleLeftButtonPressed = true;
-		auto res(this->mapToScene(event->pos()));
-		emit doubleLeftClick(res.x(), res.y());
-	}
-}
 

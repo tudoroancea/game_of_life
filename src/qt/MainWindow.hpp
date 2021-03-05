@@ -37,49 +37,54 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
-//	Timer
+//	Timer ====================================================================================
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
 	
-//	Event/Keys state
+//	Event/Keys state ====================================================================================
 	bool hasTouchEvent = false;
+	bool leftButtonPressed = false;
+	bool doubleLeftButtonPressed = false;
 	bool ctrlPressed = false;
+	qreal lastI = -1.0;
+	qreal lastJ = -1.0;
 
-//	Mode de modification
+//	Mode de modification ====================================================================================
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
 	
-//	Historic for undo/redo modifications
+//	Historic for undo/redo modifications ====================================================================================
 	std::deque<std::pair<bool,Motif>> historic;
 	std::deque<std::pair<bool,Motif>>::iterator lastModif;
 	
-//	Simulation data
+//	Simulation data ====================================================================================
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
 	std::array<QLabel*,10> labels;
 	
-//	Zone de sélection et copy/paste
+//	Zone de sélection et copy/paste ====================================================================================
 	QRectF newSelectedZoneRect;
 	QGraphicsRectItem* newSelectedZone;
 	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
 
-//  Menus
+//  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
 	QComboBox* stateBox;
 	QToolBar* mainToolBar;
 
-//	Actions
+//	Actions ====================================================================================
 	std::unordered_map<std::string, QAction*> actions;
 	
-//	Utility methods
+//	Utility methods ====================================================================================
 	void createActions();
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
 	static void placeholder(const char* str);
+	// Create the frame and the axis on the simulation window
 	void createFrame();
 	void refreshScene();
 	void setModifyState(int const& modifyState);
@@ -87,6 +92,7 @@ private:
 	void setSelectionZoneColors();
 
 private slots:
+//	For actions ==========================================================================================
 	void newSim();
 	void open();
 	void saveMotif();
@@ -102,14 +108,15 @@ private slots:
 	void zoomOut();
 	void resetZoom();
 	void pauseResume();
-
+//	Utility ===========================================================================================
+	void showStatusBarMessage(const string& message, int const& timer);
 
 public:
-//	Constructor & Destructors
+//	Constructor & Destructors =========================================================================
 	MainWindow();
 	~MainWindow() override;
 	
-//	Events handlers
+//	Events handlers =========================================================================
 	void timerEvent(QTimerEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void keyReleaseEvent(QKeyEvent* event) override;
@@ -121,11 +128,10 @@ public:
 	void paintEvent(QPaintEvent* event) override;
 
 public slots:
-	void showStatusBarMessage(const string& message, int const& timer);
-	void singleViewportClick(size_t const& i, size_t const& j, size_t const& lastI, size_t const& lastJ, bool mousePressed);
-	void beginSelection(qreal const& i, qreal const& j);
-	void changeSelection(qreal const& i, qreal const&j);
-	void addSelection();
+	void viewportMousePressEvent(QMouseEvent *event);
+	void viewportMouseDoubleClickEvent(QMouseEvent *event);
+	void viewportMouseMoveEvent(QMouseEvent *event);
+	void viewportMouseReleaseEvent(QMouseEvent *event);
 };
 
 
