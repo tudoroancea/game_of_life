@@ -397,11 +397,11 @@ void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
 
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
-	auto start(std::chrono::high_resolution_clock::now());
+//	auto start(std::chrono::high_resolution_clock::now());
 	game->evolve();
 	this->refreshScene();
-	auto stop(std::chrono::high_resolution_clock::now());
-	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
+//	auto stop(std::chrono::high_resolution_clock::now());
+//	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
 
 
@@ -477,10 +477,10 @@ bool MainWindow::event(QEvent* event) {
 }
 
 void MainWindow::paintEvent(QPaintEvent* event) {
-	auto start(std::chrono::high_resolution_clock::now());
+//	auto start(std::chrono::high_resolution_clock::now());
 	QWidget::paintEvent(event);
-	auto stop(std::chrono::high_resolution_clock::now());
-	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
+//	auto stop(std::chrono::high_resolution_clock::now());
+//	std::cout << termcolor::blue << std::chrono::duration_cast<std::chrono::nanoseconds>(stop-start).count() << termcolor::reset << " | ";
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* event) {
@@ -573,7 +573,7 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 			                historic.front().second.push_back({i,j});
 			                scene->addItem(new Cell((qreal) i, (qreal) j));
 			            }
-		        	} else {
+		        	} else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last added, we add a segment from the latter to the first
 						Motif seg(segment(i,j,lastI,lastJ));
 						std::vector<bool> ajouts(game->addMotif(seg));
@@ -601,7 +601,7 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 						    historic.front().second.push_back({i,j});
 							this->refreshScene();
 					    }
-				    } else {
+				    } else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last deleted, we delete a segment from the latter to the first
 					    Motif seg(segment(i,j,lastI,lastJ));
 					    std::vector<bool> supprimes(game->deleteMotif(seg));

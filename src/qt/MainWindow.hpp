@@ -19,10 +19,10 @@
 #include <deque>
 
 #include "GraphicsView.hpp"
+#include "Cell.hpp"
 #include "GameOfLife.hpp"
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
-#include "Cell.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
