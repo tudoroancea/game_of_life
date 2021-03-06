@@ -16,12 +16,13 @@
 //#include <QWidget>
 #include <unordered_map>
 #include <list>
+#include <deque>
 
 #include "GraphicsView.hpp"
+#include "Cell.hpp"
 #include "GameOfLife.hpp"
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
-#include "Cell.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -31,108 +32,91 @@ class QAction;
 class QEvent;
 class QToolBar;
 class QComboBox;
-class QPolygon;
-class QStatusBar;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
+//	Timer ====================================================================================
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
-//	Etat des évenements
+	
+//	Event/Keys state ====================================================================================
 	bool hasTouchEvent = false;
+	bool leftButtonPressed = false;
+	bool doubleLeftButtonPressed = false;
 	bool ctrlPressed = false;
-	bool mousePressed = false;
-//	Mode de modification
+	qreal lastI = -1.0;
+	qreal lastJ = -1.0;
+
+//	Mode de modification ====================================================================================
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
 	
-//	Zone de séléction
-	QPolygon selectedArea;
-	QRect newSelectedArea;
+//	Historic for undo/redo modifications ====================================================================================
+	std::deque<std::pair<bool,Motif>> historic;
+	std::deque<std::pair<bool,Motif>>::iterator lastModif;
 	
-//	Historiques
-	Motif addedMotif = Motif();
-	std::list<std::pair<bool,Motif>> historic;
-	std::list<std::pair<bool,Motif>>::iterator lastModif;
-//	Quand on fait undo on ajoute/supprime le motif désigné par lastModif, puis on l'incrémente. Si lastModif == historic.end()-1, on ne fait rien
-//	Quand on fait redo on ajoute/supprime le motif désiné par lastModif, puis on le décremente. SI lastModif == historic.begin(), on ne fait rien
-//  Quand on recommence à modifier, on supprime tous les motifs avant lastModif
-	
-	//	Stockage des infos
+//	Simulation data ====================================================================================
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
-	QLabel* label1 = nullptr;
-	QLabel* label2 = nullptr;
+	std::array<QLabel*,10> labels;
+	
+//	Zone de sélection et copy/paste ====================================================================================
+	QRectF newSelectedZoneRect;
+	QGraphicsRectItem* newSelectedZone;
+	QPolygonF currentSelectedZonePolygon;
+	QGraphicsPolygonItem* currentSelectedZone;
+	Motif copiedMotif;
 
-//  Menus
-	QMenu* fileMenu;
-	QMenu* editMenu;
-	QMenu* viewMenu;
-	QMenu* helpMenu;
+//  Menus ====================================================================================
+	std::unordered_map<std::string, QMenu*> menus;
 	QComboBox* stateBox;
 	QToolBar* mainToolBar;
-//	QStatusBar* statusBar = nullptr;
 
-//	Actions
-	QAction* newSimAct;
-	QAction* openAct;
-	QAction* saveMotifAct;
-	QAction* saveSimAct;
-	QAction* aboutAct;
+//	Actions ====================================================================================
+	std::unordered_map<std::string, QAction*> actions;
 	
-	QAction* undoAct;
-	QAction* redoAct;
-	QAction* copyAct;
-	QAction* pasteAct;
-	QAction* cutAct;
-	QAction* clearAct;
-	
-	QAction* zoomInAct;
-	QAction* zoomOutAct;
-	QAction* resetZoomAct;
-	QAction* pauseResumeAct;
-
-
-//	utility methods
+//	Utility methods ====================================================================================
 	void createActions();
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
 	static void placeholder(const char* str);
+	// Create the frame and the axis on the simulation window
 	void createFrame();
 	void refreshScene();
 	void setModifyState(int const& modifyState);
-//	void setModifyState(CellModifier const& modifyState_);
+	void updateStatusBar();
+	void setSelectionZoneColors();
 
 private slots:
+//	For actions ==========================================================================================
 	void newSim();
 	void open();
 	void saveMotif();
 	void saveSim();
 	void about();
-	
 	void undo();
 	void redo();
 	void copy();
 	void paste();
 	void cut();
 	void clear();
-	
 	void zoomIn();
 	void zoomOut();
 	void resetZoom();
 	void pauseResume();
-
+//	Utility ===========================================================================================
+	void showStatusBarMessage(const string& message, int const& timer);
 
 public:
-//	Constructor & Destructors
+//	Constructor & Destructors =========================================================================
 	MainWindow();
 	~MainWindow() override;
 	
-	//	Events handlers
+//	Events handlers =========================================================================
 	void timerEvent(QTimerEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void keyReleaseEvent(QKeyEvent* event) override;
@@ -144,10 +128,10 @@ public:
 	void paintEvent(QPaintEvent* event) override;
 
 public slots:
-	void addCell(size_t const& i, size_t const& j);
-	void deleteCell(size_t const& i, size_t const& j);
-	void inverseCell(size_t const& i, size_t const& j);
-	void modifyCell(size_t const& i, size_t const& j, bool mousePressed);
+	void viewportMousePressEvent(QMouseEvent *event);
+	void viewportMouseDoubleClickEvent(QMouseEvent *event);
+	void viewportMouseMoveEvent(QMouseEvent *event);
+	void viewportMouseReleaseEvent(QMouseEvent *event);
 };
 
 

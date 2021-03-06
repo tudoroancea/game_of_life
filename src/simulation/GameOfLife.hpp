@@ -156,13 +156,13 @@ public :
 	 *  @param  motif   Motif à rajouter (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
 	 *  @returns    référence sur l'instance courante
 	 */
-	virtual GameOfLife& addMotif(Motif const& motif);
+	virtual std::vector<bool> addMotif(Motif const& motif);
 	/**
      *  @brief  Supprime les cellules de la grille_ contenues dans un motif a l'aide de deleteCell()
      *  @param  motif   Motif à enlever (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
      *  @returns    référence sur l'instance courante
      */
-	virtual GameOfLife& deleteMotif(Motif const& motif);
+	virtual std::vector<bool> deleteMotif(Motif const& motif);
 	/**
      *  @brief  Efface toute la grille_
      *  @returns    référence sur l'instance courante
@@ -297,13 +297,13 @@ public :
 	 *  @param  motif   Motif à rajouter (avec coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ ))
 	 *  @returns    référence sur l'instance courante
 	 */
-	GameOfLifeView& addMotif(Motif const& motif) override;
+	std::vector<bool> addMotif(Motif const& motif) override;
 	/**
 	 *  @brief  Supprime les cellules de la partie visible de la grille_ contenues dans un motif a l'aide de deleteCell().
 	 *  @param  motif   Motif à enlever (avec coordonnéespar rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ ))
 	 *  @returns    référence sur l'instance courante
 	 */
-	GameOfLifeView& deleteMotif(Motif const& motif) override;
+	std::vector<bool> deleteMotif(Motif const& motif) override;
 	/**
 	 *  @brief  Efface toute la partie visible de la grille_.
 	 *  @returns    référence sur l'instance courante

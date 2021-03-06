@@ -126,6 +126,8 @@ public :
 	 */
 	[[nodiscard]] Liste::const_iterator cend() const;
 	
+	Coord const& operator[](size_t const& r);
+	
 	// Infos ===================================================================================================
 	/**
 	 *  @returns    la plus petite ligne d'une cellule du motif

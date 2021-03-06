@@ -11,21 +11,29 @@
 class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
-	qreal currentScaleFactor;
-	bool pressed = false;
+	qreal currentScaleFactor = 1.0;
+
 public:
+//	Constructors & Destructors ========================================================================================
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
-	bool viewportEvent(QEvent *event) override;
 	
+//	Getters & Setters ========================================================================================
 	[[nodiscard]] qreal& rscaleFactor();
 	[[nodiscard]] const qreal& scaleFactor() const;
+	
+//	Event handlers ========================================================================================
+	bool viewportEvent(QEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
-
+	void paintEvent(QPaintEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
+	
 signals:
-	void modifyCellIntention(size_t const& i, size_t const& j, bool mousePressed);
-//	virtual void drawBackground(QPainter *painter, const QRectF &rect = this->rect()) override;
+	void sendMousePressEvent(QMouseEvent *event);
+	void sendMouseDoubleClickEvent(QMouseEvent *event);
+	void sendMouseMoveEvent(QMouseEvent *event);
+	void sendMouseReleaseEvent(QMouseEvent *event);
 };
 
 
