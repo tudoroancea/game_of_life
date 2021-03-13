@@ -38,6 +38,9 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
 //	Timer ====================================================================================
+	/**
+	 * @brief To see if a timer is started or not.
+	 */
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
 	
@@ -69,6 +72,8 @@ private:
 	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
+	QGraphicsItemGroup* copiedMotifGroup;
+	QGraphicsItemGroup* allCellsGroup;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;

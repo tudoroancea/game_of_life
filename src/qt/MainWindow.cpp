@@ -241,9 +241,12 @@ void MainWindow::createFrame() {
 void MainWindow::refreshScene() {
 	scene->clear();
 	this->createFrame();
+	QList<QGraphicsItem*> added;
 	for (auto const& c : game->vivantes()) {
-		scene->addItem(new Cell((double) c.first, (double) c.second));
+		added.push_back(new Cell((double) c.first, (double) c.second));
+		scene->addItem(added.back());
 	}
+	allCellsGroup = scene->createItemGroup(added);
 	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
 	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
 	this->setSelectionZoneColors();
@@ -379,14 +382,22 @@ void MainWindow::clear() {
 	if (lastModif != historic.begin()) {
 		historic.erase(historic.begin(), lastModif);
 	}
-	historic.push_front({false, Motif(game->vivantes())});
-	lastModif = historic.begin();
-	if (historic.size() > 10) {
-		historic.pop_back();
+	if (!game->vivantes().empty()) {
+		historic.push_front({false, Motif(game->vivantes())});
+		lastModif = historic.begin();
+		if (historic.size() > 10) {
+			historic.pop_back();
+		}
+		this->updateStatusBar();
+		game->wipe();
+		this->refreshScene();
+//		QList<QGraphicsItem*> L(scene->items());
+//		for (auto const& item : L) {
+//			if (*(item->group()) == *allCellsGroup) {
+//
+//			}
+//		}
 	}
-	this->updateStatusBar();
-	game->wipe();
-	this->refreshScene();
 }
 
 void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
@@ -434,6 +445,22 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		    this->refreshScene();
 		    break;
 		}
+		case Qt::Key_B:{
+		    if (allCellsGroup != nullptr) allCellsGroup->moveBy(0.0,50.0);
+		    break;
+		}
+		case Qt::Key_H:{
+			if (allCellsGroup != nullptr) allCellsGroup->moveBy(0.0,-50.0);
+			break;
+		}
+		case Qt::Key_V:{
+			if (allCellsGroup != nullptr) allCellsGroup->moveBy(-50.0,0.0);
+			break;
+		}
+		case Qt::Key_N:{
+			if (allCellsGroup != nullptr) allCellsGroup->moveBy(50.0, 0.0);
+			break;
+		}
 	}
 	if (event->modifiers() & Qt::CTRL) {
 		ctrlPressed = true;
@@ -453,12 +480,12 @@ void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
 void MainWindow::wheelEvent(QWheelEvent* event) {
 	QWidget::wheelEvent(event);
 	if (!hasTouchEvent && ctrlPressed) {
-		std::cerr << termcolor::red << "wheelEvent ";
 		int steps(event->angleDelta().y() / 120);
-		std::cerr << pow(2, steps) << " " << steps << termcolor::reset << std::endl;
-		
-		view->rscaleFactor() *= pow(2, steps);
-		view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+		if (steps != 0) {
+			std::cerr << termcolor::red << "wheelEvent " << pow(2, steps) << " " << steps << termcolor::reset << std::endl;
+			view->rscaleFactor() *= pow(2, steps);
+			view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+		}
 	}
 }
 
@@ -513,7 +540,7 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 			            lastModif = historic.begin();
 		        	}
 			        this->updateStatusBar();
-			        view->update();
+//			        view->update();
 		        }
 		        break;
 		    }
@@ -529,11 +556,18 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 				    if (game->deleteCell(i, j)) {
 					    lastI = pos.x();
 					    lastJ = pos.y();
-					    this->refreshScene();
+					    auto a_suppr(scene->itemAt((double) i, (double) j, QTransform()));
+					    if (a_suppr != nullptr) {
+						    scene->removeItem(a_suppr);
+						    delete a_suppr;
+					    }
+					    scene->update(scene->sceneRect());
+//					    this->refreshScene();
 					    historic.push_front({false, Motif({{i,j}} )} );
 					    lastModif = historic.begin();
 				    }
 				    this->updateStatusBar();
+				    view->update();
 			    }
 			    break;
 		    }
@@ -562,11 +596,11 @@ void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 
 void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 	if (game != nullptr) {
+		QPointF pos(view->mapToScene(event->pos()));
+		size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
 		        if (leftButtonPressed) {
-		        	QPointF pos(view->mapToScene(event->pos()));
-		        	size_t i(pos.x()), j(pos.y());
 		        	if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last added, we add a simple cell
 		        		if (game->addCell(i,j)) {
@@ -593,13 +627,17 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		    }
 		    case Deleting: {
 			    if (leftButtonPressed) {
-				    QPointF pos(view->mapToScene(event->pos()));
-				    size_t i(pos.x()), j(pos.y());
 				    if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last deleted, we delete it
 					    if (game->deleteCell(i,j)) {
 						    historic.front().second.push_back({i,j});
-							this->refreshScene();
+//							this->refreshScene();
+						    auto a_suppr(scene->itemAt((double) i, (double) j, QTransform()));
+						    if (a_suppr != nullptr) {
+							    scene->removeItem(a_suppr);
+							    delete a_suppr;
+						    }
+						    scene->update(scene->sceneRect());
 					    }
 				    } else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last deleted, we delete a segment from the latter to the first
@@ -608,7 +646,13 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 					    for (size_t k(0); k < supprimes.size(); ++k) {
 						    if (supprimes[k]) {
 							    historic.front().second.push_back(seg[k]);
-								this->refreshScene();
+//								this->refreshScene();
+							    auto a_suppr(scene->itemAt((double) i, (double) j, QTransform()));
+							    if (a_suppr != nullptr) {
+								    scene->removeItem(a_suppr);
+								    delete a_suppr;
+							    }
+							    scene->update(scene->sceneRect());
 						    }
 					    }
 				    }
@@ -620,7 +664,6 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		    }
 		    case Selecting: {
 		    	if (doubleLeftButtonPressed) {
-			        QPointF pos(view->mapToScene(event->pos()));
 			        newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
 			        newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
 			        newSelectedZone->setRect(newSelectedZoneRect);
@@ -630,6 +673,7 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		    default:
 		        break;
 		}
+//		current_cell->setColor(Qt::black);
 	}
 }
 

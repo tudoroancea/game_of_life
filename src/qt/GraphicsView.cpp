@@ -20,6 +20,7 @@
 
 GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent) : QGraphicsView(scene, parent) {
 	this->setMouseTracking(true);
+//	this->setForegroundBrush(QColor(0, 102, 255, 133));
 }
 
 //	Getters & Setters ========================================================================================
@@ -85,6 +86,10 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
 
 void GraphicsView::paintEvent(QPaintEvent* event) {
 	QGraphicsView::paintEvent(event);
+	auto painter(new QPainter(viewport()));
+	painter->setBrush(QBrush(QColor(0, 102, 255, 133)));
+	this->drawForeground(painter, QRectF(50.0, 50.0, 50.0, 50.0));
+	delete painter;
 }
 
 

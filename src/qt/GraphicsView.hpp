@@ -12,7 +12,8 @@ class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
 	qreal currentScaleFactor = 1.0;
-
+protected:
+//	void drawForeground(QPainter* painter, QRectF const& rect) override;
 public:
 //	Constructors & Destructors ========================================================================================
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);

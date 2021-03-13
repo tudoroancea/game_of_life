@@ -15,11 +15,14 @@ class QGraphicsRectItem;
 QT_END_NAMESPACE
 
 class [[maybe_unused]] Cell : public QGraphicsRectItem {
+private:
+	QColor color_ = Qt::black;
 public:
 	explicit Cell(qreal const& x, qreal const& y, qreal const& size = 1.0);
 	~Cell() override;
 	
 	[[maybe_unused]] void setSize(qreal const& size);
+	void setColor(QColor const& color);
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 

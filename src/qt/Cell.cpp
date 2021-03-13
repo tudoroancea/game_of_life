@@ -22,7 +22,12 @@ Cell::Cell(qreal const& x, qreal const& y, qreal const& size) : QGraphicsRectIte
 void Cell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option)
 	Q_UNUSED(widget)
-	painter->fillRect(this->rect(), QBrush(Qt::black));
+	if (this->isSelected()) painter->fillRect(this->rect(), QBrush(Qt::blue));
+	else painter->fillRect(this->rect(), QBrush(Qt::black));
+}
+
+void Cell::setColor(const QColor& color) {
+	color_ = color;
 }
 
 Cell::~Cell() = default;
