@@ -14,7 +14,7 @@
 
 #include "GraphicsView.hpp"
 #include "termcolor.hpp"
-#include "Cell.hpp"
+#include "CellItem.hpp"
 
 //	Constructors & Destructors ========================================================================================
 
@@ -63,6 +63,11 @@ bool GraphicsView::viewportEvent(QEvent *event) {
 			break;
 	}
 	return QGraphicsView::viewportEvent(event);
+}
+
+void GraphicsView::resizeEvent(QResizeEvent* event) {
+	QGraphicsView::resizeEvent(event);
+//	std::cout << "Old Size : " << event->oldSize().height() << "," << event->oldSize().width() << " | New Size : " << event->size().height() << "," << event->size().width() << std::endl;
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent* event) {

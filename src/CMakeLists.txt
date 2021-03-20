@@ -15,9 +15,22 @@ add_subdirectory(cli)
 # Permet les includes sans prefix
 include_directories(simulation qt cli)
 
-add_executable(main
-			   main.cpp
-			   qt/images.qrc
-)
+if (APPLE)
+#	set_target_properties(GOL PROPERTIES MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/icons8-seed_of_life.png)
 
-target_link_libraries(main PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui qt simulation)
+	# NOTE: Don't include the path in MACOSX_BUNDLE_ICON_FILE -- this is
+	# the property added to Info.plist
+	set(MACOSX_BUNDLE_ICON_FILE icon.icns)
+#	set(MACOSX_BUNDLE_ICON_FILE "")
+	# And this part tells CMake where to find and install the file itself
+	set(APP_ICON_MACOSX icon.icns)
+	set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+	add_executable(GOL MACOSX_BUNDLE main.cpp qt/images.qrc ${APP_ICON_MACOSX})
+	add_custom_command(TARGET GOL POST_BUILD COMMAND plutil -replace NSHighResolutionCapable -bool true GOL.app/Contents/Info.plist)
+
+else()
+	add_executable(GOL main.cpp qt/images.qrc)
+endif()
+
+target_link_libraries(GOL PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui qt simulation)

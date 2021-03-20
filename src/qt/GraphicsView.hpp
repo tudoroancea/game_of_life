@@ -29,7 +29,7 @@ public:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void paintEvent(QPaintEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
-	
+	void resizeEvent(QResizeEvent* event) override;
 signals:
 	void sendMousePressEvent(QMouseEvent *event);
 	void sendMouseDoubleClickEvent(QMouseEvent *event);

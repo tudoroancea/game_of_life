@@ -19,7 +19,7 @@
 #include <deque>
 
 #include "GraphicsView.hpp"
-#include "Cell.hpp"
+#include "CellItem.hpp"
 #include "GameOfLife.hpp"
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
@@ -55,6 +55,8 @@ private:
 //	Mode de modification ====================================================================================
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
+	enum SubState {Nothing, Moving};
+	SubState subState_ = Nothing;
 	
 //	Historic for undo/redo modifications ====================================================================================
 	std::deque<std::pair<bool,Motif>> historic;
@@ -64,6 +66,8 @@ private:
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
+	std::array<std::array<CellItem*,MAX_LIGNES>,MAX_COLONNES> cells;
+	std::vector<CellItem*> vivantes;
 	std::array<QLabel*,10> labels;
 	
 //	Zone de sélection et copy/paste ====================================================================================
@@ -72,8 +76,9 @@ private:
 	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
-	QGraphicsItemGroup* copiedMotifGroup;
-	QGraphicsItemGroup* allCellsGroup;
+	QGraphicsRectItem* movableFrame;
+	QGraphicsItemGroup* movableGroup;
+	QList<QGraphicsItem*> movableCells;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
@@ -92,9 +97,12 @@ private:
 	// Create the frame and the axis on the simulation window
 	void createFrame();
 	void refreshScene();
+	
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();
 	void setSelectionZoneColors();
+	void addCell(size_t const& i, size_t const& j);
+	void deleteCell(size_t const& i, size_t const& j);
 
 private slots:
 //	For actions ==========================================================================================

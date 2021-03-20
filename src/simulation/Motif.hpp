@@ -107,6 +107,11 @@ public :
 	 *  @returns    retourne une reference sur l'instance courante
 	 */
 	Motif& recalibrate();
+	/**
+	 * @brief Efface toutes les cellules du motif pour le rendre vide
+	 * @return retourne une référence sur l'instance courante
+	 */
+	Motif& clear();
 	
 	// Getters ===================================================================================================
 	/**
@@ -145,6 +150,10 @@ public :
 	 *  @returns    la plus grande colonne d'une cellule du motif
 	 */
 	[[nodiscard]] size_t max_colonne() const;
+	/**
+	 * @return la taille de la Liste de cellules
+	 */
+	size_t size() const;
 	/**
 	 * @param c coordonnees à traiter
 	 * @return true si le motif contient c

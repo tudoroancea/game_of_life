@@ -20,8 +20,7 @@ using namespace std;
 
 int main() {
 	CLEAR()
-	std::vector<int> tab{10,20};
-	std::cout << tab[true] << std::endl;
-	
+	std::list<int> L;
+	L.erase(L.begin(), L.end());
 	return 0;
 }
