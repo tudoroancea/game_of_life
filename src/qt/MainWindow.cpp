@@ -131,10 +131,12 @@ void MainWindow::createActions() {
 //	View Menu ========================================================================================
 	actions["zoomInAct"] = new QAction(QIcon(":/images/icons8-zoom_in.png"), "Zoom In", this);
 	actions["zoomInAct"]->setShortcut(QKeySequence::ZoomIn);
+	actions["zoomInAct"]->setAutoRepeat(true);
 	connect(actions["zoomInAct"], &QAction::triggered, this, &MainWindow::zoomIn);
 	
 	actions["zoomOutAct"] = new QAction(QIcon(":/images/icons8-zoom_out.png"),"Zoom Out", this);
 	actions["zoomOutAct"]->setShortcut(QKeySequence::ZoomOut);
+	actions["zoomOutAct"]->setAutoRepeat(true);
 	connect(actions["zoomOutAct"], &QAction::triggered, this, &MainWindow::zoomOut);
 	
 	actions["resetZoomAct"] = new QAction(QIcon(":/images/icons8-zoom_to_actual_size.png"), "Reset Zoom", this);
@@ -281,7 +283,9 @@ void MainWindow::setModifyState(const int& modifyState) {
 
 void MainWindow::setSelectionZoneColors() {
 	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+	newSelectedZone->setPen(QColor(0,102,255,255));
 	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
+	currentSelectedZone->setPen(QColor(0,0,255,255));
 }
 
 void MainWindow::addCell(size_t const& i, size_t const& j) {
@@ -371,14 +375,19 @@ void MainWindow::copy() {
 void MainWindow::paste() {
 	placeholder("paste");
 	int i(MAX_LIGNES-(copiedMotif.max_ligne()-copiedMotif.min_ligne())), j(MAX_COLONNES-(copiedMotif.max_colonne()-copiedMotif.min_colonne()));
+	i /= 2;
+	j /= 2;
 	copiedMotif.translate(i,j);
-	for (const auto & elt : copiedMotif) {
-		auto* cell(new CellItem(elt.first, elt.second));
+	for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
+		auto cell(new CellItem(it->first, it->second));
 		scene->addItem(cell);
 		movableCells.append(cell);
 	}
 	
 	movableGroup = scene->createItemGroup(movableCells);
+	movableFrame = new QGraphicsRectItem(movableGroup->boundingRect());
+	movableFrame->setPen(QPen(Qt::blue));
+	scene->addItem(movableFrame);
 	subState_ = Moving;
 }
 
@@ -389,13 +398,13 @@ void MainWindow::cut() {
 }
 
 void MainWindow::zoomOut() {
-	view->rscaleFactor() /= 2;
+	view->rscaleFactor() /= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
 
 void MainWindow::zoomIn() {
-	view->rscaleFactor() *= 2;
+	view->rscaleFactor() *= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
@@ -492,20 +501,27 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		    this->refreshScene();
 		    break;
 		}
-//		case Qt::Key_Enter: {
-//		    if (modifyState_ == Selecting && subState_ == Moving) {
-//		    	scene->destroyItemGroup(movableGroup);
-//		    	for (auto const& cell : movableCells) {
-//		    		if (cells[cell->x()][cell->y()] == nullptr) {
-//					    cells[cell->x()][cell->y()] = dynamic_cast<CellItem*>(cell);
-//		    		} else {
-//		    			delete cell;
-//		    		}
-//		    	}
-//		    	movableCells.erase(movableCells.begin(), movableCells.end());
-//		    }
-//		    break;
-//		}
+		case Qt::Key_Return:
+		case Qt::Key_Enter: {
+			std::cout << "Enter" << std::endl;
+		    if (modifyState_ == Selecting && subState_ == Moving) {
+		    	for (auto const& cell : movableCells) {
+//		    		TODO : map the cell coordinates in scene coordinates (currently the scene coordinates returned are 0,0 )
+		    		size_t i(cell->x()), j(cell->y());
+				    std::cout << i << "," << j << std::endl;
+		    		if (cells[i][j] == nullptr) {
+					    cells[i][j] = dynamic_cast<CellItem*>(cell);
+					    game->addCell(i, j);
+					    std::cout << " ajouté" << std::endl;
+		    		} else {
+		    			delete cell;
+		    		}
+		    	}
+		    	scene->destroyItemGroup(movableGroup);
+		    	movableCells.erase(movableCells.begin(), movableCells.end());
+		    }
+		    break;
+		}
 	}
 	if (event->modifiers() & Qt::CTRL) {
 		ctrlPressed = true;

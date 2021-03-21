@@ -12,8 +12,7 @@ add_library(qt
 			MainWindow.cpp MainWindow.hpp
 			CellItem.cpp CellItem.hpp
 			GraphicsView.cpp GraphicsView.hpp
-#			images.qrc
-)
+			)
 
 # permet les includes sans prefix
 include_directories(../simulation)
