@@ -204,6 +204,7 @@ Liste::iterator Motif::end() {return cellules.end();}
 Liste::const_iterator Motif::cbegin() const {return cellules.cbegin();}
 Liste::const_iterator Motif::cend() const {return cellules.cend();}
 Coord const& Motif::operator[](size_t const& r) {return cellules[r];}
+Liste const& Motif::cells() const {return cellules;}
 // Infos
 [[maybe_unused]] bool Motif::contient(Coord const& c) const {
 	return std::find(cellules.begin(), cellules.end(), c) != cellules.end();

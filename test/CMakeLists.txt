@@ -24,9 +24,6 @@ target_link_libraries(test_segment LINK_PUBLIC simulation)
 add_executable(test_save_motif test_save_motif.cpp)
 target_link_libraries(test_save_motif LINK_PUBLIC simulation)
 
-add_executable(unittest unittest.cpp)
-target_link_libraries(unittest LINK_PUBLIC simulation)
-add_test(unit unittest)
 
 add_executable(test_rotation test_rotation.cpp)
 target_link_libraries(test_rotation LINK_PUBLIC simulation)
@@ -62,3 +59,6 @@ target_link_libraries(test_equivalence_table LINK_PUBLIC simulation)
 
 add_executable(test_divers test_divers.cpp)
 target_link_libraries(test_divers LINK_PUBLIC qt simulation)
+
+add_executable(test_movablegroup test_movablegroup.cpp)
+target_link_libraries(test_movablegroup PUBLIC qt simulation Qt5::Widgets Qt5::Gui Qt5::Core)

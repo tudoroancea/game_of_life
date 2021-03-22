@@ -6,6 +6,7 @@
 #define GAME_OF_LIFE_CELLITEM_HPP
 
 #include <QGraphicsRectItem>
+#include <Motif.hpp>
 
 QT_BEGIN_NAMESPACE
 class QStyleOptionGraphicsItem;
@@ -17,6 +18,10 @@ QT_END_NAMESPACE
 class [[maybe_unused]] CellItem : public QGraphicsRectItem {
 private:
 	QColor color_ = Qt::black;
+	/**
+	 * @brief coordonnées de la cellule. Nécessaires pour s'assurer que l'item a bien toujours des coordonnées positives
+	 */
+	size_t i_, j_;
 public:
 	explicit CellItem(qreal const& x, qreal const& y, qreal const& size = 1.0);
 	explicit CellItem(size_t const& i, size_t const& j);
@@ -25,7 +30,10 @@ public:
 	[[maybe_unused]] void setSize(qreal const& size);
 	void setColor(QColor const& color);
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-	bool equalsTo(CellItem const& other) const;
+	[[nodiscard]] bool equalsTo(CellItem const& other) const;
+	[[nodiscard]] size_t const& i() const;
+	[[nodiscard]] size_t const& j() const;
+	void moveBy(qreal dx, qreal dy);
 };
 
 

@@ -19,8 +19,8 @@ using namespace std;
 
 
 int main() {
-	CLEAR()
-	std::list<int> L;
-	L.erase(L.begin(), L.end());
+	double x(-1.0);
+	size_t n(x);
+	cout << n;
 	return 0;
 }

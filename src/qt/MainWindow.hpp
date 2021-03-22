@@ -23,6 +23,7 @@
 #include "GameOfLife.hpp"
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
+#include "MovableGroup.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -67,7 +68,6 @@ private:
 	GraphicsView* view;
 	GameOfLifeView* game;
 	std::array<std::array<CellItem*,MAX_LIGNES>,MAX_COLONNES> cells;
-	std::vector<CellItem*> vivantes;
 	std::array<QLabel*,10> labels;
 	
 //	Zone de sélection et copy/paste ====================================================================================
@@ -76,9 +76,10 @@ private:
 	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
-	QGraphicsRectItem* movableFrame;
-	QGraphicsItemGroup* movableGroup;
-	QList<QGraphicsItem*> movableCells;
+//	QGraphicsRectItem* movableFrame;
+//	QGraphicsItemGroup* movableGroup;
+//	QList<QGraphicsItem*> movableCells;
+	MovableGroup* movableGroup;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
@@ -103,6 +104,7 @@ private:
 	void setSelectionZoneColors();
 	void addCell(size_t const& i, size_t const& j);
 	void deleteCell(size_t const& i, size_t const& j);
+	void insertMovableGroup();
 
 private slots:
 //	For actions ==========================================================================================

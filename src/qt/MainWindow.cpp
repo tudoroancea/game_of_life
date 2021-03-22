@@ -7,6 +7,7 @@
 #include "GraphicsView.hpp"
 #include "CellItem.hpp"
 #include "termcolor.hpp"
+#include "MovableGroup.hpp"
 
 #include <QApplication>
 #include <QGraphicsObject>
@@ -44,7 +45,7 @@ MainWindow::MainWindow()
 	createStatusBar();
 	
 	this->setWindowTitle("Conway's Game of Life Emulator");
-	this->resize(500,500);
+	this->resize(600,500);
 	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 	this->setCentralWidget(view);
@@ -80,6 +81,9 @@ MainWindow::~MainWindow() {
 	}
 	delete stateBox;
 	delete mainToolBar;
+	if (movableGroup != nullptr) {
+		delete movableGroup;
+	}
 }
 
 //	Utility methods ====================================================================================
@@ -246,12 +250,10 @@ void MainWindow::refreshScene() {
 			cells[i][j] = nullptr;
 		}
 	}
-	vivantes.erase(vivantes.begin(), vivantes.end());
 	scene->clear();
 	this->createFrame();
 	for (auto const& c : game->vivantes()) {
 		cells[X(c)][Y(c)] = new CellItem((double) c.first, (double) c.second);
-		vivantes.push_back(cells[X(c)][Y(c)]);
 		scene->addItem(cells[X(c)][Y(c)]);
 	}
 	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
@@ -293,6 +295,8 @@ void MainWindow::addCell(size_t const& i, size_t const& j) {
 		cells[i][j] = new CellItem((qreal) i, (qreal) j);
 		scene->addItem(cells[i][j]);
 		scene->update(cells[i][j]->rect());
+//		std::cout << termcolor::reset << cells[i][j]->scenePos().x() << "," << cells[i][j]->scenePos().y() << std::endl;
+//		std::cout << cells[i][j]->rect().x() << ',' << cells[i][j]->rect().y() << std::endl;
 	}
 //	view->update();
 //	this->refreshScene();
@@ -378,16 +382,11 @@ void MainWindow::paste() {
 	i /= 2;
 	j /= 2;
 	copiedMotif.translate(i,j);
-	for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
-		auto cell(new CellItem(it->first, it->second));
-		scene->addItem(cell);
-		movableCells.append(cell);
+	movableGroup = new MovableGroup(copiedMotif);
+	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
+		scene->addItem(*it);
 	}
-	
-	movableGroup = scene->createItemGroup(movableCells);
-	movableFrame = new QGraphicsRectItem(movableGroup->boundingRect());
-	movableFrame->setPen(QPen(Qt::blue));
-	scene->addItem(movableFrame);
+	scene->addItem(movableGroup->boundingRect());
 	subState_ = Moving;
 }
 
@@ -419,18 +418,22 @@ void MainWindow::open() {
 
 void MainWindow::pauseResume() {
 	if (timerId != 0) {
+//		On fait PAUSE
 		this->killTimer(timerId);
 		timerId = 0;
 		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-play.png"));
 		actions["pauseResumeAct"]->setText("Resume");
 	} else {
+//		On fait PLAY
+//      On ré-ajuste le timer
 		timerId = this->startTimer(period);
-		historic.erase(historic.begin(), historic.end());
-		lastModif = historic.begin();
-//		scene->destroyItemGroup(movableGroup);
-		this->updateStatusBar();
 		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-pause.png"));
 		actions["pauseResumeAct"]->setText("Pause");
+//		On supprime ce qui ne doit pas exister pendant que la simulation tourne : historique, groupe de cellules non insérees.
+		historic.erase(historic.begin(), historic.end());
+		lastModif = historic.begin();
+		this->updateStatusBar();
+		this->insertMovableGroup();
 	}
 }
 
@@ -456,7 +459,7 @@ void MainWindow::clear() {
 	}
 }
 
-void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
+void MainWindow::showStatusBarMessage(string const& message, int const& timer) {
 	statusBar()->showMessage(message.c_str(), timer);
 }
 
@@ -503,23 +506,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		}
 		case Qt::Key_Return:
 		case Qt::Key_Enter: {
-			std::cout << "Enter" << std::endl;
-		    if (modifyState_ == Selecting && subState_ == Moving) {
-		    	for (auto const& cell : movableCells) {
-//		    		TODO : map the cell coordinates in scene coordinates (currently the scene coordinates returned are 0,0 )
-		    		size_t i(cell->x()), j(cell->y());
-				    std::cout << i << "," << j << std::endl;
-		    		if (cells[i][j] == nullptr) {
-					    cells[i][j] = dynamic_cast<CellItem*>(cell);
-					    game->addCell(i, j);
-					    std::cout << " ajouté" << std::endl;
-		    		} else {
-		    			delete cell;
-		    		}
-		    	}
-		    	scene->destroyItemGroup(movableGroup);
-		    	movableCells.erase(movableCells.begin(), movableCells.end());
-		    }
+		    this->insertMovableGroup();
 		    break;
 		}
 	}
@@ -759,5 +746,21 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 		    default:
 		        break;
 		}
+	}
+}
+
+void MainWindow::insertMovableGroup() {
+	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
+		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
+			size_t i((*it)->rect().x()), j((*it)->rect().y());
+			if (cells[i][j] == nullptr) {
+				cells[i][j] = *it;
+				game->addCell(i, j);
+			} else {
+				delete *it;
+			}
+		}
+		delete movableGroup;
+		movableGroup = nullptr;
 	}
 }

@@ -132,6 +132,7 @@ public :
 	[[nodiscard]] Liste::const_iterator cend() const;
 	
 	Coord const& operator[](size_t const& r);
+	Liste const& cells() const;
 	
 	// Infos ===================================================================================================
 	/**
