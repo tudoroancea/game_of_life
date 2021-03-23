@@ -273,17 +273,23 @@ void MainWindow::refreshScene() {
 }
 void MainWindow::refreshScene2(std::pair<Motif, Motif> const& toChange) {
 	for (auto it(toChange.first.cbegin()); it != toChange.first.cend(); ++it) {
-		if (cells[it->first][it->second] == nullptr) {
-			cells[it->first][it->second] = new CellItem(it->first, it->second);
-			scene->addItem(cells[it->first][it->second]);
-		}
+        if (it->first < MAX_LIGNES && it->second < MAX_COLONNES)
+        {           
+    		if (cells[it->first][it->second] == nullptr) {
+    			cells[it->first][it->second] = new CellItem(it->first, it->second);
+    			scene->addItem(cells[it->first][it->second]);
+    		}
+        }
 	}
 	for (auto it(toChange.second.cbegin()); it != toChange.second.cend(); ++it) {
-		if (cells[it->first][it->second] != nullptr) {
-			scene->removeItem(cells[it->first][it->second]);
-			delete cells[it->first][it->second];
-			cells[it->first][it->second] = nullptr;
-		}
+        if (it->first < MAX_LIGNES && it->second < MAX_COLONNES)
+        {
+    		if (cells[it->first][it->second] != nullptr) {
+    			scene->removeItem(cells[it->first][it->second]);
+    			delete cells[it->first][it->second];
+    			cells[it->first][it->second] = nullptr;
+    		}
+        }
 	}
 }
 
