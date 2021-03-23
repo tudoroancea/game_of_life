@@ -54,7 +54,7 @@ protected :
 	 * @param i,j coordonnées de la cellule de base (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
 	 * @param v Liste des cellules vivantes_ à laquelle rajouter les voisines qui vont devenir vivantes_.
 	 */
-	void verif(size_t const& i, size_t const& j, Liste& v);
+	void verif(size_t const& i, size_t const& j, Liste& v, Liste& n_n);
 	/**
 	 *  @brief  Calcule l'etat suivant d'une cellule (d'une grille_ potentiellement infinie)
 	 *  @param i,j coordonnees de la cellule (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
@@ -173,7 +173,7 @@ public :
 	/**
      *  @brief  Fait evoluer la grille_ en la faisant passer a la génération suivante et en updatant ses attributs
      */
-	virtual void evolve();
+	virtual std::pair<Motif, Motif> evolve();
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**
@@ -314,7 +314,7 @@ public :
 	 *  @brief  Fait evoluer toute la grille_ en la faisant passer a la génération suivante et en updatant ses attributs.
 	 *  Masque la version de la super-classe GameOfLife pour aussi mettre à jour la Liste des cellules vivantes_ et visibles.
 	 */
-	void evolve() override;
+	std::pair<Motif, Motif> evolve() override;
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**

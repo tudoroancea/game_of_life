@@ -28,66 +28,6 @@ std::size_t pair_hash::operator()(std::pair<T1,T2> const& p) const {
 GameOfLife::GameOfLife() : generation_(0) {
 	unsigned int max_l_temp(MAX_LIGNES + 99);
 	unsigned int max_c_temp(MAX_COLONNES + 99);
-	for (size_t j(1); j < MAX_COLONNES+100; ++j) {
-		grille_[0][j].set_coords({0, j});
-		grille_[0][j].add_neigh(&(grille_[0][j-1]), 0);
-		grille_[0][j-1].add_neigh(&(grille_[0][j]), 1);
-		
-		grille_[max_l_temp][j].set_coords({max_l_temp, j});
-		grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp][j-1]), 0);
-		grille_[max_l_temp][j-1].add_neigh(&(grille_[max_l_temp][j]), 1);
-		
-		if (j < max_c_temp) {
-			grille_[0][j].add_neigh(&(grille_[1][j-1]), 2);
-			grille_[0][j].add_neigh(&(grille_[1][j]), 3);
-			grille_[0][j].add_neigh(&(grille_[1][j+1]), 4);
-			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j-1]), 2);
-			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j]), 3);
-			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j+1]), 4);
-		}
-		
-	}
-	for (size_t i(1); i < MAX_LIGNES+100; ++i) {
-		grille_[i][0].set_coords({i, 0});
-		size_t rang(0);
-		grille_[i][0].add_neigh((&grille_[i-1][0]), 0);
-		rang = 1;
-		if (i == 1) {rang = 0;}
-		grille_[i-1][0].add_neigh((&grille_[i][0]), rang);
-		
-		grille_[i][max_c_temp].set_coords({i, max_c_temp});
-		rang = 0;
-		if (i == max_l_temp) {rang = 1;}
-		grille_[i][max_c_temp].add_neigh((&grille_[i-1][max_c_temp]), rang);
-		grille_[i-1][max_c_temp].add_neigh((&grille_[i][max_c_temp]), 1);
-		
-		if (i < max_l_temp)
-		{
-			grille_[i][0].add_neigh(&(grille_[i-1][1]), 2);
-			grille_[i][0].add_neigh(&(grille_[i][1]), 3);
-			grille_[i][0].add_neigh(&(grille_[i+1][1]), 4);
-			grille_[i][max_c_temp].add_neigh(&(grille_[i-1][max_l_temp-1]), 2);
-			grille_[i][max_c_temp].add_neigh(&(grille_[i][max_l_temp-1]), 3);
-			grille_[i][max_c_temp].add_neigh(&(grille_[i+1][max_l_temp-1]), 4);
-		}
-	}
-	grille_[0][0].add_neigh(&(grille_[1][1]), 2);
-	grille_[0][max_c_temp].add_neigh(&(grille_[1][max_c_temp-1]), 2);
-	grille_[max_l_temp][0].add_neigh(&(grille_[max_l_temp - 1][1]), 2);
-	grille_[max_l_temp][max_c_temp].add_neigh(&(grille_[max_l_temp-1][max_c_temp-1]), 2);
-	
-	for (size_t i(1); i < MAX_LIGNES+99; ++i) {
-		for (size_t j(1); j < MAX_COLONNES+99; ++j) {
-			Cell& c(grille_[i][j]);
-			for (size_t a(0); a < 8; ++a) {
-				c.add_neigh(&(grille_[i + dx[a]][j + dy[a]]), a);
-			}
-		}
-	}
-}
-GameOfLife::GameOfLife(Motif const& a_marquer) : generation_(0) {
-	unsigned int max_l_temp(MAX_LIGNES + 99);
-	unsigned int max_c_temp(MAX_COLONNES + 99);
 	for (size_t j(1); j < MAX_COLONNES+100; ++j)
 	{
 		grille_[0][j].set_coords({0, j});
@@ -107,6 +47,7 @@ GameOfLife::GameOfLife(Motif const& a_marquer) : generation_(0) {
 			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j]), 3);
 			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j+1]), 4);
 		}
+		
 	}
 	
 	for (size_t i(1); i < MAX_LIGNES+100; ++i)
@@ -144,7 +85,75 @@ GameOfLife::GameOfLife(Motif const& a_marquer) : generation_(0) {
 		for (size_t j(1); j < MAX_COLONNES+99; ++j)
 		{
 			Cell& c(grille_[i][j]);
-			for (size_t a(0); a < 8;  ++a) {
+			for (size_t a(0); a<8; a++)
+			{
+				c.add_neigh(&(grille_[i+dx[a]][j+dy[a]]), a);
+			}
+		}
+	}
+}
+GameOfLife::GameOfLife(Motif const& a_marquer) : generation_(0) {
+	unsigned int max_l_temp(MAX_LIGNES + 99);
+	unsigned int max_c_temp(MAX_COLONNES + 99);
+	for (size_t j(1); j < MAX_COLONNES+100; ++j)
+	{
+		grille_[0][j].set_coords({0, j});
+		grille_[0][j].add_neigh(&(grille_[0][j-1]), 0);
+		grille_[0][j-1].add_neigh(&(grille_[0][j]), 1);
+		
+		grille_[max_l_temp][j].set_coords({max_l_temp, j});
+		grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp][j-1]), 0);
+		grille_[max_l_temp][j-1].add_neigh(&(grille_[max_l_temp][j]), 1);
+		
+		if (j < max_c_temp)
+		{
+			grille_[0][j].add_neigh(&(grille_[1][j-1]), 2);
+			grille_[0][j].add_neigh(&(grille_[1][j]), 3);
+			grille_[0][j].add_neigh(&(grille_[1][j+1]), 4);
+			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j-1]), 2);
+			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j]), 3);
+			grille_[max_l_temp][j].add_neigh(&(grille_[max_l_temp-1][j+1]), 4);
+		}
+		
+	}
+	
+	for (size_t i(1); i < MAX_LIGNES+100; ++i)
+	{
+		grille_[i][0].set_coords({i, 0});
+		size_t rang(0);
+		grille_[i][0].add_neigh((&grille_[i-1][0]), 0);
+		rang = 1;
+		if (i == 1) {rang = 0;}
+		grille_[i-1][0].add_neigh((&grille_[i][0]), rang);
+		
+		grille_[i][max_c_temp].set_coords({i, max_c_temp});
+		rang = 0;
+		if (i == max_l_temp) {rang = 1;}
+		grille_[i][max_c_temp].add_neigh((&grille_[i-1][max_c_temp]), rang);
+		grille_[i-1][max_c_temp].add_neigh((&grille_[i][max_c_temp]), 1);
+		
+		if (i < max_l_temp)
+		{
+			grille_[i][0].add_neigh(&(grille_[i-1][1]), 2);
+			grille_[i][0].add_neigh(&(grille_[i][1]), 3);
+			grille_[i][0].add_neigh(&(grille_[i+1][1]), 4);
+			grille_[i][max_c_temp].add_neigh(&(grille_[i-1][max_l_temp-1]), 2);
+			grille_[i][max_c_temp].add_neigh(&(grille_[i][max_l_temp-1]), 3);
+			grille_[i][max_c_temp].add_neigh(&(grille_[i+1][max_l_temp-1]), 4);
+		}
+	}
+	
+	grille_[0][0].add_neigh(&(grille_[1][1]), 2);
+	grille_[0][max_c_temp].add_neigh(&(grille_[1][max_c_temp-1]), 2);
+	grille_[max_l_temp][0].add_neigh(&(grille_[max_l_temp - 1][1]), 2);
+	grille_[max_l_temp][max_c_temp].add_neigh(&(grille_[max_l_temp-1][max_c_temp-1]), 2);
+	
+	for (size_t i(1); i < MAX_LIGNES+99; ++i) {
+		for (size_t j(1); j < MAX_COLONNES+99; ++j)
+		{
+			Cell& c(grille_[i][j]);
+			for (size_t a(0); a<8; a++)
+			{
 				c.add_neigh(&(grille_[i+dx[a]][j+dy[a]]), a);
 			}
 		}
@@ -169,7 +178,7 @@ bool GameOfLife::at(size_t const& i, size_t const& j) const {
 }
 Liste const& GameOfLife::vivantes() const {return vivantes_;}
 
-[[maybe_unused]] const std::array<std::array<Cell, 400 + 100>, 400 + 100>& GameOfLife::grille() const {return grille_;}
+[[maybe_unused]] const std::array<std::array<Cell, MAX_LIGNES+100>, MAX_COLONNES+100>& GameOfLife::grille() const {return grille_;}
 
 // Setters ================================================
 
@@ -273,52 +282,63 @@ bool GameOfLife::next_state(size_t const& i, size_t const& j) const {
 	if (at(i + 1, j + 1)) ++S;
 	return (S==3) || (at(i, j) && S == 2);
 }
-void GameOfLife::verif(size_t const& i, size_t const& j, Liste& v) {
+void GameOfLife::verif(size_t const& i, size_t const& j, Liste& v, Liste& n_n) {
 #ifdef OVERFLOW_WARNINGS
 	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
-		if(!at(i, j) && std::find<Liste::iterator, Coord>(v.begin(), v.end(), {i, j}) == v.end()) {
-			if (next_state(i,j)) {
+		if(grille_[i][j].gen_() < generation_ && !grille_[i][j].get_state()) {
+			if (grille_[i][j].living_neighbors() == 3) {
 				v.push_back({i,j});
+				n_n.push_back({i,j});
+				grille_[i][j].set_gen_(generation_);
 			}
 		}
 	} else {
 		std::cerr << termcolor::yellow << "[verif(" << i << "," << j << ",vivantes_) n'a rien fait car les coords étaient trop grandes]" << termcolor::reset;
 	}
 #else
-	if(!at(i,j) && std::find<Liste::iterator, Coord>(v.begin(),v.end(),{i,j}) == v.end()) {
-		if (next_state(i,j) && i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
-			v.push_back({i,j});
+	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
+		if(grille_[i][j].gen_() < generation_ && !grille_[i][j].get_state()) {
+			if (grille_[i][j].living_neighbors() == 3) {
+				v.push_back({i,j});
+				n_n.push_back({i,j});
+				grille_[i][j].set_gen_(generation_);
+			}
 		}
 	}
 #endif
 }
-void GameOfLife::evolve() {
+std::pair<Motif, Motif> GameOfLife::evolve() {
+//	===========================================
 	// On crée une nouvelle Liste qui contiendra les nouvelles vivantes_
+	++generation_;
 	Liste nouvelles;
+	Liste mortes;
+	Liste reborn;
 	// On check chaque cellule déjà vivante pour voir si elle le reste
 	for (Liste::iterator it(vivantes_.begin()); it != vivantes_.end(); ++it) {
-		if (next_state(it->first,it->second)) {
-			nouvelles.push_back(*it);
+		if (grille_[it->first][it->second].gen_() < generation_)
+		{
+			grille_[it->first][it->second].set_gen_(generation_);
+			if (grille_[it->first][it->second].living_neighbors() == 2 || grille_[it->first][it->second].living_neighbors() == 3) {
+				nouvelles.push_back(*it);
+			}
+			else { mortes.push_back(*it); }
 		}
 		
 		// On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes_
-		verif(it->first - 1, it->second - 1, nouvelles);
-		verif(it->first - 1, it->second, nouvelles);
-		verif(it->first - 1, it->second + 1, nouvelles);
-		verif(it->first, it->second - 1, nouvelles);
-		verif(it->first, it->second + 1, nouvelles);
-		verif(it->first + 1, it->second - 1, nouvelles);
-		verif(it->first + 1, it->second, nouvelles);
-		verif(it->first - 1, it->second + 1, nouvelles);
+		for (size_t a(0); a < 8; a++)
+		{
+			verif(it->first + dx[a], it->second + dy[a], nouvelles, reborn);
+		}
 	}
 	// On enlève les anciennes cellules
-	for (auto const& el : vivantes_) grille_[el.first][el.second].change_state(false);
+	for (auto const& el : mortes) grille_[el.first][el.second].change_state(false);
 	
 	// On rajoute les nouvelles
-	for (auto const& el : nouvelles) grille_[el.first][el.second].change_state(true);
+	for (auto const& el : reborn) grille_[el.first][el.second].change_state(true);
 	// On update la Liste des vivantes_ et le nombre de generatitons
 	vivantes_ = nouvelles;
-	++generation_;
+	return {Motif(reborn), Motif(mortes)};
 }
 
 
@@ -664,13 +684,15 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, Liste& v, Liste& v_
 #ifdef OVERFLOW_WARNINGS
 	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
 		if(grille_[i][j].gen_() < generation_ && !grille_[i][j].get_state()) {
- 			if (grille_[i][j].living_neighbors() == 3) {
- 				v.push_back({i,j});
- 				n_n.push_back({i,j});
- 				grille_[i][j].set_gen_(generation_);
- 				if (Lmin_+50 <= i && i < Lmax_+50 && Cmin_+50 <= j && j < Cmax_+50) v_visibles.push_back({i-Lmin_-50, j-Cmin_-50});
- 			}
- 		}
+			if (grille_[i][j].living_neighbors() == 3) {
+				v.push_back({i,j});
+				n_n.push_back({i,j});
+				grille_[i][j].set_gen_(generation_);
+				if (Lmin_+50 <= i && i < Lmax_+50 && Cmin_+50 <= j && j < Cmax_+50) v_visibles.push_back({i-Lmin_-50, j-Cmin_-50});
+			}
+		}
+	} else {
+		std::cerr << termcolor::yellow << "[verif(" << i << "," << j << ",vivantes_, vivantes_visibles_, nouvelles_nouvelles_) n'a rien fait car les coords étaient trop grandes]" << termcolor::reset;
 	}
 #else
 	if (i < MAX_LIGNES+100 && j < MAX_COLONNES+100) {
@@ -685,12 +707,12 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, Liste& v, Liste& v_
 	}
 #endif
 }
-void GameOfLifeView::evolve() {
+std::pair<Motif, Motif> GameOfLifeView::evolve() {
 	// On crée une nouvelle Liste qui contiendra les nouvelles vivantes_
 	++generation_;
 	Liste nouvelles;
 	Liste mortes;
-	Liste nouvelles_nouvelles;
+	Liste reborn;
 	Liste nouvelles_visibles;
 	// On check chaque cellule déjà vivante pour voir si elle le reste
 	for (Liste::iterator it(vivantes_.begin()); it != vivantes_.end(); ++it) {
@@ -705,18 +727,20 @@ void GameOfLifeView::evolve() {
 		}
 		
 		// On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes_
-		for (size_t a(0); a < 8; ++a) {
-			verif(it->first + dx[a], it->second + dy[a], nouvelles, nouvelles_visibles, nouvelles_visibles);
+		for (size_t a(0); a < 8; a++)
+		{
+			verif(it->first + dx[a], it->second + dy[a], nouvelles, nouvelles_visibles, reborn);
 		}
 	}
 	// On enlève les anciennes cellules
 	for (auto const& el : mortes) grille_[el.first][el.second].change_state(false);
 	
 	// On rajoute les nouvelles
-	for (auto const& el : nouvelles_nouvelles) grille_[el.first][el.second].change_state(true);
+	for (auto const& el : reborn) grille_[el.first][el.second].change_state(true);
 	// On update la Liste des vivantes_ et le nombre de generatitons
 	vivantes_ = nouvelles;
 	vivantes_visibles = nouvelles_visibles;
+	return {Motif(reborn), Motif(mortes)};
 }
 
 // Getters GameOfLifeView ==========================================================================================================================================================================
