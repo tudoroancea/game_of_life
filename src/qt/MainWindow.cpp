@@ -207,14 +207,22 @@ void MainWindow::createToolBars() {
 void MainWindow::createStatusBar() {
 	labels[0] = new QLabel("Historic size :");
 	statusBar()->addWidget(labels[0]);
+	
 	labels[1] = new QLabel;
 	labels[1]->setNum(0);
 	statusBar()->addWidget(labels[1]);
+	
 	labels[2] = new QLabel("lastModif :");
 	statusBar()->addWidget(labels[2]);
+	
 	labels[3] = new QLabel;
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 	statusBar()->addWidget(labels[3]);
+
+#ifdef RELEASE_MODE
+	labels[4] = new QLabel("Release");
+	statusBar()->addWidget(labels[4]);
+#endif
 	
 }
 
@@ -480,9 +488,9 @@ void MainWindow::showStatusBarMessage(string const& message, int const& timer) {
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
 //	auto start(std::chrono::high_resolution_clock::now());
-//	game->evolve();
-//	this->refreshScene();
-	this->refreshScene2(game->evolve());
+	game->evolve();
+	this->refreshScene();
+//	this->refreshScene2(game->evolve());
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
