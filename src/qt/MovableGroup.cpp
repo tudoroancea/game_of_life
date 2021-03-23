@@ -44,11 +44,38 @@ MovableGroup::~MovableGroup() {
 	delete rect;
 }
 
-void MovableGroup::moveBy(const qreal& dx, const qreal& dy) {
-	for (const auto & cell : cells) {
-	    cell->moveBy(dx, dy);
+void MovableGroup::moveBy(const int& dx, const int& dy) {
+//	for (const auto & cell : cells) {
+//	    cell->moveBy(dx, dy);
+//	}
+//	rect->moveBy(dx, dy);
+	QRectF rect2(rect->rect());
+	int x(rect2.x()), y(rect2.y()), newX(x+dx), newY(y+dy);
+	bool xModified(false), yModified(false);
+	if (newX >= 0) {
+		xModified = true;
 	}
-	rect->moveBy(dx, dy);
+	if (newY >= 0) {
+		yModified = true;
+	}
+	if (xModified && !yModified) {
+		rect2.moveLeft(newX);
+		for (const auto & cell : cells) {
+		    cell->moveByX(dx);
+		}
+	} else if (yModified && !xModified) {
+		rect2.moveTop(newY);
+		for (const auto & cell : cells) {
+		    cell->moveByY(dy);
+		}
+	} else if (xModified) { // yModified is always true at this point so we can ignore it
+		rect2.moveTo(newX, newY);
+		for (const auto & cell : cells) {
+		    cell->moveBy(dx,dy);
+		}
+	}
+	rect->setRect(rect2);
+//	rect->setRect(size_t((int)rect->rect().x()+dx), size_t((int)rect->rect().y()+dy), rect->rect().width(), rect->rect().height());
 }
 
 void MovableGroup::append(CellItem* const& cell) {
@@ -98,6 +125,6 @@ QList<CellItem*>::const_iterator MovableGroup::cend() const {
 	return cells.cend();
 }
 
-QGraphicsRectItem* MovableGroup::boundingRect() const {
+QGraphicsRectItem* MovableGroup::rectItem() const {
 	return rect;
 }

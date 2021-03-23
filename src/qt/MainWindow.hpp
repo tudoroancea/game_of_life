@@ -79,12 +79,12 @@ private:
 //	QGraphicsRectItem* movableFrame;
 //	QGraphicsItemGroup* movableGroup;
 //	QList<QGraphicsItem*> movableCells;
-	MovableGroup* movableGroup;
+	MovableGroup* movableGroup = nullptr;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
-	QComboBox* stateBox;
-	QToolBar* mainToolBar;
+	QComboBox* stateBox = nullptr;
+	QToolBar* mainToolBar = nullptr;
 
 //	Actions ====================================================================================
 	std::unordered_map<std::string, QAction*> actions;

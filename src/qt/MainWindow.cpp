@@ -45,7 +45,7 @@ MainWindow::MainWindow()
 	createStatusBar();
 	
 	this->setWindowTitle("Conway's Game of Life Emulator");
-	this->resize(600,500);
+	this->resize(600,600);
 	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 	this->setCentralWidget(view);
@@ -90,20 +90,20 @@ MainWindow::~MainWindow() {
 
 void MainWindow::createActions() {
 //	File Menu ========================================================================================
-	actions["newSimAct"] = new QAction("New Simulation", this);
-	actions["newSimAct"]->setShortcut(QKeySequence::New);
-	connect(actions["newSimAct"], SIGNAL(triggered()), this, SLOT(newSim()));
-	
-	actions["openAct"] = new QAction("Open");
-	actions["openAct"]->setShortcut(QKeySequence::Open);
-	connect(actions["openAct"], &QAction::triggered, this, &MainWindow::open);
-	
-	actions["saveMotifAct"] = new QAction("Save Motif", this);
-	actions["saveMotifAct"]->setIcon(QIcon(":/images/icons8-save.png"));
-	connect(actions["saveMotifAct"], &QAction::triggered, this, &MainWindow::saveMotif);
-	
-	actions["saveSimAct"] = new QAction("Save Simulation", this);
-	connect(actions["saveSimAct"], &QAction::triggered, this, &MainWindow::saveSim);
+//	actions["newSimAct"] = new QAction("New Simulation", this);
+//	actions["newSimAct"]->setShortcut(QKeySequence::New);
+//	connect(actions["newSimAct"], SIGNAL(triggered()), this, SLOT(newSim()));
+//
+//	actions["openAct"] = new QAction("Open");
+//	actions["openAct"]->setShortcut(QKeySequence::Open);
+//	connect(actions["openAct"], &QAction::triggered, this, &MainWindow::open);
+//
+//	actions["saveMotifAct"] = new QAction("Save Motif", this);
+//	actions["saveMotifAct"]->setIcon(QIcon(":/images/icons8-save.png"));
+//	connect(actions["saveMotifAct"], &QAction::triggered, this, &MainWindow::saveMotif);
+//
+//	actions["saveSimAct"] = new QAction("Save Simulation", this);
+//	connect(actions["saveSimAct"], &QAction::triggered, this, &MainWindow::saveSim);
 	
 
 //	Edit Menu ========================================================================================
@@ -117,6 +117,7 @@ void MainWindow::createActions() {
 	
 	actions["copyAct"] = new QAction(QIcon(":/images/icons8-copy.png"), "Copy", this);
 	actions["copyAct"]->setShortcut(QKeySequence::Copy);
+	actions["copyAct"]->setToolTip("Copy the selected cells");
 	connect(actions["copyAct"], &QAction::triggered, this, &MainWindow::copy);
 	
 	actions["pasteAct"] = new QAction(QIcon(":/images/icons8-paste.png"), "Paste", this);
@@ -129,7 +130,6 @@ void MainWindow::createActions() {
 	
 	actions["clearAct"] = new QAction(QIcon(":/images/icons8-delete.png"), "Clear", this);
 	actions["clearAct"]->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_K));
-//	actions["clearAct"]->setText("Clear");
 	connect(actions["clearAct"], &QAction::triggered, this, &MainWindow::clear);
 	
 //	View Menu ========================================================================================
@@ -157,11 +157,11 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::createMenus() {
-	menus["fileMenu"] = menuBar()->addMenu("File");
-	menus["fileMenu"]->addAction(actions["newSimAct"]);
-	menus["fileMenu"]->addAction(actions["openAct"]);
-	menus["fileMenu"]->addAction(actions["saveMotifAct"]);
-	menus["fileMenu"]->addAction(actions["saveSimAct"]);
+//	menus["fileMenu"] = menuBar()->addMenu("File");
+//	menus["fileMenu"]->addAction(actions["newSimAct"]);
+//	menus["fileMenu"]->addAction(actions["openAct"]);
+//	menus["fileMenu"]->addAction(actions["saveMotifAct"]);
+//	menus["fileMenu"]->addAction(actions["saveSimAct"]);
 	
 	menus["editMenu"] = menuBar()->addMenu("Edit");
 	menus["editMenu"]->addAction(actions["undoAct"]);
@@ -191,6 +191,7 @@ void MainWindow::createToolBars() {
 	mainToolBar = new QToolBar;
 	mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	mainToolBar->addWidget(stateBox);
+	mainToolBar->addSeparator();
 	mainToolBar->addAction(actions["pauseResumeAct"]);
 	mainToolBar->addAction(actions["clearAct"]);
 	mainToolBar->addAction(actions["undoAct"]);
@@ -386,7 +387,7 @@ void MainWindow::paste() {
 	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
 		scene->addItem(*it);
 	}
-	scene->addItem(movableGroup->boundingRect());
+	scene->addItem(movableGroup->rectItem());
 	subState_ = Moving;
 }
 
@@ -507,6 +508,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_Return:
 		case Qt::Key_Enter: {
 		    this->insertMovableGroup();
+		    subState_ = Nothing;
 		    break;
 		}
 	}
@@ -570,6 +572,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event) {
 
 void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 	if (game != nullptr) {
+		QPointF pos(view->mapToScene(event->pos()));
+        size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
 		        if (event->button() == Qt::LeftButton) {
@@ -578,8 +582,6 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 		        		historic.erase(historic.begin(), lastModif);
 		        	}
 //			        Maintenant lastModif == historic.begin();
-					QPointF pos(view->mapToScene(event->pos()));
-		        	size_t i(pos.x()), j(pos.y());
 		        	if (game->addCell(i, j)) {
 			            lastI = pos.x();
 			            lastJ = pos.y();
@@ -598,8 +600,6 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 					    historic.erase(historic.begin(), lastModif);
 				    }
 //			        Maintenant lastModif == historic.begin();
-				    QPointF pos(view->mapToScene(event->pos()));
-				    size_t i(pos.x()), j(pos.y());
 				    if (game->deleteCell(i, j)) {
 					    lastI = pos.x();
 					    lastJ = pos.y();
@@ -610,6 +610,21 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 				    this->updateStatusBar();
 			    }
 			    break;
+		    }
+		    case Selecting: {
+			    if (event->button() == Qt::LeftButton) {
+			        if (subState_ == Moving) {
+			            if (movableGroup->rectItem()->rect().contains(pos)) {
+			                std::cerr << termcolor::green << "😄 Yes !!" << termcolor::reset << std::endl;
+			                leftButtonPressed = true;
+			                lastI = i;
+			                lastJ = j;
+			            } else {
+					        std::cerr << termcolor::red << "😢 No …" << termcolor::reset << std::endl;
+			            }
+			        }
+			    }
+		        break;
 		    }
 		    default:
 		        break;
@@ -625,7 +640,7 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 
 void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 	if (game != nullptr) {
-		if (modifyState_ == Selecting) {
+		if (modifyState_ == Selecting && subState_ != Moving) {
 			doubleLeftButtonPressed = true;
 			QPointF pos(view->mapToScene(event->pos()));
 			newSelectedZoneRect.moveTo(pos.x(), pos.y());
@@ -696,6 +711,10 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 			        newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
 			        newSelectedZone->setRect(newSelectedZoneRect);
 			        this->refreshScene();
+		    	} else if (subState_ == Moving && leftButtonPressed) {
+		    		movableGroup->moveBy((int)i-(int)lastI, (int)j-(int)lastJ);
+		    		lastI = i;
+		    		lastJ = j;
 		    	}
 		    }
 		    default:
@@ -740,6 +759,8 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 			        	}
 			        }
 			        this->refreshScene();
+		        } else if (subState_ == Moving && leftButtonPressed) {
+		        	leftButtonPressed = false;
 		        }
 		        break;
 		    }

@@ -38,18 +38,18 @@ bool CellItem::equalsTo(CellItem const& other) const {
 
 
 
-void CellItem::moveBy(qreal dx, qreal dy) {
+void CellItem::moveBy(const int& dx, const int& dy) {
 //	QGraphicsItem::moveBy(dx, dy);
-	if (i_+dx < 0) {
-		i_ = 0;
-	} else {
+//	if ((int)i_+dx < 0) {
+//		i_ = 0;
+//	} else {
 		i_ = size_t(i_+dx);
-	}
-	if (j_+dy < 0) {
-		j_ = 0;
-	} else {
+//	}
+//	if ((int)j_+dy < 0) {
+//		j_ = 0;
+//	} else {
 		j_ = size_t(j_+dy);
-	}
+//	}
 	this->setRect(i_, j_, 1.0, 1.0);
 }
 size_t const& CellItem::i() const {
@@ -57,6 +57,24 @@ size_t const& CellItem::i() const {
 }
 size_t const& CellItem::j() const {
 	return j_;
+}
+
+void CellItem::moveByX(const int& dx) {
+//	if ((int)i_+dx < 0) {
+//		i_ = 0;
+//	} else {
+		i_ = size_t(i_+dx);
+//	}
+	this->setRect(i_, j_, 1.0, 1.0);
+}
+
+void CellItem::moveByY(const int& dy) {
+//	if ((int)j_+dy < 0) {
+//		j_ = 0;
+//	} else {
+		j_ = size_t(j_+dy);
+//	}
+	this->setRect(i_, j_, 1.0, 1.0);
 }
 
 

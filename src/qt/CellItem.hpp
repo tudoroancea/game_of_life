@@ -33,7 +33,9 @@ public:
 	[[nodiscard]] bool equalsTo(CellItem const& other) const;
 	[[nodiscard]] size_t const& i() const;
 	[[nodiscard]] size_t const& j() const;
-	void moveBy(qreal dx, qreal dy);
+	void moveBy(const int& dx, const int& dy);
+	void moveByX(int const& dx);
+	void moveByY(int const& dy);
 };
 
 

@@ -31,14 +31,14 @@ public:
 	 */
 	~MovableGroup();
 	
-	void moveBy(qreal const& dx, qreal const& dy);
+	void moveBy(const int& dx, const int& dy);
 	void append(CellItem* const& cell);
 	QList<CellItem*>& refCells();
 	QList<CellItem*>::iterator begin();
 	QList<CellItem*>::iterator end();
 	[[nodiscard]] QList<CellItem*>::const_iterator cbegin() const;
 	[[nodiscard]] QList<CellItem*>::const_iterator cend() const;
-	QGraphicsRectItem* boundingRect() const;
+	QGraphicsRectItem* rectItem() const;
 };
 
 

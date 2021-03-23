@@ -19,8 +19,8 @@ using namespace std;
 
 
 int main() {
-	double x(-1.0);
-	size_t n(x);
-	cout << n;
+	int x(-2);
+	size_t y(4);
+	cout << x+(int)y;
 	return 0;
 }
