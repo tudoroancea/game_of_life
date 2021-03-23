@@ -102,6 +102,7 @@ public :
 	 *  @returns    retourne une reference sur l'instance courante
 	 */
 	Motif& translate(std::pair<int,int> const& p);
+	Motif& setPos(size_t const& i, size_t const& j);
 	/**
 	 *  @brief  Translate le motif pour le rapprocher le plus possible de l'origine
 	 *  @returns    retourne une reference sur l'instance courante

@@ -97,11 +97,13 @@ private:
 	static void placeholder(const char* str);
 	// Create the frame and the axis on the simulation window
 	void createFrame();
-	void refreshScene();
-	void refreshScene2(std::pair<Motif, Motif> const& toChange);
+	
+	void refreshScene(golChange const& toChange);
 	
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();
+	
+	void refreshSelectionZone();
 	void setSelectionZoneColors();
 	void addCell(size_t const& i, size_t const& j);
 	void deleteCell(size_t const& i, size_t const& j);

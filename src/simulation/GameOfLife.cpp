@@ -184,7 +184,6 @@ Liste const& GameOfLife::vivantes() const {return vivantes_;}
 
 bool GameOfLife::addCell(size_t const& i, size_t const& j) {
 	if (i < MAX_LIGNES && j < MAX_COLONNES && !at(i+50, j+50)) {
-
 		vivantes_.push_back({i+50, j+50});
 		grille_[i+50][j+50].change_state(true);
 		return true;
@@ -247,12 +246,13 @@ std::vector<bool> GameOfLife::deleteMotif(Motif const& motif) {
 	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(deleteCell(it->first, it->second));
 	return res;
 }
-GameOfLife& GameOfLife::wipe() {
+golChange GameOfLife::wipe() {
+	Motif res(vivantes_);
 	for (auto it(vivantes_.begin()); it != vivantes_.end();) {
 		grille_[it->first][it->second].change_state(false);
 		vivantes_.erase(it);
 	}
-	return *this;
+	return {Motif(), res};
 }
 
 unsigned int& GameOfLife::generation() {return generation_;}
@@ -300,14 +300,14 @@ void GameOfLife::verif(size_t const& i, size_t const& j, Liste& v, Liste& n_n) {
 		if(grille_[i][j].gen_() < generation_ && !grille_[i][j].get_state()) {
 			if (grille_[i][j].living_neighbors() == 3) {
 				v.push_back({i,j});
-				n_n.push_back({i,j});
+				n_n.push_back({i-50,j-50});
 				grille_[i][j].set_gen_(generation_);
 			}
 		}
 	}
 #endif
 }
-std::pair<Motif, Motif> GameOfLife::evolve() {
+golChange GameOfLife::evolve() {
 //	===========================================
 	// On crée une nouvelle Liste qui contiendra les nouvelles vivantes_
 	++generation_;
@@ -322,7 +322,7 @@ std::pair<Motif, Motif> GameOfLife::evolve() {
 			if (grille_[it->first][it->second].living_neighbors() == 2 || grille_[it->first][it->second].living_neighbors() == 3) {
 				nouvelles.push_back(*it);
 			}
-			else { mortes.push_back(*it); }
+			else { mortes.push_back({it->first-50, it->second-50}); }
 		}
 		
 		// On vérifie dans ses voisines lesquelles étaient mortes et deviendraient potentiellement vivantes_
@@ -332,10 +332,10 @@ std::pair<Motif, Motif> GameOfLife::evolve() {
 		}
 	}
 	// On enlève les anciennes cellules
-	for (auto const& el : mortes) grille_[el.first][el.second].change_state(false);
+	for (auto const& el : mortes) grille_[el.first+50][el.second+50].change_state(false);
 	
 	// On rajoute les nouvelles
-	for (auto const& el : reborn) grille_[el.first][el.second].change_state(true);
+	for (auto const& el : reborn) grille_[el.first+50][el.second+50].change_state(true);
 	// On update la Liste des vivantes_ et le nombre de generatitons
 	vivantes_ = nouvelles;
 	return {Motif(reborn), Motif(mortes)};
@@ -604,7 +604,6 @@ bool GameOfLifeView::saveMotif(std::string const& nomMotif, FILE_CATEGORY const&
 // Setters du jeu GameOfLifeView ==========================================================================================================================================================================
 bool GameOfLifeView::addCell(size_t const& i, size_t const& j) {
 	if (i < Lmax_-Lmin_ && j < Cmax_-Cmin_ && !at(i + Lmin_ + 50, j + Cmin_ + 50)) {
-		std::cerr << i << "," << j << std::endl;
 		vivantes_.push_back({i+Lmin_+50, j+Cmin_+50});
 		vivantes_visibles.push_back({i,j});
 		grille_[i+Lmin_+50][j+Cmin_+50].change_state(true);
@@ -670,14 +669,15 @@ std::vector<bool> GameOfLifeView::deleteMotif(Motif const& motif) {
 	for (auto it(motif.cbegin()); it != motif.cend(); ++it) res.push_back(deleteCell(it->first, it->second));
 	return res;
 }
-GameOfLifeView& GameOfLifeView::wipe() {
+golChange GameOfLifeView::wipe() {
+	Motif res(vivantes_visibles);
 	for (auto it(vivantes_visibles.begin()); it != vivantes_visibles.end();) {
 		grille_[it->first+Lmin_+50][it->second+Cmin_+50].change_state(false);
 		auto a_effacer(std::find<Liste::iterator,Coord>(vivantes_.begin(), vivantes_.end(), {it->first+Lmin_+50, it->second+Cmin_+50}));
 		if (a_effacer != vivantes_.end()) vivantes_.erase(a_effacer);
 		vivantes_visibles.erase(it);
 	}
-	return *this;
+	return {Motif(),res};
 }
 
 // Evolution du jeu ==========================================================================================================================================================================
@@ -708,7 +708,7 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, Liste& v, Liste& v_
 //	}
 //#endif
 }
-std::pair<Motif, Motif> GameOfLifeView::evolve() {
+golChange GameOfLifeView::evolve() {
 	// On crée une nouvelle Liste qui contiendra les nouvelles vivantes_
 	++generation_;
 	Liste nouvelles;

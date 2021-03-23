@@ -23,6 +23,14 @@ struct pair_hash {
 	std::size_t operator()(std::pair<T1,T2> const& p) const;
 };
 
+/**
+ * @brief Sert de type de retour pour des méthodes de GameOfLife et GameOfLifeView pour indiquer à MainWindow quelles cellules il faut supprimer et quelles cellules il faut ajouter.
+ * Cela évite de recharger toute la grille si on a modifié que peu de cellules
+ */
+struct golChange {
+	Motif toAdd;
+	Motif toDelete;
+};
 
 /**
  * @class GameOfLife
@@ -168,12 +176,12 @@ public :
      *  @brief  Efface toute la grille_
      *  @returns    référence sur l'instance courante
      */
-	virtual GameOfLife& wipe();
+	virtual golChange wipe();
 	
 	/**
      *  @brief  Fait evoluer la grille_ en la faisant passer a la génération suivante et en updatant ses attributs
      */
-	virtual std::pair<Motif, Motif> evolve();
+	virtual golChange evolve();
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**
@@ -309,12 +317,12 @@ public :
 	 *  @brief  Efface toute la partie visible de la grille_.
 	 *  @returns    référence sur l'instance courante
 	 */
-	GameOfLifeView& wipe() override;
+	golChange wipe() override;
 	/**
 	 *  @brief  Fait evoluer toute la grille_ en la faisant passer a la génération suivante et en updatant ses attributs.
 	 *  Masque la version de la super-classe GameOfLife pour aussi mettre à jour la Liste des cellules vivantes_ et visibles.
 	 */
-	std::pair<Motif, Motif> evolve() override;
+	golChange evolve() override;
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**

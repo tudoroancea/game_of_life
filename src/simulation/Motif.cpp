@@ -196,6 +196,10 @@ Motif& Motif::translate(int const& x, int const& y) {
 	return *this;
 }
 Motif& Motif::translate(std::pair<int,int> const& p) {return translate(p.first, p.second);}
+Motif& Motif::setPos(size_t const& i, size_t const& j) {
+	this->recalibrate();
+	return this->translate(i,j);
+}
 Motif& Motif::recalibrate() {translate(-min_ligne(), -min_colonne()); return *this;}
 Motif& Motif::clear() {cellules.erase(cellules.begin(), cellules.end()); return *this;}
 // Getters
