@@ -98,6 +98,7 @@ private:
 	// Create the frame and the axis on the simulation window
 	void createFrame();
 	void refreshScene();
+	void refreshScene2(std::pair<Motif, Motif> const& toChange);
 	
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();

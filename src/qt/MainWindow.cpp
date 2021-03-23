@@ -252,16 +252,31 @@ void MainWindow::refreshScene() {
 		}
 	}
 	scene->clear();
-	this->createFrame();
 	for (auto const& c : game->vivantes()) {
 		cells[X(c)][Y(c)] = new CellItem((double) c.first, (double) c.second);
 		scene->addItem(cells[X(c)][Y(c)]);
 	}
+	this->createFrame();
 	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
 	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
 	this->setSelectionZoneColors();
 	scene->addItem(newSelectedZone);
 	scene->addItem(currentSelectedZone);
+}
+void MainWindow::refreshScene2(std::pair<Motif, Motif> const& toChange) {
+	for (auto it(toChange.first.cbegin()); it != toChange.first.cend(); ++it) {
+		if (cells[it->first][it->second] == nullptr) {
+			cells[it->first][it->second] = new CellItem(it->first, it->second);
+			scene->addItem(cells[it->first][it->second]);
+		}
+	}
+	for (auto it(toChange.second.cbegin()); it != toChange.second.cend(); ++it) {
+		if (cells[it->first][it->second] != nullptr) {
+			scene->removeItem(cells[it->first][it->second]);
+			delete cells[it->first][it->second];
+			cells[it->first][it->second] = nullptr;
+		}
+	}
 }
 
 void MainWindow::setModifyState(const int& modifyState) {
@@ -292,18 +307,14 @@ void MainWindow::setSelectionZoneColors() {
 }
 
 void MainWindow::addCell(size_t const& i, size_t const& j) {
-	if (cells[i][j] == nullptr) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
 		cells[i][j] = new CellItem((qreal) i, (qreal) j);
 		scene->addItem(cells[i][j]);
 		scene->update(cells[i][j]->rect());
-//		std::cout << termcolor::reset << cells[i][j]->scenePos().x() << "," << cells[i][j]->scenePos().y() << std::endl;
-//		std::cout << cells[i][j]->rect().x() << ',' << cells[i][j]->rect().y() << std::endl;
 	}
-//	view->update();
-//	this->refreshScene();
 }
 void MainWindow::deleteCell(size_t const& i, size_t const& j) {
-	if (cells[i][j] != nullptr) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] != nullptr) {
 		delete cells[i][j];
 		cells[i][j] = nullptr;
 	}
@@ -469,8 +480,9 @@ void MainWindow::showStatusBarMessage(string const& message, int const& timer) {
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
 //	auto start(std::chrono::high_resolution_clock::now());
-	game->evolve();
-	this->refreshScene();
+//	game->evolve();
+//	this->refreshScene();
+	this->refreshScene2(game->evolve());
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
