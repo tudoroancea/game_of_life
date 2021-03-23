@@ -8,4 +8,4 @@ add_library(simulation
 			EquivalenceTable.hpp EquivalenceTable.cpp
 			rapidcsv.h
 			termcolor.hpp
-			)
+			Cell.cpp Cell.hpp)
