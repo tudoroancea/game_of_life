@@ -10,10 +10,9 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 add_library(qt
 			STATIC
 			MainWindow.cpp MainWindow.hpp
-			Cell.cpp Cell.hpp
+			CellItem.cpp CellItem.hpp
 			GraphicsView.cpp GraphicsView.hpp
-#			images.qrc
-)
+			MovableGroup.cpp MovableGroup.hpp)
 
 # permet les includes sans prefix
 include_directories(../simulation)

@@ -19,10 +19,11 @@
 #include <deque>
 
 #include "GraphicsView.hpp"
-#include "Cell.hpp"
+#include "CellItem.hpp"
 #include "GameOfLife.hpp"
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
+#include "MovableGroup.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -38,6 +39,9 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
 //	Timer ====================================================================================
+	/**
+	 * @brief To see if a timer is started or not.
+	 */
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
 	
@@ -52,6 +56,8 @@ private:
 //	Mode de modification ====================================================================================
 	enum CellModifier {Selecting, Adding, Deleting};
 	CellModifier modifyState_ = Selecting;
+	enum SubState {Nothing, Moving};
+	SubState subState_ = Nothing;
 	
 //	Historic for undo/redo modifications ====================================================================================
 	std::deque<std::pair<bool,Motif>> historic;
@@ -61,6 +67,7 @@ private:
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
+	std::array<std::array<CellItem*,MAX_LIGNES>,MAX_COLONNES> cells;
 	std::array<QLabel*,10> labels;
 	
 //	Zone de sélection et copy/paste ====================================================================================
@@ -69,11 +76,15 @@ private:
 	QPolygonF currentSelectedZonePolygon;
 	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
+//	QGraphicsRectItem* movableFrame;
+//	QGraphicsItemGroup* movableGroup;
+//	QList<QGraphicsItem*> movableCells;
+	MovableGroup* movableGroup = nullptr;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
-	QComboBox* stateBox;
-	QToolBar* mainToolBar;
+	QComboBox* stateBox = nullptr;
+	QToolBar* mainToolBar = nullptr;
 
 //	Actions ====================================================================================
 	std::unordered_map<std::string, QAction*> actions;
@@ -86,10 +97,17 @@ private:
 	static void placeholder(const char* str);
 	// Create the frame and the axis on the simulation window
 	void createFrame();
-	void refreshScene();
+	
+	void refreshScene(golChange const& toChange);
+	
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();
+	
+	void refreshSelectionZone();
 	void setSelectionZoneColors();
+	void addCell(size_t const& i, size_t const& j);
+	void deleteCell(size_t const& i, size_t const& j);
+	void insertMovableGroup();
 
 private slots:
 //	For actions ==========================================================================================

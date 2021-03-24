@@ -15,3 +15,7 @@
 - [ ] test unitaires
 - [x] documentation methodes
 - [x] ajouter les sub_directory CMake
+
+#Useful :
+To count the number of lines \
+```cloc . -git --exclude-dir=cmake-build-debug,cmake-build-release --fullpath --not-match-d=gtest```

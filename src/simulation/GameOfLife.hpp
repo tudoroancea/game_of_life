@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include "Motif.hpp"
 #include "rapidcsv.h"
+#include "Cell.hpp"
 
 /**
  * @brief Specialization of std::hash for pairs. Weak version due to the XOR
@@ -22,6 +23,14 @@ struct pair_hash {
 	std::size_t operator()(std::pair<T1,T2> const& p) const;
 };
 
+/**
+ * @brief Sert de type de retour pour des méthodes de GameOfLife et GameOfLifeView pour indiquer à MainWindow quelles cellules il faut supprimer et quelles cellules il faut ajouter.
+ * Cela évite de recharger toute la grille si on a modifié que peu de cellules
+ */
+struct golChange {
+	Motif toAdd;
+	Motif toDelete;
+};
 
 /**
  * @class GameOfLife
@@ -38,7 +47,7 @@ protected :
 	 *  La zone qu'on peut manipuler est [50,MAX_LIGNES+50[x[50,MAX_COLONNES+50[ (les marges restantes sont là pour éviter les effets de bord).
 	 *  Ces manipulations via l'interface se font avec des coordonnées NE TENANT PAS COMPTE des marges (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ) et qui sont ensuite translatées.
 	 */
-	std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> grille_;
+	std::array<std::array<Cell,MAX_LIGNES+100>,MAX_COLONNES+100> grille_;
 	/**
 	 *  @brief  Liste des coordonnees qui TIENNENT compte des marges (dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[) des cellules vivantes_ a un instant donne.
 	 */
@@ -53,7 +62,7 @@ protected :
 	 * @param i,j coordonnées de la cellule de base (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
 	 * @param v Liste des cellules vivantes_ à laquelle rajouter les voisines qui vont devenir vivantes_.
 	 */
-	void verif(size_t const& i, size_t const& j, Liste& v);
+	void verif(size_t const& i, size_t const& j, Liste& v, Liste& n_n);
 	/**
 	 *  @brief  Calcule l'etat suivant d'une cellule (d'une grille_ potentiellement infinie)
 	 *  @param i,j coordonnees de la cellule (TENANT COMPTE DES MARGES, ie dans [0,MAX_LIGNES+100[x[0,MAX_COLONNES+100[)
@@ -101,7 +110,7 @@ public :
 	/**
 	 * @return référence constante sur la grille_ des cellules
 	 */
-	[[maybe_unused]] std::array<std::array<bool,MAX_LIGNES+100>,MAX_COLONNES+100> const& grille() const;
+	[[maybe_unused]] const std::array<std::array<Cell, MAX_LIGNES + 100>, MAX_COLONNES + 100>& grille() const;
 	/**
 	 *  @returns    référence sur le nombre de générations
 	 *  @brief  (on renvoie une référence pour incrémenter le nombre de générations dans Simulation::evolve() )
@@ -167,12 +176,12 @@ public :
      *  @brief  Efface toute la grille_
      *  @returns    référence sur l'instance courante
      */
-	virtual GameOfLife& wipe();
+	virtual golChange wipe();
 	
 	/**
      *  @brief  Fait evoluer la grille_ en la faisant passer a la génération suivante et en updatant ses attributs
      */
-	virtual void evolve();
+	virtual golChange evolve();
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**
@@ -234,7 +243,7 @@ private :
 	 * @param v Liste des cellules vivantes_ à laquelle rajouter les voisines qui vont devenir vivantes_.
 	 * @param v_visibles    Liste des cellules vivantes_ visibles à laquelle rajouter les voisines qui vont devenir vivantes_ et visibles.
 	 */
-	void verif(size_t const& i, size_t const& j, Liste& v, Liste& v_visibles);
+	void verif(size_t const& i, size_t const& j, Liste& v, Liste& v_visibles, Liste& n_n);
 public :
 	// Constructeurs ============================================================
 	/**
@@ -308,12 +317,12 @@ public :
 	 *  @brief  Efface toute la partie visible de la grille_.
 	 *  @returns    référence sur l'instance courante
 	 */
-	GameOfLifeView& wipe() override;
+	golChange wipe() override;
 	/**
 	 *  @brief  Fait evoluer toute la grille_ en la faisant passer a la génération suivante et en updatant ses attributs.
 	 *  Masque la version de la super-classe GameOfLife pour aussi mettre à jour la Liste des cellules vivantes_ et visibles.
 	 */
-	void evolve() override;
+	golChange evolve() override;
 	
 	// Enregistrement de motifs et simulaions  ==============================
 	/**

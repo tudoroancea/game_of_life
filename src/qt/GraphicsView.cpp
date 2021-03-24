@@ -14,12 +14,13 @@
 
 #include "GraphicsView.hpp"
 #include "termcolor.hpp"
-#include "Cell.hpp"
+#include "CellItem.hpp"
 
 //	Constructors & Destructors ========================================================================================
 
 GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent) : QGraphicsView(scene, parent) {
 	this->setMouseTracking(true);
+//	this->setForegroundBrush(QColor(0, 102, 255, 133));
 }
 
 //	Getters & Setters ========================================================================================
@@ -64,6 +65,11 @@ bool GraphicsView::viewportEvent(QEvent *event) {
 	return QGraphicsView::viewportEvent(event);
 }
 
+void GraphicsView::resizeEvent(QResizeEvent* event) {
+	QGraphicsView::resizeEvent(event);
+//	std::cout << "Old Size : " << event->oldSize().height() << "," << event->oldSize().width() << " | New Size : " << event->size().height() << "," << event->size().width() << std::endl;
+}
+
 void GraphicsView::mousePressEvent(QMouseEvent* event) {
 	QGraphicsView::mousePressEvent(event);
 	emit sendMousePressEvent(event);
@@ -85,6 +91,10 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
 
 void GraphicsView::paintEvent(QPaintEvent* event) {
 	QGraphicsView::paintEvent(event);
+	auto painter(new QPainter(viewport()));
+	painter->setBrush(QBrush(QColor(0, 102, 255, 133)));
+	this->drawForeground(painter, QRectF(50.0, 50.0, 50.0, 50.0));
+	delete painter;
 }
 
 

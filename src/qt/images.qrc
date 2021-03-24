@@ -15,5 +15,10 @@
         <file>images/icons8-pause.png</file>
         <file>images/icons8-play.png</file>
         <file>images/icons8-zoom_to_actual_size.png</file>
+        <file>images/icons8-move.png</file>
+
+        <file>images/icons8-modern_art.png</file>
+        <file>images/icons8-matrix_desktop.png</file>
+        <file>images/icons8-seed_of_life.png</file>
     </qresource>
 </RCC>

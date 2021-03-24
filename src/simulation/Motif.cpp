@@ -196,13 +196,19 @@ Motif& Motif::translate(int const& x, int const& y) {
 	return *this;
 }
 Motif& Motif::translate(std::pair<int,int> const& p) {return translate(p.first, p.second);}
+Motif& Motif::setPos(size_t const& i, size_t const& j) {
+	this->recalibrate();
+	return this->translate(i,j);
+}
 Motif& Motif::recalibrate() {translate(-min_ligne(), -min_colonne()); return *this;}
+Motif& Motif::clear() {cellules.erase(cellules.begin(), cellules.end()); return *this;}
 // Getters
 Liste::iterator Motif::begin() {return cellules.begin();}
 Liste::iterator Motif::end() {return cellules.end();}
 Liste::const_iterator Motif::cbegin() const {return cellules.cbegin();}
 Liste::const_iterator Motif::cend() const {return cellules.cend();}
 Coord const& Motif::operator[](size_t const& r) {return cellules[r];}
+Liste const& Motif::cells() const {return cellules;}
 // Infos
 [[maybe_unused]] bool Motif::contient(Coord const& c) const {
 	return std::find(cellules.begin(), cellules.end(), c) != cellules.end();
@@ -255,6 +261,9 @@ size_t Motif::max_colonne() const {
 		if (el.second > max) max = el.second;
 	}
 	return max;
+}
+size_t Motif::size() const {
+	return cellules.size();
 }
 
 // Gestion des motifs enregsitres

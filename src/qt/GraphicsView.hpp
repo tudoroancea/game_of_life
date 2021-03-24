@@ -12,7 +12,8 @@ class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
 	qreal currentScaleFactor = 1.0;
-
+protected:
+//	void drawForeground(QPainter* painter, QRectF const& rect) override;
 public:
 //	Constructors & Destructors ========================================================================================
 	explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr);
@@ -28,7 +29,7 @@ public:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void paintEvent(QPaintEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
-	
+	void resizeEvent(QResizeEvent* event) override;
 signals:
 	void sendMousePressEvent(QMouseEvent *event);
 	void sendMouseDoubleClickEvent(QMouseEvent *event);

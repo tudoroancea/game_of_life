@@ -102,11 +102,17 @@ public :
 	 *  @returns    retourne une reference sur l'instance courante
 	 */
 	Motif& translate(std::pair<int,int> const& p);
+	Motif& setPos(size_t const& i, size_t const& j);
 	/**
 	 *  @brief  Translate le motif pour le rapprocher le plus possible de l'origine
 	 *  @returns    retourne une reference sur l'instance courante
 	 */
 	Motif& recalibrate();
+	/**
+	 * @brief Efface toutes les cellules du motif pour le rendre vide
+	 * @return retourne une référence sur l'instance courante
+	 */
+	Motif& clear();
 	
 	// Getters ===================================================================================================
 	/**
@@ -127,6 +133,7 @@ public :
 	[[nodiscard]] Liste::const_iterator cend() const;
 	
 	Coord const& operator[](size_t const& r);
+	Liste const& cells() const;
 	
 	// Infos ===================================================================================================
 	/**
@@ -145,6 +152,10 @@ public :
 	 *  @returns    la plus grande colonne d'une cellule du motif
 	 */
 	[[nodiscard]] size_t max_colonne() const;
+	/**
+	 * @return la taille de la Liste de cellules
+	 */
+	size_t size() const;
 	/**
 	 * @param c coordonnees à traiter
 	 * @return true si le motif contient c

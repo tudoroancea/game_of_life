@@ -5,8 +5,9 @@
 
 #include "MainWindow.hpp"
 #include "GraphicsView.hpp"
-#include "Cell.hpp"
+#include "CellItem.hpp"
 #include "termcolor.hpp"
+#include "MovableGroup.hpp"
 
 #include <QApplication>
 #include <QGraphicsObject>
@@ -29,9 +30,14 @@ MainWindow::MainWindow()
 		  scene(new QGraphicsScene(0.0, 0.0, MAX_LIGNES, MAX_COLONNES)),
 		  view(new GraphicsView(scene, this)),
 		  game(new GameOfLifeView),
-		  newSelectedZone(new QGraphicsRectItem()),
-		  currentSelectedZone(new QGraphicsPolygonItem())
+		  newSelectedZone(nullptr),
+		  currentSelectedZone(nullptr)
 {
+	for (size_t i(0); i < MAX_LIGNES; ++i) {
+		for (size_t j(0); j < MAX_COLONNES; ++j) {
+			cells[i][j] = nullptr;
+		}
+	}
 	labels.fill(nullptr);
 	createActions();
 	createMenus();
@@ -39,13 +45,15 @@ MainWindow::MainWindow()
 	createStatusBar();
 	
 	this->setWindowTitle("Conway's Game of Life Emulator");
-	this->resize(500,500);
+	this->resize(600,600);
 	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 	this->setCentralWidget(view);
 	
 	scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-	this->refreshScene();
+	this->refreshSelectionZone();
+	this->setSelectionZoneColors();
+	this->createFrame();
 	
 	view->setBackgroundBrush(QBrush(Qt::white));
 	view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
@@ -53,18 +61,10 @@ MainWindow::MainWindow()
 	view->setCacheMode(QGraphicsView::CacheBackground);
 	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	view->show();
-//	connect(view, SIGNAL(singleLeftClick(size_t const&, size_t const&, size_t const&, size_t const&, bool)), this, SLOT(singleViewportClick(size_t const&, size_t const&, size_t const&, size_t const&, bool)));
-//	connect(view, SIGNAL(singleRightClick(qreal const& i, qreal const& j)), this, SLOT(singleRightClick(qreal const& i, qreal const& j)));
 	connect(view, SIGNAL(sendMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
-	
-//	Selection zone
-//	connect(view, SIGNAL(addSelectionIntention()), this, SLOT(addSelection()));
-//	connect(view, SIGNAL(changeSelectionIntention(qreal const&, qreal const&)), this, SLOT(changeSelection(qreal const&, qreal const&)));
-//	connect(view, SIGNAL(doubleLeftClick(qreal const&, qreal const&)), this, SLOT(beginSelection(qreal const&, qreal const&)));
-	this->setSelectionZoneColors();
 	
 	this->setFocus();
 }
@@ -83,26 +83,29 @@ MainWindow::~MainWindow() {
 	}
 	delete stateBox;
 	delete mainToolBar;
+	if (movableGroup != nullptr) {
+		delete movableGroup;
+	}
 }
 
 //	Utility methods ====================================================================================
 
 void MainWindow::createActions() {
 //	File Menu ========================================================================================
-	actions["newSimAct"] = new QAction("New Simulation", this);
-	actions["newSimAct"]->setShortcut(QKeySequence::New);
-	connect(actions["newSimAct"], SIGNAL(triggered()), this, SLOT(newSim()));
-	
-	actions["openAct"] = new QAction("Open");
-	actions["openAct"]->setShortcut(QKeySequence::Open);
-	connect(actions["openAct"], &QAction::triggered, this, &MainWindow::open);
-	
-	actions["saveMotifAct"] = new QAction("Save Motif", this);
-	actions["saveMotifAct"]->setIcon(QIcon(":/images/icons8-save.png"));
-	connect(actions["saveMotifAct"], &QAction::triggered, this, &MainWindow::saveMotif);
-	
-	actions["saveSimAct"] = new QAction("Save Simulation", this);
-	connect(actions["saveSimAct"], &QAction::triggered, this, &MainWindow::saveSim);
+//	actions["newSimAct"] = new QAction("New Simulation", this);
+//	actions["newSimAct"]->setShortcut(QKeySequence::New);
+//	connect(actions["newSimAct"], SIGNAL(triggered()), this, SLOT(newSim()));
+//
+//	actions["openAct"] = new QAction("Open");
+//	actions["openAct"]->setShortcut(QKeySequence::Open);
+//	connect(actions["openAct"], &QAction::triggered, this, &MainWindow::open);
+//
+//	actions["saveMotifAct"] = new QAction("Save Motif", this);
+//	actions["saveMotifAct"]->setIcon(QIcon(":/images/icons8-save.png"));
+//	connect(actions["saveMotifAct"], &QAction::triggered, this, &MainWindow::saveMotif);
+//
+//	actions["saveSimAct"] = new QAction("Save Simulation", this);
+//	connect(actions["saveSimAct"], &QAction::triggered, this, &MainWindow::saveSim);
 	
 
 //	Edit Menu ========================================================================================
@@ -116,6 +119,7 @@ void MainWindow::createActions() {
 	
 	actions["copyAct"] = new QAction(QIcon(":/images/icons8-copy.png"), "Copy", this);
 	actions["copyAct"]->setShortcut(QKeySequence::Copy);
+	actions["copyAct"]->setToolTip("Copy the selected cells");
 	connect(actions["copyAct"], &QAction::triggered, this, &MainWindow::copy);
 	
 	actions["pasteAct"] = new QAction(QIcon(":/images/icons8-paste.png"), "Paste", this);
@@ -133,17 +137,19 @@ void MainWindow::createActions() {
 //	View Menu ========================================================================================
 	actions["zoomInAct"] = new QAction(QIcon(":/images/icons8-zoom_in.png"), "Zoom In", this);
 	actions["zoomInAct"]->setShortcut(QKeySequence::ZoomIn);
+	actions["zoomInAct"]->setAutoRepeat(true);
 	connect(actions["zoomInAct"], &QAction::triggered, this, &MainWindow::zoomIn);
 	
 	actions["zoomOutAct"] = new QAction(QIcon(":/images/icons8-zoom_out.png"),"Zoom Out", this);
 	actions["zoomOutAct"]->setShortcut(QKeySequence::ZoomOut);
+	actions["zoomOutAct"]->setAutoRepeat(true);
 	connect(actions["zoomOutAct"], &QAction::triggered, this, &MainWindow::zoomOut);
 	
 	actions["resetZoomAct"] = new QAction(QIcon(":/images/icons8-zoom_to_actual_size.png"), "Reset Zoom", this);
 	actions["resetZoomAct"]->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_0));
 	connect(actions["resetZoomAct"], &QAction::triggered, this, &MainWindow::resetZoom);
 	
-	actions["pauseResumeAct"] = new QAction(QIcon(":/images/icons8-play.png"),"Pause/Resume", this);
+	actions["pauseResumeAct"] = new QAction(QIcon(":/images/icons8-play.png"),"Play", this);
 	actions["pauseResumeAct"]->setShortcut(QKeySequence(Qt::Key_Space));
 	connect(actions["pauseResumeAct"], &QAction::triggered, this, &MainWindow::pauseResume);
 	
@@ -153,11 +159,11 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::createMenus() {
-	menus["fileMenu"] = menuBar()->addMenu("File");
-	menus["fileMenu"]->addAction(actions["newSimAct"]);
-	menus["fileMenu"]->addAction(actions["openAct"]);
-	menus["fileMenu"]->addAction(actions["saveMotifAct"]);
-	menus["fileMenu"]->addAction(actions["saveSimAct"]);
+//	menus["fileMenu"] = menuBar()->addMenu("File");
+//	menus["fileMenu"]->addAction(actions["newSimAct"]);
+//	menus["fileMenu"]->addAction(actions["openAct"]);
+//	menus["fileMenu"]->addAction(actions["saveMotifAct"]);
+//	menus["fileMenu"]->addAction(actions["saveSimAct"]);
 	
 	menus["editMenu"] = menuBar()->addMenu("Edit");
 	menus["editMenu"]->addAction(actions["undoAct"]);
@@ -185,11 +191,14 @@ void MainWindow::createToolBars() {
 	stateBox->setToolTip("How you can modify the grid");
 	connect(stateBox, QOverload<int>::of(&QComboBox::activated), this, &MainWindow::setModifyState);
 	mainToolBar = new QToolBar;
+	mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	mainToolBar->addWidget(stateBox);
+	mainToolBar->addSeparator();
 	mainToolBar->addAction(actions["pauseResumeAct"]);
 	mainToolBar->addAction(actions["clearAct"]);
 	mainToolBar->addAction(actions["undoAct"]);
 	mainToolBar->addAction(actions["redoAct"]);
+	mainToolBar->addSeparator();
 	mainToolBar->addAction(actions["zoomInAct"]);
 	mainToolBar->addAction(actions["zoomOutAct"]);
 	mainToolBar->addAction(actions["resetZoomAct"]);
@@ -200,14 +209,22 @@ void MainWindow::createToolBars() {
 void MainWindow::createStatusBar() {
 	labels[0] = new QLabel("Historic size :");
 	statusBar()->addWidget(labels[0]);
+	
 	labels[1] = new QLabel;
 	labels[1]->setNum(0);
 	statusBar()->addWidget(labels[1]);
+	
 	labels[2] = new QLabel("lastModif :");
 	statusBar()->addWidget(labels[2]);
+	
 	labels[3] = new QLabel;
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 	statusBar()->addWidget(labels[3]);
+
+#ifdef RELEASE_MODE
+	labels[4] = new QLabel("Release");
+	statusBar()->addWidget(labels[4]);
+#endif
 	
 }
 
@@ -238,17 +255,13 @@ void MainWindow::createFrame() {
 	scene->addItem(bottom);
 }
 
-void MainWindow::refreshScene() {
-	scene->clear();
-	this->createFrame();
-	for (auto const& c : game->vivantes()) {
-		scene->addItem(new Cell((double) c.first, (double) c.second));
+void MainWindow::refreshScene(golChange const& toChange) {
+	for (auto it(toChange.toAdd.cbegin()); it != toChange.toAdd.cend(); ++it) {
+		this->addCell(it->first, it->second);
 	}
-	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
-	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
-	this->setSelectionZoneColors();
-	scene->addItem(newSelectedZone);
-	scene->addItem(currentSelectedZone);
+	for (auto it(toChange.toDelete.cbegin()); it != toChange.toDelete.cend(); ++it) {
+		this->deleteCell(it->first, it->second);
+	}
 }
 
 void MainWindow::setModifyState(const int& modifyState) {
@@ -271,14 +284,43 @@ void MainWindow::setModifyState(const int& modifyState) {
 	}
 }
 
+void MainWindow::refreshSelectionZone() {
+	if (newSelectedZone != nullptr) {
+		scene->removeItem(newSelectedZone);
+		delete newSelectedZone;
+	}
+	if (currentSelectedZone != nullptr) {
+		scene->removeItem(currentSelectedZone);
+		delete currentSelectedZone;
+	}
+	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
+	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
+	scene->addItem(newSelectedZone);
+	scene->addItem(currentSelectedZone);
+}
 void MainWindow::setSelectionZoneColors() {
 	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+	newSelectedZone->setPen(QColor(0,102,255,255));
 	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
+	currentSelectedZone->setPen(QColor(0,0,255,255));
 }
 
+void MainWindow::addCell(size_t const& i, size_t const& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
+		cells[i][j] = new CellItem((qreal) i, (qreal) j);
+		scene->addItem(cells[i][j]);
+		scene->update(cells[i][j]->rect());
+	}
+}
+void MainWindow::deleteCell(size_t const& i, size_t const& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] != nullptr) {
+		delete cells[i][j];
+		cells[i][j] = nullptr;
+	}
+}
 //	For actions ==========================================================================================
 void MainWindow::placeholder(const char* str) {
-	std::cerr << termcolor::cyan << "\n Action " << str << termcolor::reset << std::endl;
+	std::cerr << termcolor::cyan << "Action " << str << termcolor::reset << std::endl;
 }
 
 void MainWindow::about() {
@@ -297,12 +339,17 @@ void MainWindow::undo() {
 	if (lastModif != historic.end()) {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
+			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
+				this->addCell(it->first, it->second);
+			}
 		} else {
 			game->addMotif(lastModif->second);
+			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
+				this->deleteCell(it->first, it->second);
+			}
 		}
 		++lastModif;
 		this->updateStatusBar();
-		this->refreshScene();
 	} else {
 		statusBar()->showMessage("Pas de modif plus ancienne", 2000);
 	}
@@ -313,36 +360,71 @@ void MainWindow::redo() {
 		--lastModif;
 		if (lastModif->first) {
 			game->addMotif(lastModif->second);
+			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
+				this->addCell(it->first, it->second);
+			}
 		} else {
 			game->deleteMotif(lastModif->second);
+			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
+				this->deleteCell(it->first, it->second);
+			}
 		}
 		this->updateStatusBar();
-		this->refreshScene();
 	} else {
 		statusBar()->showMessage("Pas de modif plus récente", 2000);
 	}
 }
 
 void MainWindow::copy() {
-	placeholder("copy");
+	if (!currentSelectedZonePolygon.empty()) {
+		copiedMotif.clear();
+		for (size_t i(0); i < MAX_LIGNES; ++i) {
+			for (size_t j(0); j < MAX_COLONNES; ++j) {
+				if (cells[i][j] != nullptr && currentSelectedZonePolygon.intersects(cells[i][j]->boundingRect())) {
+					copiedMotif.push_back({i,j});
+				}
+			}
+		}
+		currentSelectedZonePolygon = QPolygonF();
+		newSelectedZoneRect = QRectF();
+		newSelectedZone->setRect(newSelectedZoneRect);
+		currentSelectedZone->setPolygon(currentSelectedZonePolygon);
+		if (copiedMotif.size() == 0) {
+			this->showStatusBarMessage("Sélection trop petite, rien copié", 1500);
+		}
+	}
 }
 
 void MainWindow::paste() {
-	placeholder("paste");
+	if (movableGroup != nullptr) {
+		this->insertMovableGroup();
+	}
+	copiedMotif.recalibrate();
+	copiedMotif.translate((size_t)lastI-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,(size_t)lastJ-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
+	movableGroup = new MovableGroup(copiedMotif);
+	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
+		scene->addItem(*it);
+	}
+	scene->addItem(movableGroup->rectItem());
+	subState_ = Moving;
 }
 
 void MainWindow::cut() {
-	placeholder("cut");
+	this->copy();
+	game->deleteMotif(copiedMotif);
+	for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
+		this->deleteCell(it->first, it->second);
+	}
 }
 
 void MainWindow::zoomOut() {
-	view->rscaleFactor() /= 2;
+	view->rscaleFactor() /= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
 
 void MainWindow::zoomIn() {
-	view->rscaleFactor() *= 2;
+	view->rscaleFactor() *= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
 }
@@ -357,15 +439,25 @@ void MainWindow::open() {
 
 void MainWindow::pauseResume() {
 	if (timerId != 0) {
+//		On fait PAUSE
 		this->killTimer(timerId);
 		timerId = 0;
 		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-play.png"));
+		actions["pauseResumeAct"]->setText("Resume");
 	} else {
+//		On fait PLAY
+//      On ré-ajuste le timer
 		timerId = this->startTimer(period);
+		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-pause.png"));
+		actions["pauseResumeAct"]->setText("Pause");
+//		On supprime ce qui ne doit pas exister pendant que la simulation tourne : historique, groupe de cellules non insérees.
 		historic.erase(historic.begin(), historic.end());
 		lastModif = historic.begin();
 		this->updateStatusBar();
-		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-pause.png"));
+		this->insertMovableGroup();
+		if (movableGroup != nullptr) {
+			this->insertMovableGroup();
+		}
 	}
 }
 
@@ -379,17 +471,18 @@ void MainWindow::clear() {
 	if (lastModif != historic.begin()) {
 		historic.erase(historic.begin(), lastModif);
 	}
-	historic.push_front({false, Motif(game->vivantes())});
-	lastModif = historic.begin();
-	if (historic.size() > 10) {
-		historic.pop_back();
+	if (!game->vivantes().empty()) {
+		historic.push_front({false, Motif(game->vivantes())});
+		lastModif = historic.begin();
+		if (historic.size() > 10) {
+			historic.pop_back();
+		}
+		this->updateStatusBar();
+		this->refreshScene(game->wipe());
 	}
-	this->updateStatusBar();
-	game->wipe();
-	this->refreshScene();
 }
 
-void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
+void MainWindow::showStatusBarMessage(string const& message, int const& timer) {
 	statusBar()->showMessage(message.c_str(), timer);
 }
 
@@ -398,8 +491,7 @@ void MainWindow::showStatusBarMessage(const string& message, int const& timer) {
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
 //	auto start(std::chrono::high_resolution_clock::now());
-	game->evolve();
-	this->refreshScene();
+	this->refreshScene(game->evolve());
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
@@ -422,16 +514,23 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 			newSelectedZone->setRect(newSelectedZoneRect);
 			currentSelectedZonePolygon = QPolygonF();
 			currentSelectedZone->setPolygon(currentSelectedZonePolygon);
+			this->refreshSelectionZone();
+//			this->setSelectionZoneColors();
 		    break;
 		}
 		case Qt::Key_I: {
 		    for (size_t k(0); k < 20000; ++k) {
 		    	size_t i(QRandomGenerator::global()->bounded(0,MAX_LIGNES)), j(QRandomGenerator::global()->bounded(0,MAX_COLONNES));
 		    	if (game->addCell(i, j)) {
-		    		scene->addItem(new Cell((qreal) i, (qreal)j));
+		    		this->addCell(i,j);
 		    	}
 		    }
-		    this->refreshScene();
+		    break;
+		}
+		case Qt::Key_Return:
+		case Qt::Key_Enter: {
+		    this->insertMovableGroup();
+		    subState_ = Nothing;
 		    break;
 		}
 	}
@@ -453,12 +552,12 @@ void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
 void MainWindow::wheelEvent(QWheelEvent* event) {
 	QWidget::wheelEvent(event);
 	if (!hasTouchEvent && ctrlPressed) {
-		std::cerr << termcolor::red << "wheelEvent ";
 		int steps(event->angleDelta().y() / 120);
-		std::cerr << pow(2, steps) << " " << steps << termcolor::reset << std::endl;
-		
-		view->rscaleFactor() *= pow(2, steps);
-		view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+		if (steps != 0) {
+			std::cerr << termcolor::red << "wheelEvent " << pow(2, steps) << " " << steps << termcolor::reset << std::endl;
+			view->rscaleFactor() *= pow(2, steps);
+			view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+		}
 	}
 }
 
@@ -495,6 +594,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event) {
 
 void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 	if (game != nullptr) {
+		QPointF pos(view->mapToScene(event->pos()));
+        size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
 		        if (event->button() == Qt::LeftButton) {
@@ -503,17 +604,12 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 		        		historic.erase(historic.begin(), lastModif);
 		        	}
 //			        Maintenant lastModif == historic.begin();
-					QPointF pos(view->mapToScene(event->pos()));
-		        	size_t i(pos.x()), j(pos.y());
 		        	if (game->addCell(i, j)) {
-			            lastI = pos.x();
-			            lastJ = pos.y();
-			            scene->addItem(new Cell((double) i, (double) j));
+			            this->addCell(i,j);
 			            historic.push_front({true, Motif({{i,j}} )} );
 			            lastModif = historic.begin();
 		        	}
 			        this->updateStatusBar();
-			        view->update();
 		        }
 		        break;
 		    }
@@ -524,18 +620,25 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 					    historic.erase(historic.begin(), lastModif);
 				    }
 //			        Maintenant lastModif == historic.begin();
-				    QPointF pos(view->mapToScene(event->pos()));
-				    size_t i(pos.x()), j(pos.y());
 				    if (game->deleteCell(i, j)) {
-					    lastI = pos.x();
-					    lastJ = pos.y();
-					    this->refreshScene();
-					    historic.push_front({false, Motif({{i,j}} )} );
+					    this->deleteCell(i, j);
+					    historic.push_front({false, Motif({{i,j}} )}  );
 					    lastModif = historic.begin();
 				    }
 				    this->updateStatusBar();
 			    }
 			    break;
+		    }
+		    case Selecting: {
+			    if (event->button() == Qt::LeftButton) {
+			        if (subState_ == Moving) {
+			            if (movableGroup->rectItem()->rect().contains(pos)) {
+			                leftButtonPressed = true;
+			            } else {
+			            }
+			        }
+			    }
+		        break;
 		    }
 		    default:
 		        break;
@@ -543,6 +646,9 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 		if (historic.size() >= 11) {
 			historic.pop_back();
 		}
+		lastI = pos.x();
+		lastJ = pos.y();
+		view->update();
 	} else {
 		std::cerr << termcolor::red << "[viewportMousePressEvent() n'a rien fait car il n'y a pas de jeu chargé]" << termcolor::reset;
 	}
@@ -550,28 +656,29 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 
 void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 	if (game != nullptr) {
-		if (modifyState_ == Selecting) {
+		if (modifyState_ == Selecting && subState_ != Moving) {
 			doubleLeftButtonPressed = true;
 			QPointF pos(view->mapToScene(event->pos()));
 			newSelectedZoneRect.moveTo(pos.x(), pos.y());
 			newSelectedZone->setRect(newSelectedZoneRect);
-			this->refreshScene();
+			this->refreshSelectionZone();
+			this->setSelectionZoneColors();
 		}
 	}
 }
 
 void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 	if (game != nullptr) {
+		QPointF pos(view->mapToScene(event->pos()));
+		size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
 		        if (leftButtonPressed) {
-		        	QPointF pos(view->mapToScene(event->pos()));
-		        	size_t i(pos.x()), j(pos.y());
 		        	if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last added, we add a simple cell
 		        		if (game->addCell(i,j)) {
 			                historic.front().second.push_back({i,j});
-			                scene->addItem(new Cell((qreal) i, (qreal) j));
+			                this->addCell(i,j);
 			            }
 		        	} else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last added, we add a segment from the latter to the first
@@ -580,12 +687,10 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 				        for (size_t k(0); k < ajouts.size(); ++k) {
 					        if (ajouts[k]) {
 					        	historic.front().second.push_back(seg[k]);
-					        	scene->addItem(new Cell((double) X(seg[k]), (double) Y(seg[k])));
+					        	this->addCell(X(seg[k]), Y(seg[k]));
 					        }
 				        }
 		        	}
-		        	lastI = pos.x();
-		        	lastJ = pos.y();
 		        }
 		        this->updateStatusBar();
 			    view->update();
@@ -593,13 +698,11 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		    }
 		    case Deleting: {
 			    if (leftButtonPressed) {
-				    QPointF pos(view->mapToScene(event->pos()));
-				    size_t i(pos.x()), j(pos.y());
 				    if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last deleted, we delete it
 					    if (game->deleteCell(i,j)) {
 						    historic.front().second.push_back({i,j});
-							this->refreshScene();
+							this->deleteCell(i, j);
 					    }
 				    } else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last deleted, we delete a segment from the latter to the first
@@ -608,28 +711,27 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 					    for (size_t k(0); k < supprimes.size(); ++k) {
 						    if (supprimes[k]) {
 							    historic.front().second.push_back(seg[k]);
-								this->refreshScene();
+								this->deleteCell(X(seg[k]), Y(seg[k]));
 						    }
 					    }
 				    }
-				    lastI = pos.x();
-				    lastJ = pos.y();
 				    this->updateStatusBar();
-				    view->update();
 			    }
 		    }
 		    case Selecting: {
 		    	if (doubleLeftButtonPressed) {
-			        QPointF pos(view->mapToScene(event->pos()));
 			        newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
 			        newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
 			        newSelectedZone->setRect(newSelectedZoneRect);
-			        this->refreshScene();
+		    	} else if (subState_ == Moving && leftButtonPressed) {
+		    		movableGroup->moveBy((int)i-(int)lastI, (int)j-(int)lastJ);
 		    	}
 		    }
 		    default:
 		        break;
 		}
+		lastI = pos.x();
+		lastJ = pos.y();
 	}
 }
 
@@ -668,12 +770,31 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 					        this->showStatusBarMessage("La zone de sélection doit être connexe", 1000);
 			        	}
 			        }
-			        this->refreshScene();
+					this->refreshSelectionZone();
+			        this->setSelectionZoneColors();
+		        } else if (subState_ == Moving && leftButtonPressed) {
+		        	leftButtonPressed = false;
 		        }
 		        break;
 		    }
 		    default:
 		        break;
 		}
+	}
+}
+
+void MainWindow::insertMovableGroup() {
+	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
+		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
+			size_t i((*it)->rect().x()), j((*it)->rect().y());
+			if (cells[i][j] == nullptr) {
+				cells[i][j] = *it;
+				game->addCell(i, j);
+			} else {
+				delete *it;
+			}
+		}
+		delete movableGroup;
+		movableGroup = nullptr;
 	}
 }

@@ -57,8 +57,9 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     #    add_compile_definitions(THROW_SIMULATION_ERRORS)
 endif()
 
-#include(CTest)
-#enable_testing()
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    add_compile_definitions(RELEASE_MODE)
+endif()
 
 # Verbose for extra compile information
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)

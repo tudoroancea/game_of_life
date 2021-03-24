@@ -1,13 +1,20 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS -pthread)
 
-
-# Google Test
-#include(GoogleTest)
-#add_subdirectory(googletest)
+project(gol_tests)
+add_subdirectory(gtest)
+include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 include_directories(../src/simulation ../src/qt ../src/cli)
 
+# Unit tests ====================================================================================
+add_executable(unittest unittest.cpp)
+
+# Normal tests ====================================================================================
 add_executable(time_test time_test.cpp)
 target_link_libraries(time_test LINK_PUBLIC qt simulation)
 
@@ -17,9 +24,6 @@ target_link_libraries(test_segment LINK_PUBLIC simulation)
 add_executable(test_save_motif test_save_motif.cpp)
 target_link_libraries(test_save_motif LINK_PUBLIC simulation)
 
-add_executable(unittest unittest.cpp)
-target_link_libraries(unittest LINK_PUBLIC simulation)
-add_test(unit unittest)
 
 add_executable(test_rotation test_rotation.cpp)
 target_link_libraries(test_rotation LINK_PUBLIC simulation)
@@ -55,3 +59,6 @@ target_link_libraries(test_equivalence_table LINK_PUBLIC simulation)
 
 add_executable(test_divers test_divers.cpp)
 target_link_libraries(test_divers LINK_PUBLIC qt simulation)
+
+add_executable(test_movablegroup test_movablegroup.cpp)
+target_link_libraries(test_movablegroup PUBLIC qt simulation Qt5::Widgets Qt5::Gui Qt5::Core)
