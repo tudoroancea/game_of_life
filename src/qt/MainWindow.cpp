@@ -154,8 +154,8 @@ void MainWindow::createActions() {
 	connect(actions["pauseResumeAct"], &QAction::triggered, this, &MainWindow::pauseResume);
 	
 //	Help Menu ========================================================================================
-	actions["aboutAct"] = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
-	connect(actions["aboutAct"], &QAction::triggered, this, &MainWindow::about);
+//	actions["aboutAct"] = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
+//	connect(actions["aboutAct"], &QAction::triggered, this, &MainWindow::about);
 }
 
 void MainWindow::createMenus() {
@@ -180,7 +180,7 @@ void MainWindow::createMenus() {
 	menus["viewMenu"]->addAction(actions["resetZoomAct"]);
 
 	menus["helpMenu"] = menuBar()->addMenu("Help");
-	menus["helpMenu"]->addAction(actions["aboutAct"]);
+//	menus["helpMenu"]->addAction(actions["aboutAct"]);
 }
 
 void MainWindow::createToolBars() {
@@ -207,6 +207,7 @@ void MainWindow::createToolBars() {
 }
 
 void MainWindow::createStatusBar() {
+#ifdef DEBUG_MODE
 	labels[0] = new QLabel("Historic size :");
 	statusBar()->addWidget(labels[0]);
 	
@@ -220,10 +221,13 @@ void MainWindow::createStatusBar() {
 	labels[3] = new QLabel;
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 	statusBar()->addWidget(labels[3]);
+#endif
 
 #ifdef RELEASE_MODE
-	labels[4] = new QLabel("Release");
-	statusBar()->addWidget(labels[4]);
+	labels[0] = new QLabel("Version");
+	statusBar()->addWidget(labels[0]);
+	labels[1] = new QLabel(PROJECT_VERSION);
+	statusBar()->addWidget(labels[1]);
 #endif
 	
 }
@@ -509,6 +513,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_D:
 			this->setModifyState(Deleting);
 			break;
+#ifdef DEBUG_MODE
 		case Qt::Key_L: {
 			newSelectedZoneRect = QRectF();
 			newSelectedZone->setRect(newSelectedZoneRect);
@@ -527,6 +532,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		    }
 		    break;
 		}
+#endif
 		case Qt::Key_Return:
 		case Qt::Key_Enter: {
 		    this->insertMovableGroup();
