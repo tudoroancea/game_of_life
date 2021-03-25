@@ -787,7 +787,7 @@ void MainWindow::insertMovableGroup() {
 	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
 		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
 			size_t i((*it)->rect().x()), j((*it)->rect().y());
-			if (cells[i][j] == nullptr) {
+			if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
 				cells[i][j] = *it;
 				game->addCell(i, j);
 			} else {
