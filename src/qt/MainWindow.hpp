@@ -24,6 +24,7 @@
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
 #include "MovableGroup.hpp"
+#include "OptimizedViewport.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -38,6 +39,7 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
+    OptimizedViewport* vue;
 //	Timer ====================================================================================
 	/**
 	 * @brief To see if a timer is started or not.

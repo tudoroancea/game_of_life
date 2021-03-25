@@ -31,13 +31,18 @@ MainWindow::MainWindow()
 		  view(new GraphicsView(scene, this)),
 		  game(new GameOfLifeView),
 		  newSelectedZone(nullptr),
-		  currentSelectedZone(nullptr)
+		  currentSelectedZone(nullptr),
+          vue(nullptr)
 {
 	for (size_t i(0); i < MAX_LIGNES; ++i) {
 		for (size_t j(0); j < MAX_COLONNES; ++j) {
 			cells[i][j] = nullptr;
 		}
 	}
+    vue = new OptimizedViewport();
+    vue->set_draw(&(game->vivantes()));
+    vue->resize(400, 400);
+    vue->show();   
 	labels.fill(nullptr);
 	createActions();
 	createMenus();
@@ -67,6 +72,7 @@ MainWindow::MainWindow()
 	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
 	
 	this->setFocus();
+    //view->hide(); 
 }
 MainWindow::~MainWindow() {
 	delete scene;
@@ -86,6 +92,7 @@ MainWindow::~MainWindow() {
 	if (movableGroup != nullptr) {
 		delete movableGroup;
 	}
+    delete vue;
 }
 
 //	Utility methods ====================================================================================
@@ -421,12 +428,16 @@ void MainWindow::zoomOut() {
 	view->rscaleFactor() /= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
+    vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+    vue->update();
 }
 
 void MainWindow::zoomIn() {
 	view->rscaleFactor() *= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
+    vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+    vue->update();    
 }
 
 void MainWindow::newSim() {
@@ -439,22 +450,22 @@ void MainWindow::open() {
 
 void MainWindow::pauseResume() {
 	if (timerId != 0) {
-//		On fait PAUSE
+//		On fait PAUSE   
 		this->killTimer(timerId);
 		timerId = 0;
 		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-play.png"));
 		actions["pauseResumeAct"]->setText("Resume");
-	} else {
+	} else {       
 //		On fait PLAY
 //      On ré-ajuste le timer
 		timerId = this->startTimer(period);
 		actions["pauseResumeAct"]->setIcon(QIcon(":/images/icons8-pause.png"));
 		actions["pauseResumeAct"]->setText("Pause");
 //		On supprime ce qui ne doit pas exister pendant que la simulation tourne : historique, groupe de cellules non insérees.
-		historic.erase(historic.begin(), historic.end());
-		lastModif = historic.begin();
-		this->updateStatusBar();
-		this->insertMovableGroup();
+		historic.erase(historic.begin(), historic.end());       
+		lastModif = historic.begin();          
+		this->updateStatusBar();             
+		this->insertMovableGroup();         
 		if (movableGroup != nullptr) {
 			this->insertMovableGroup();
 		}
@@ -492,6 +503,7 @@ void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
 //	auto start(std::chrono::high_resolution_clock::now());
 	this->refreshScene(game->evolve());
+    vue->update();
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
@@ -533,16 +545,20 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		    subState_ = Nothing;
 		    break;
 		}
+        case Qt::Key_H:
+        {
+            view->hide();
+        }
 	}
 	if (event->modifiers() & Qt::CTRL) {
 		ctrlPressed = true;
 	}
 }
 
-void MainWindow::mousePressEvent(QMouseEvent* event) {
+void MainWindow::mousePressEvent(QMouseEvent* event) { 
 	QWidget::mousePressEvent(event);
 }
-void MainWindow::mouseMoveEvent(QMouseEvent* event) {
+void MainWindow::mouseMoveEvent(QMouseEvent* event) {     
 	QWidget::mouseMoveEvent(event);
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
@@ -649,6 +665,7 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 		lastI = pos.x();
 		lastJ = pos.y();
 		view->update();
+        vue->update();
 	} else {
 		std::cerr << termcolor::red << "[viewportMousePressEvent() n'a rien fait car il n'y a pas de jeu chargé]" << termcolor::reset;
 	}
@@ -694,6 +711,7 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		        }
 		        this->updateStatusBar();
 			    view->update();
+                vue->update();
 		        break;
 		    }
 		    case Deleting: {
@@ -783,14 +801,14 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 	}
 }
 
-void MainWindow::insertMovableGroup() {
-	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
-		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
-			size_t i((*it)->rect().x()), j((*it)->rect().y());
+void MainWindow::insertMovableGroup() {  
+	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {      
+		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {           
+            size_t i((*it)->rect().x()), j((*it)->rect().y()); 
 			if (cells[i][j] == nullptr) {
 				cells[i][j] = *it;
 				game->addCell(i, j);
-			} else {
+			} else { 
 				delete *it;
 			}
 		}

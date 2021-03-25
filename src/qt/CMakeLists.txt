@@ -12,7 +12,8 @@ add_library(qt
 			MainWindow.cpp MainWindow.hpp
 			CellItem.cpp CellItem.hpp
 			GraphicsView.cpp GraphicsView.hpp
-			MovableGroup.cpp MovableGroup.hpp)
+			MovableGroup.cpp MovableGroup.hpp
+			OptimizedViewport.cpp OptimizedViewport.hpp)
 
 # permet les includes sans prefix
 include_directories(../simulation)
