@@ -72,12 +72,28 @@ void GraphicsView::resizeEvent(QResizeEvent* event) {
 
 void GraphicsView::mousePressEvent(QMouseEvent* event) {
 	QGraphicsView::mousePressEvent(event);
-	emit sendMousePressEvent(event);
+	QMouseEvent* t_event = new QMouseEvent(event->type(),
+						   				   this->mapToScene(event->pos()),
+						   				   event->windowPos(),
+						   				   event->screenPos(),
+						  				   event->button(),
+						  				   event->buttons(),
+						   				   event->modifiers(),
+						  				   event->source());	
+	emit sendMousePressEvent(t_event);
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event) {
 	QGraphicsView::mouseMoveEvent(event);
-	emit sendMouseMoveEvent(event);
+	QMouseEvent* t_event = new QMouseEvent(event->type(),
+						   				   this->mapToScene(event->pos()),
+						   				   event->windowPos(),
+						   				   event->screenPos(),
+						  				   event->button(),
+						  				   event->buttons(),
+						   				   event->modifiers(),
+						  				   event->source());	
+	emit sendMouseMoveEvent(t_event);
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
@@ -86,7 +102,15 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event) {
 }
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event) {
 	QGraphicsView::mouseDoubleClickEvent(event);
-	emit sendMouseDoubleClickEvent(event);
+	QMouseEvent* t_event = new QMouseEvent(event->type(),
+						   				   this->mapToScene(event->pos()),
+						   				   event->windowPos(),
+						   				   event->screenPos(),
+						  				   event->button(),
+						  				   event->buttons(),
+						   				   event->modifiers(),
+						  				   event->source());		
+	emit sendMouseDoubleClickEvent(t_event);
 }
 
 void GraphicsView::paintEvent(QPaintEvent* event) {

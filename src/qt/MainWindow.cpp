@@ -42,6 +42,7 @@ MainWindow::MainWindow()
     vue = new OptimizedViewport();
     vue->set_draw(&(game->vivantes()));
     vue->resize(400, 400);
+    vue->move(100,130);
     vue->show();   
 	labels.fill(nullptr);
 	createActions();
@@ -70,6 +71,11 @@ MainWindow::MainWindow()
 	connect(view, SIGNAL(sendMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
+
+    connect(vue, SIGNAL(ViewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
+    connect(vue, SIGNAL(ViewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
+    connect(vue, SIGNAL(ViewportMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
+    connect(vue, SIGNAL(ViewportMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
 	
 	this->setFocus();
     //view->hide(); 
@@ -436,6 +442,7 @@ void MainWindow::zoomIn() {
 	view->rscaleFactor() *= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
+    vue->rscaleFactor() *= 1.2;
     vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
     vue->update();    
 }
@@ -610,7 +617,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event) {
 
 void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 	if (game != nullptr) {
-		QPointF pos(view->mapToScene(event->pos()));
+		QPointF pos(event->localPos());
         size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
@@ -675,7 +682,7 @@ void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 	if (game != nullptr) {
 		if (modifyState_ == Selecting && subState_ != Moving) {
 			doubleLeftButtonPressed = true;
-			QPointF pos(view->mapToScene(event->pos()));
+			QPointF pos(event->localPos());
 			newSelectedZoneRect.moveTo(pos.x(), pos.y());
 			newSelectedZone->setRect(newSelectedZoneRect);
 			this->refreshSelectionZone();
@@ -686,7 +693,7 @@ void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 
 void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 	if (game != nullptr) {
-		QPointF pos(view->mapToScene(event->pos()));
+		QPointF pos(event->localPos());
 		size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
 		    case Adding: {
