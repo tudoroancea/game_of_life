@@ -28,7 +28,8 @@ if (APPLE)
 
 	add_executable(GOL MACOSX_BUNDLE main.cpp qt/images.qrc ${APP_ICON_MACOSX})
 	add_custom_command(TARGET GOL POST_BUILD COMMAND plutil -replace NSHighResolutionCapable -bool true GOL.app/Contents/Info.plist)
-
+	add_custom_command(TARGET GOL POST_BUILD COMMAND plutil -replace CFBundleVersion -string ${PROJECT_VERSION} GOL.app/Contents/Info.plist)
+	add_custom_command(TARGET GOL POST_BUILD COMMAND plutil -replace CFBundleName -string GOL GOL.app/Contents/Info.plist)
 else()
 	add_executable(GOL main.cpp qt/images.qrc)
 endif()

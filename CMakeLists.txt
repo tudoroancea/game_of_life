@@ -4,7 +4,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-project(game_of_life VERSION 0.1.0
+project(game_of_life VERSION 0.1.1
         LANGUAGES CXX)
 
 # Sets the default build mode on debug
@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Warnings for Debug mode
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wundef -Wuninitialized")
 # Speed optimization for Release mode
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 # Chemins des dossiers du projet
 add_compile_definitions(PROJECT_VERSION="${PROJECT_VERSION}")

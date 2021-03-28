@@ -642,6 +642,8 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 			            this->addCell(i,j);
 			            historic.push_front({true, Motif({{i,j}} )} );
 			            lastModif = historic.begin();
+		        	} else {
+		        		alreadyModified = true;
 		        	}
 			        this->updateStatusBar();
 		        }
@@ -658,6 +660,8 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 					    this->deleteCell(i, j);
 					    historic.push_front({false, Motif({{i,j}} )}  );
 					    lastModif = historic.begin();
+				    } else {
+				    	alreadyModified = true;
 				    }
 				    this->updateStatusBar();
 			    }
@@ -711,7 +715,12 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		        	if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last added, we add a simple cell
 		        		if (game->addCell(i,j)) {
-			                historic.front().second.push_back({i,j});
+			                if (alreadyModified) {
+			                	historic.push_front({true,Motif({{i,j}})});
+			                	alreadyModified = false;
+			                } else {
+		        			    historic.front().second.push_back({i,j});
+			                }
 			                this->addCell(i,j);
 			            }
 		        	} else if (lastI >=0 && lastJ >= 0) {
@@ -720,14 +729,20 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 						std::vector<bool> ajouts(game->addMotif(seg));
 				        for (size_t k(0); k < ajouts.size(); ++k) {
 					        if (ajouts[k]) {
-					        	historic.front().second.push_back(seg[k]);
+						        if (alreadyModified) {
+						        	historic.push_front({true,Motif({seg[k]})});
+						        	alreadyModified = false;
+						        } else {
+					        	    historic.front().second.push_back(seg[k]);
+						        }
 					        	this->addCell(X(seg[k]), Y(seg[k]));
 					        }
 				        }
 		        	}
+			        lastModif = historic.begin();
+		            this->updateStatusBar();
 		        }
-		        this->updateStatusBar();
-			    view->update();
+//			    view->update();
 		        break;
 		    }
 		    case Deleting: {
@@ -735,7 +750,12 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 				    if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last deleted, we delete it
 					    if (game->deleteCell(i,j)) {
-						    historic.front().second.push_back({i,j});
+					    	if (alreadyModified) {
+					    		historic.push_front({false,Motif({{i,j}})});
+					    		alreadyModified = false;
+					    	} else {
+						        historic.front().second.push_back({i,j});
+					    	}
 							this->deleteCell(i, j);
 					    }
 				    } else if (lastI >=0 && lastJ >= 0) {
@@ -744,13 +764,20 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 					    std::vector<bool> supprimes(game->deleteMotif(seg));
 					    for (size_t k(0); k < supprimes.size(); ++k) {
 						    if (supprimes[k]) {
-							    historic.front().second.push_back(seg[k]);
+							    if (alreadyModified) {
+							    	historic.push_front({false,Motif({seg[k]})});
+							    	alreadyModified = false;
+							    } else {
+							        historic.front().second.push_back(seg[k]);
+							    }
 								this->deleteCell(X(seg[k]), Y(seg[k]));
 						    }
 					    }
 				    }
+				    lastModif = historic.begin();
 				    this->updateStatusBar();
 			    }
+			    break;
 		    }
 		    case Selecting: {
 		    	if (doubleLeftButtonPressed) {
@@ -819,6 +846,7 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 
 void MainWindow::insertMovableGroup() {
 	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
+		// On prépare l'historique pour ajouter l'ajout du motif collé
 		if (lastModif != historic.begin()) {
 			historic.erase(historic.begin(), lastModif);
 		}
@@ -827,6 +855,7 @@ void MainWindow::insertMovableGroup() {
 		if (historic.size() >= 11) {
 			historic.pop_back();
 		}
+//		On ajoute le motif
 		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
 			size_t i((*it)->rect().x()), j((*it)->rect().y());
 			if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
