@@ -83,9 +83,7 @@ MainWindow::~MainWindow() {
 	}
 	delete stateBox;
 	delete mainToolBar;
-	if (movableGroup != nullptr) {
-		delete movableGroup;
-	}
+	delete movableGroup;
 }
 
 //	Utility methods ====================================================================================
@@ -233,8 +231,10 @@ void MainWindow::createStatusBar() {
 }
 
 void MainWindow::updateStatusBar() {
+#ifdef DEBUG_MODE
 	labels[1]->setNum((int)historic.size());
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
+#endif
 }
 
 void MainWindow::createFrame() {
@@ -344,12 +344,12 @@ void MainWindow::undo() {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
 			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
-				this->addCell(it->first, it->second);
+				this->deleteCell(it->first, it->second);
 			}
 		} else {
 			game->addMotif(lastModif->second);
 			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
-				this->deleteCell(it->first, it->second);
+				this->addCell(it->first, it->second);
 			}
 		}
 		++lastModif;
@@ -380,44 +380,68 @@ void MainWindow::redo() {
 }
 
 void MainWindow::copy() {
-	if (!currentSelectedZonePolygon.empty()) {
-		copiedMotif.clear();
-		for (size_t i(0); i < MAX_LIGNES; ++i) {
-			for (size_t j(0); j < MAX_COLONNES; ++j) {
-				if (cells[i][j] != nullptr && currentSelectedZonePolygon.intersects(cells[i][j]->boundingRect())) {
-					copiedMotif.push_back({i,j});
+	if (modifyState_ == Selecting) {
+		if (!currentSelectedZonePolygon.empty()) {
+			copiedMotif.clear();
+			for (size_t i(0); i < MAX_LIGNES; ++i) {
+				for (size_t j(0); j < MAX_COLONNES; ++j) {
+					if (cells[i][j] != nullptr && currentSelectedZonePolygon.intersects(cells[i][j]->boundingRect())) {
+						copiedMotif.push_back({i,j});
+					}
 				}
 			}
+			currentSelectedZonePolygon = QPolygonF();
+			newSelectedZoneRect = QRectF();
+			newSelectedZone->setRect(newSelectedZoneRect);
+			currentSelectedZone->setPolygon(currentSelectedZonePolygon);
+			if (copiedMotif.size() == 0) {
+				this->showStatusBarMessage("Sélection trop petite, rien copié", 1500);
+			}
 		}
-		currentSelectedZonePolygon = QPolygonF();
-		newSelectedZoneRect = QRectF();
-		newSelectedZone->setRect(newSelectedZoneRect);
-		currentSelectedZone->setPolygon(currentSelectedZonePolygon);
-		if (copiedMotif.size() == 0) {
-			this->showStatusBarMessage("Sélection trop petite, rien copié", 1500);
-		}
+	} else {
+		this->showStatusBarMessage("Copy ne marche qu'en mode Selecting", 1500);
 	}
 }
 
 void MainWindow::paste() {
-	if (movableGroup != nullptr) {
-		this->insertMovableGroup();
+	if (modifyState_ == Selecting) {
+		if (movableGroup != nullptr) {
+			this->insertMovableGroup();
+		}
+		if (!copiedMotif.empty()) {
+			copiedMotif.recalibrate();
+			copiedMotif.translate((size_t)lastI-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,(size_t)lastJ-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
+			movableGroup = new MovableGroup(copiedMotif);
+			for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
+				scene->addItem(*it);
+			}
+			scene->addItem(movableGroup->rectItem());
+			subState_ = Moving;
+		} else {
+			this->showStatusBarMessage("Rien à coller", 1500);
+		}
+	} else {
+		this->showStatusBarMessage("Paste ne marche qu'en mode Selecting", 1500);
 	}
-	copiedMotif.recalibrate();
-	copiedMotif.translate((size_t)lastI-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,(size_t)lastJ-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
-	movableGroup = new MovableGroup(copiedMotif);
-	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
-		scene->addItem(*it);
-	}
-	scene->addItem(movableGroup->rectItem());
-	subState_ = Moving;
 }
 
 void MainWindow::cut() {
-	this->copy();
-	game->deleteMotif(copiedMotif);
-	for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
-		this->deleteCell(it->first, it->second);
+	if (modifyState_ == Selecting) {
+		this->copy();
+		game->deleteMotif(copiedMotif);
+		for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
+			this->deleteCell(it->first, it->second);
+		}
+		if (lastModif != historic.begin()) {
+			historic.erase(historic.begin(), lastModif);
+		}
+		historic.push_front({false, copiedMotif});
+		lastModif = historic.begin();
+		if (historic.size() >= 11) {
+			historic.pop_back();
+		}
+	} else {
+		this->showStatusBarMessage("Cut ne marche qu'en mode Selecting", 1500);
 	}
 }
 
@@ -507,12 +531,16 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_S:
 			this->setModifyState(Selecting);
 			break;
-		case Qt::Key_A:
+		case Qt::Key_A: {
+			this->insertMovableGroup();
 			this->setModifyState(Adding);
 			break;
-		case Qt::Key_D:
+		}
+		case Qt::Key_D: {
+			this->insertMovableGroup();
 			this->setModifyState(Deleting);
 			break;
+		}
 #ifdef DEBUG_MODE
 		case Qt::Key_L: {
 			newSelectedZoneRect = QRectF();
@@ -536,7 +564,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_Return:
 		case Qt::Key_Enter: {
 		    this->insertMovableGroup();
-		    subState_ = Nothing;
+		    
 		    break;
 		}
 	}
@@ -791,16 +819,26 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 
 void MainWindow::insertMovableGroup() {
 	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
+		if (lastModif != historic.begin()) {
+			historic.erase(historic.begin(), lastModif);
+		}
+		historic.push_front({true, Motif()});
+		lastModif = historic.begin();
+		if (historic.size() >= 11) {
+			historic.pop_back();
+		}
 		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
 			size_t i((*it)->rect().x()), j((*it)->rect().y());
 			if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
 				cells[i][j] = *it;
 				game->addCell(i, j);
+				historic.front().second.push_back({i,j});
 			} else {
 				delete *it;
 			}
 		}
 		delete movableGroup;
 		movableGroup = nullptr;
+		subState_ = Nothing;
 	}
 }
