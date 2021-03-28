@@ -2,8 +2,20 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS -pthread)
 
 project(gol_tests)
-add_subdirectory(gtest)
-include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
+#add_subdirectory(gtest)
+#include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
+include(FetchContent)
+FetchContent_Declare(
+		googletest
+		URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+if (WIN32)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+FetchContent_MakeAvailable(googletest)
+#enable_testing()
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -11,8 +23,22 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 include_directories(../src/simulation ../src/qt ../src/cli)
 
+#enable_testing()
+include(GoogleTest)
 # Unit tests ====================================================================================
 add_executable(unittest unittest.cpp)
+target_link_libraries(unittest PUBLIC gtest gtest_main)
+gtest_discover_tests(unittest)
+
+add_executable(golUnitTest golUnitTest.cpp motifUnitTest.cpp)
+target_link_libraries(golUnitTest LINK_PUBLIC simulation)
+target_link_libraries(golUnitTest PUBLIC gtest gtest_main)
+gtest_discover_tests(golUnitTest)
+
+add_executable(motifUnitTest motifUnitTest.cpp)
+target_link_libraries(motifUnitTest LINK_PUBLIC simulation)
+target_link_libraries(motifUnitTest PUBLIC gtest gtest_main)
+gtest_discover_tests(motifUnitTest)
 
 # Normal tests ====================================================================================
 add_executable(time_test time_test.cpp)
