@@ -4,7 +4,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-project(game_of_life VERSION 0.1.0
+project(game_of_life VERSION 0.1.1
         LANGUAGES CXX)
 
 # Sets the default build mode on debug

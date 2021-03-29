@@ -265,6 +265,9 @@ size_t Motif::max_colonne() const {
 size_t Motif::size() const {
 	return cellules.size();
 }
+bool Motif::empty() const {
+	return cellules.empty();
+}
 
 // Gestion des motifs enregsitres
 std::vector<std::string> existing_local_motifs() {
