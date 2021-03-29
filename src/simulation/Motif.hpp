@@ -157,6 +157,10 @@ public :
 	 */
 	size_t size() const;
 	/**
+	 * @return si le motif contient des cellules ou pas
+	 */
+	bool empty() const;
+	/**
 	 * @param c coordonnees à traiter
 	 * @return true si le motif contient c
 	 * @return false sinon
