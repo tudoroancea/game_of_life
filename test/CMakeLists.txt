@@ -2,8 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS -pthread)
 
 project(gol_tests)
-#add_subdirectory(gtest)
-#include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
 include(FetchContent)
 FetchContent_Declare(
 		googletest
@@ -14,7 +12,6 @@ if (WIN32)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif()
 FetchContent_MakeAvailable(googletest)
-#enable_testing()
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -23,14 +20,15 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 include_directories(../src/simulation ../src/qt ../src/cli)
 
-#enable_testing()
 include(GoogleTest)
+string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+
 # Unit tests ====================================================================================
 add_executable(unittest unittest.cpp)
 target_link_libraries(unittest PUBLIC gtest gtest_main)
 gtest_discover_tests(unittest)
 
-add_executable(golUnitTest golUnitTest.cpp motifUnitTest.cpp)
+add_executable(golUnitTest golUnitTest.cpp)
 target_link_libraries(golUnitTest LINK_PUBLIC simulation)
 target_link_libraries(golUnitTest PUBLIC gtest gtest_main)
 gtest_discover_tests(golUnitTest)
@@ -57,10 +55,8 @@ target_link_libraries(test_rotation LINK_PUBLIC simulation)
 add_executable(test_save_sim test_save_sim.cpp)
 target_link_libraries(test_save_sim LINK_PUBLIC simulation)
 
-#if(${CMAKE_CXX_COMPILER} MATCHES ${Clang} OR ${CMAKE_CXX_COMPILER} MATCHES ${Linux})
 add_executable(test_cli test_cli.cpp)
 target_link_libraries(test_cli LINK_PUBLIC simulation cli)
-#endif()
 
 add_executable(test_connexite test_connexite.cpp)
 target_link_libraries(test_connexite LINK_PUBLIC simulation)

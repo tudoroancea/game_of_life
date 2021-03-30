@@ -10,9 +10,6 @@ TEST(HelloTest, BasicAssertions) {
 	EXPECT_STRNE("hello", "world");
 	// Expect equality.
 	EXPECT_EQ(7 * 6, 42);
-	EXPECT_EQ(3,1);
-	bool a(true);
-	EXPECT_FALSE(a);
 }
 
 TEST(HelloTest, NewTest) {

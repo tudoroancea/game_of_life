@@ -12,7 +12,15 @@
 // Tests for class GameOfLife ============================================================================================
 
 TEST(GameOfLifeTest, Construction) {
-	Motif M1;
+	auto G(new GameOfLife);
+	std::cout << G->vivantes().size() << std::endl;
+	static GameOfLife G2;
+	auto v(new GameOfLifeView);
+	delete G;
+	delete v;
+	
+//	GameOfLife G2(Motif({{1,1}}));
+	ASSERT_EQ(1,1);
 }
 
 // Tests for class GameOfLifeView ============================================================================================
