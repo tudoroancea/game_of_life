@@ -19,7 +19,7 @@ public:
 
     void set_draw(Liste const* td) {to_draw = td;}
     qreal& rscaleFactor() {return scaleFactor;}
-	void setTransform(QTransform const& t) {transform = t;} 
+	void setTransform(QTransform t);
 
     void paintEvent(QPaintEvent * event);	
     void mouseMoveEvent(QMouseEvent* event) {emit ViewportMouseMoveEvent(event);}

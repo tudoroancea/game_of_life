@@ -434,6 +434,7 @@ void MainWindow::zoomOut() {
 	view->rscaleFactor() /= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
+    vue->rscaleFactor() /= 1.2;    
     vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
     vue->update();
 }
