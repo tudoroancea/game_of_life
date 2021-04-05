@@ -21,13 +21,8 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 include_directories(../src/simulation ../src/qt ../src/cli)
 
 include(GoogleTest)
-string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
 # Unit tests ====================================================================================
-add_executable(unittest unittest.cpp)
-target_link_libraries(unittest PUBLIC gtest gtest_main)
-gtest_discover_tests(unittest)
-
 add_executable(golUnitTest golUnitTest.cpp)
 target_link_libraries(golUnitTest LINK_PUBLIC simulation)
 target_link_libraries(golUnitTest PUBLIC gtest gtest_main)

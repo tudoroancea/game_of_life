@@ -208,5 +208,10 @@ Liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
  *  @returns    Liste de coordonnees
  */
 Liste segment(Coord a, Coord const& b);
+/**
+ * @brief Crée une liste de coordonnées correspondant à un segment de sommets aléatoires
+ * @return Liste de coordonnées
+ */
+Liste segment();
 
 #endif // MOTIF_H

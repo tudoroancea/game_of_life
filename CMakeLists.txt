@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Warnings for Debug mode
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wuninitialized")
 # Speed optimization for Release mode
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Os")
 
 # Chemins des dossiers du projet
 add_compile_definitions(PROJECT_VERSION="${PROJECT_VERSION}")
@@ -70,4 +70,5 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Ajoute les librairies et executables créés dans src et test
 add_subdirectory(src)
+enable_testing()
 add_subdirectory(test)
