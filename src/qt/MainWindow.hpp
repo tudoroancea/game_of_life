@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <list>
 #include <deque>
+#include <QtWidgets>
 
 #include "GraphicsView.hpp"
 #include "CellItem.hpp"

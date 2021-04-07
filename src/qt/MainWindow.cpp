@@ -4,22 +4,17 @@
 
 
 #include "MainWindow.hpp"
-#include "GraphicsView.hpp"
-#include "CellItem.hpp"
 #include "termcolor.hpp"
-#include "MovableGroup.hpp"
 
 #include <QApplication>
 #include <QGraphicsObject>
 #include <QPainter>
 #include <QPointF>
 #include <QTransform>
-#include <QtWidgets>
 #include <QEvent>
 #include <QGraphicsPathItem>
 
 #include <iterator>
-#include <deque>
 #include <chrono>
 #include <iostream>
 

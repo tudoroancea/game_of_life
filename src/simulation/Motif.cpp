@@ -24,7 +24,7 @@ Motif::Motif(Liste const& liste) : cellules(liste) {}
 
 Motif::Motif(std::filesystem::path const& chemin) {
 	if (std::filesystem::exists(chemin)) {
-		rapidcsv::Document motif(chemin, rapidcsv::LabelParams(-1,-1));
+        rapidcsv::Document motif(chemin.string(), rapidcsv::LabelParams(-1,-1));
 		for (size_t i(0); i < motif.GetColumnCount() ; i+=2) {
 			cellules.push_back({motif.GetCell<size_t>(i,0), motif.GetCell<size_t>(i+1,0)});
 		}
@@ -39,7 +39,7 @@ Motif::Motif(std::string const& fichier, FILE_CATEGORY const& categorie) {
 	if (categorie == presaved) chemin = std::filesystem::path(std::string(PRESAVED_PATH)+"/motifs/"+fichier+".csv");
 	else chemin = std::filesystem::path(std::string(LOCAL_PATH)+"/motifs/"+fichier+".csv");
 	if (std::filesystem::exists(chemin)) {
-		rapidcsv::Document motif(chemin, rapidcsv::LabelParams(-1,-1));
+        rapidcsv::Document motif(chemin.string(), rapidcsv::LabelParams(-1,-1));
 		for (size_t i(0); i < motif.GetColumnCount() ; i+=2) {
 			cellules.push_back({motif.GetCell<size_t>(i,0), motif.GetCell<size_t>(i+1,0)});
 		}
@@ -185,8 +185,8 @@ Motif& Motif::append(std::initializer_list<Coord> const& autre) {
 }
 Motif& Motif::translate(int const& x, int const& y) {
 	size_t xbis(0),ybis(0);
-	if (x < 0) xbis = std::min(size_t(-x),min_ligne());
-	if (y < 0) ybis = std::min(size_t(-y),min_colonne());
+    if (x < 0) xbis = min(size_t(-x),min_ligne());
+    if (y < 0) ybis = min(size_t(-y),min_colonne());
 	for (auto& el : cellules) {
 		if (xbis != 0) X(el) -= xbis;
 		else X(el) += x;
@@ -233,34 +233,34 @@ bool Motif::a_pour_voisin(Coord const& c) const {
 	//return false;
 }
 size_t Motif::min_ligne() const {
-	size_t min(cellules.front().first);
+    size_t min_(cellules.front().first);
 	for (auto el : cellules) {
-		if (el.first < min) min = el.first;
-		if (min == 0) break;
+        if (el.first < min_) min_ = el.first;
+        if (min_ == 0) break;
 	}
-	return min;
+    return min_;
 }
 size_t Motif::min_colonne() const {
-	size_t min(cellules.front().second);
+    size_t min_(cellules.front().second);
 	for (auto el : cellules) {
-		if (el.second < min) min = el.second;
-		if (min == 0) break;
+        if (el.second < min_) min_ = el.second;
+        if (min_ == 0) break;
 	}
-	return min;
+    return min_;
 }
 size_t Motif::max_ligne() const {
-	size_t max(cellules.front().first);
+    size_t max_(cellules.front().first);
 	for (auto el : cellules) {
-		if (el.first > max) max = el.first;
+        if (el.first > max_) max_ = el.first;
 	}
-	return max;
+    return max_;
 }
 size_t Motif::max_colonne() const {
-	size_t max(cellules.front().second);
+    size_t max_(cellules.front().second);
 	for (auto el : cellules) {
-		if (el.second > max) max = el.second;
+        if (el.second > max_) max_ = el.second;
 	}
-	return max;
+    return max_;
 }
 size_t Motif::size() const {
 	return cellules.size();

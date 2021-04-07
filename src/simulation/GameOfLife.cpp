@@ -353,7 +353,7 @@ bool GameOfLife::saveMotif(std::string const& nomMotif, FILE_CATEGORY const& cat
 		if (!std::filesystem::exists(chemin)) {
 			std::ofstream out(chemin);
 			out.close();
-			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+            rapidcsv::Document file(chemin.string(), rapidcsv::LabelParams(-1,-1));
 			for (size_t cell(0); cell < vivantes_.size(); ++cell) {
 				file.SetCell<size_t>(2*cell, 0, X(vivantes_[cell])-50);
 				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes_[cell])-50);
@@ -580,7 +580,7 @@ bool GameOfLifeView::saveMotif(std::string const& nomMotif, FILE_CATEGORY const&
 		if (!std::filesystem::exists(chemin)) {
 			std::ofstream out(chemin);
 			out.close();
-			rapidcsv::Document file(chemin, rapidcsv::LabelParams(-1,-1));
+            rapidcsv::Document file(chemin.string(), rapidcsv::LabelParams(-1,-1));
 			for (size_t cell(0); cell < vivantes_visibles.size(); ++cell) {
 				file.SetCell<size_t>(2*cell, 0, X(vivantes_visibles[cell])-Lmin_-50);
 				file.SetCell<size_t>(2*cell+1, 0, Y(vivantes_visibles[cell])-Cmin_-50);
@@ -883,7 +883,7 @@ Simulation& Simulation::load(std::string const& nom_sim, FILE_CATEGORY const& ca
 	if (categorie == presaved) config_path /= "presaved/sims/sim-"+nom_sim+".csv";
 	else config_path /= "local/sims/sim-"+nom_sim+".csv";
 	if (std::filesystem::exists(config_path)) {
-		config_file = new rapidcsv::Document(config_path, rapidcsv::LabelParams(-1,0));
+        config_file = new rapidcsv::Document(config_path.string(), rapidcsv::LabelParams(-1,0));
 		// on vérifie que le fichier a l'air complet
 		if (config_file->GetRowCount() >= 3 && config_file->GetColumnCount() >= 2 && config_file->GetCell<unsigned int>(0,"nombre de générations")+3 == config_file->GetRowCount() && config_file->GetColumnCount()%2 == 0) {
 			// On vérifie que les dimensions de la simulation correspondent aux dimensions actuelles
