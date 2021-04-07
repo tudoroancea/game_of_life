@@ -3,24 +3,23 @@
 //
 
 #include <iostream>
-#include <array>
-#include <chrono>
-#include <thread>
-#include <future>
-#include <list>
-#include <numeric>
-#include <queue>
-#include <deque>
-
-#include "termcolor.hpp"
+//#include <array>
+//#include <chrono>
+//#include <thread>
+//#include <future>
+//#include <list>
+//#include <numeric>
+//#include <queue>
+//#include <deque>
+//
+//#include "termcolor.hpp"
 #include "GameOfLife.hpp"
+#include "Motif.hpp"
 using namespace std;
 
 
 
 int main() {
-	int x(-2);
-	size_t y(4);
-	cout << x+(int)y;
+	std::cerr << "hey" << std::endl;
 	return 0;
 }
