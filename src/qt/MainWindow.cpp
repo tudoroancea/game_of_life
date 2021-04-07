@@ -69,12 +69,9 @@ MainWindow::MainWindow()
 	this->setFocus();
 }
 MainWindow::~MainWindow() {
-	delete scene;
 	delete game;
 	delete view;
-	for (auto const& action : actions) {
-		delete action.second;
-	}
+	delete scene;
 	for (const auto & label : labels) {
 		delete label;
 	}
@@ -84,6 +81,9 @@ MainWindow::~MainWindow() {
 	delete stateBox;
 	delete mainToolBar;
 	delete movableGroup;
+	for (auto const& action : actions) {
+		delete action.second;
+	}
 }
 
 //	Utility methods ====================================================================================
