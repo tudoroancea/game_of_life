@@ -157,6 +157,10 @@ public :
 	 */
 	size_t size() const;
 	/**
+	 * @return si le motif contient des cellules ou pas
+	 */
+	bool empty() const;
+	/**
 	 * @param c coordonnees à traiter
 	 * @return true si le motif contient c
 	 * @return false sinon
@@ -204,5 +208,10 @@ Liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2);
  *  @returns    Liste de coordonnees
  */
 Liste segment(Coord a, Coord const& b);
+/**
+ * @brief Crée une liste de coordonnées correspondant à un segment de sommets aléatoires
+ * @return Liste de coordonnées
+ */
+Liste segment();
 
 #endif // MOTIF_H

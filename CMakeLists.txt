@@ -4,7 +4,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-project(game_of_life VERSION 1.0
+project(game_of_life VERSION 0.1.1
         LANGUAGES CXX)
 
 # Sets the default build mode on debug
@@ -18,11 +18,12 @@ set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
 # Warnings for Debug mode
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wundef -Wuninitialized")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wuninitialized")
 # Speed optimization for Release mode
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Os")
 
 # Chemins des dossiers du projet
+add_compile_definitions(PROJECT_VERSION="${PROJECT_VERSION}")
 add_compile_definitions(GLOBAL_PATH="${CMAKE_SOURCE_DIR}")
 add_compile_definitions(SRC_PATH="${CMAKE_SOURCE_DIR}/src")
 add_compile_definitions(SIMULATION_PATH="${CMAKE_SOURCE_DIR}/src/simulation")
@@ -40,6 +41,7 @@ add_compile_definitions(MAX_COLONNES=400)
 
 # Comment the following lines depending on the debug information you need
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    add_compile_definitions(DEBUG_MODE)
     # Leave uncommented if you want to know whenever GameOfLife(View)::addCell() or deleteCell() or inverseCell() or resize() are called on too big coordinates
     #add_definitions(-DOVERFLOW_WARNINGS)
 #    add_compile_definitions(OVERFLOW_WARNINGS)
@@ -68,4 +70,5 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Ajoute les librairies et executables créés dans src et test
 add_subdirectory(src)
+enable_testing()
 add_subdirectory(test)

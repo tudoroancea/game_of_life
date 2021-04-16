@@ -32,19 +32,19 @@ MainWindow::MainWindow()
 		  game(new GameOfLifeView),
 		  newSelectedZone(nullptr),
 		  currentSelectedZone(nullptr),
-          vue(nullptr)
+		  vue(nullptr)
 {
-    /*
+	/*
 	for (size_t i(0); i < 1000; ++i) {
 		for (size_t j(0); j < 1000; ++j) {
 			cells[i][j] = nullptr;
 		}
 	}*/
-    vue = new OptimizedViewport();
-    vue->set_draw(&(game->vivantes()));
-    vue->resize(400, 400);
-    vue->move(100,130);
-    vue->show();   
+	vue = new OptimizedViewport();
+	vue->set_draw(&(game->vivantes()));
+	vue->resize(400, 400);
+	vue->move(100,130);
+	vue->show();   
 	labels.fill(nullptr);
 	createActions();
 	createMenus();
@@ -73,21 +73,18 @@ MainWindow::MainWindow()
 	connect(view, SIGNAL(sendMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
 
-    connect(vue, SIGNAL(ViewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
-    connect(vue, SIGNAL(ViewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
-    connect(vue, SIGNAL(ViewportMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
-    connect(vue, SIGNAL(ViewportMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
+	connect(vue, SIGNAL(ViewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
+	connect(vue, SIGNAL(ViewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
+	connect(vue, SIGNAL(ViewportMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
+	connect(vue, SIGNAL(ViewportMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
 	
 	this->setFocus();
-    //view->hide(); 
+	//view->hide(); 
 }
 MainWindow::~MainWindow() {
-	delete scene;
 	delete game;
 	delete view;
-	for (auto const& action : actions) {
-		delete action.second;
-	}
+	delete scene;
 	for (const auto & label : labels) {
 		delete label;
 	}
@@ -96,10 +93,11 @@ MainWindow::~MainWindow() {
 	}
 	delete stateBox;
 	delete mainToolBar;
-	if (movableGroup != nullptr) {
-		delete movableGroup;
+	delete movableGroup;
+	for (auto const& action : actions) {
+		delete action.second;
 	}
-    delete vue;
+	delete vue;
 }
 
 //	Utility methods ====================================================================================
@@ -168,8 +166,8 @@ void MainWindow::createActions() {
 	connect(actions["pauseResumeAct"], &QAction::triggered, this, &MainWindow::pauseResume);
 	
 //	Help Menu ========================================================================================
-	actions["aboutAct"] = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
-	connect(actions["aboutAct"], &QAction::triggered, this, &MainWindow::about);
+//	actions["aboutAct"] = new QAction(QIcon(":/images/icons8-about.png"), "About", this);
+//	connect(actions["aboutAct"], &QAction::triggered, this, &MainWindow::about);
 }
 
 void MainWindow::createMenus() {
@@ -194,7 +192,7 @@ void MainWindow::createMenus() {
 	menus["viewMenu"]->addAction(actions["resetZoomAct"]);
 
 	menus["helpMenu"] = menuBar()->addMenu("Help");
-	menus["helpMenu"]->addAction(actions["aboutAct"]);
+//	menus["helpMenu"]->addAction(actions["aboutAct"]);
 }
 
 void MainWindow::createToolBars() {
@@ -221,6 +219,7 @@ void MainWindow::createToolBars() {
 }
 
 void MainWindow::createStatusBar() {
+#ifdef DEBUG_MODE
 	labels[0] = new QLabel("Historic size :");
 	statusBar()->addWidget(labels[0]);
 	
@@ -234,17 +233,22 @@ void MainWindow::createStatusBar() {
 	labels[3] = new QLabel;
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 	statusBar()->addWidget(labels[3]);
+#endif
 
 #ifdef RELEASE_MODE
-	labels[4] = new QLabel("Release");
-	statusBar()->addWidget(labels[4]);
+	labels[0] = new QLabel("Version");
+	statusBar()->addWidget(labels[0]);
+	labels[1] = new QLabel(PROJECT_VERSION);
+	statusBar()->addWidget(labels[1]);
 #endif
 	
 }
 
 void MainWindow::updateStatusBar() {
+#ifdef DEBUG_MODE
 	labels[1]->setNum((int)historic.size());
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
+#endif
 }
 
 void MainWindow::createFrame() {
@@ -354,12 +358,12 @@ void MainWindow::undo() {
 		if (lastModif->first) {
 			game->deleteMotif(lastModif->second);
 			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
-				this->addCell(it->first, it->second);
+				this->deleteCell(it->first, it->second);
 			}
 		} else {
 			game->addMotif(lastModif->second);
 			for (auto it(lastModif->second.cbegin()); it != lastModif->second.cend(); ++it) {
-				this->deleteCell(it->first, it->second);
+				this->addCell(it->first, it->second);
 			}
 		}
 		++lastModif;
@@ -390,44 +394,68 @@ void MainWindow::redo() {
 }
 
 void MainWindow::copy() {
-	if (!currentSelectedZonePolygon.empty()) {
-		copiedMotif.clear();
-		for (size_t i(0); i < MAX_LIGNES; ++i) {
-			for (size_t j(0); j < MAX_COLONNES; ++j) {
-				if (cells[i][j] != nullptr && currentSelectedZonePolygon.intersects(cells[i][j]->boundingRect())) {
-					copiedMotif.push_back({i,j});
+	if (modifyState_ == Selecting) {
+		if (!currentSelectedZonePolygon.empty()) {
+			copiedMotif.clear();
+			for (size_t i(0); i < MAX_LIGNES; ++i) {
+				for (size_t j(0); j < MAX_COLONNES; ++j) {
+					if (cells[i][j] != nullptr && currentSelectedZonePolygon.intersects(cells[i][j]->boundingRect())) {
+						copiedMotif.push_back({i,j});
+					}
 				}
 			}
+			currentSelectedZonePolygon = QPolygonF();
+			newSelectedZoneRect = QRectF();
+			newSelectedZone->setRect(newSelectedZoneRect);
+			currentSelectedZone->setPolygon(currentSelectedZonePolygon);
+			if (copiedMotif.size() == 0) {
+				this->showStatusBarMessage("Sélection trop petite, rien copié", 1500);
+			}
 		}
-		currentSelectedZonePolygon = QPolygonF();
-		newSelectedZoneRect = QRectF();
-		newSelectedZone->setRect(newSelectedZoneRect);
-		currentSelectedZone->setPolygon(currentSelectedZonePolygon);
-		if (copiedMotif.size() == 0) {
-			this->showStatusBarMessage("Sélection trop petite, rien copié", 1500);
-		}
+	} else {
+		this->showStatusBarMessage("Copy ne marche qu'en mode Selecting", 1500);
 	}
 }
 
 void MainWindow::paste() {
-	if (movableGroup != nullptr) {
-		this->insertMovableGroup();
+	if (modifyState_ == Selecting) {
+		if (movableGroup != nullptr) {
+			this->insertMovableGroup();
+		}
+		if (!copiedMotif.empty()) {
+			copiedMotif.recalibrate();
+			copiedMotif.translate((size_t)lastI-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,(size_t)lastJ-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
+			movableGroup = new MovableGroup(copiedMotif);
+			for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
+				scene->addItem(*it);
+			}
+			scene->addItem(movableGroup->rectItem());
+			subState_ = Moving;
+		} else {
+			this->showStatusBarMessage("Rien à coller", 1500);
+		}
+	} else {
+		this->showStatusBarMessage("Paste ne marche qu'en mode Selecting", 1500);
 	}
-	copiedMotif.recalibrate();
-	copiedMotif.translate((size_t)lastI-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,(size_t)lastJ-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
-	movableGroup = new MovableGroup(copiedMotif);
-	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
-		scene->addItem(*it);
-	}
-	scene->addItem(movableGroup->rectItem());
-	subState_ = Moving;
 }
 
 void MainWindow::cut() {
-	this->copy();
-	game->deleteMotif(copiedMotif);
-	for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
-		this->deleteCell(it->first, it->second);
+	if (modifyState_ == Selecting) {
+		this->copy();
+		game->deleteMotif(copiedMotif);
+		for (auto it(copiedMotif.cbegin()); it != copiedMotif.cend(); ++it) {
+			this->deleteCell(it->first, it->second);
+		}
+		if (lastModif != historic.begin()) {
+			historic.erase(historic.begin(), lastModif);
+		}
+		historic.push_front({false, copiedMotif});
+		lastModif = historic.begin();
+		if (historic.size() >= 11) {
+			historic.pop_back();
+		}
+	} else {
+		this->showStatusBarMessage("Cut ne marche qu'en mode Selecting", 1500);
 	}
 }
 
@@ -435,18 +463,18 @@ void MainWindow::zoomOut() {
 	view->rscaleFactor() /= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
-    vue->rscaleFactor() /= 1.2;    
-    vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
-    vue->update();
+	vue->rscaleFactor() /= 1.2;    
+	vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+	vue->update();
 }
 
 void MainWindow::zoomIn() {
 	view->rscaleFactor() *= 1.2;
 	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 	view->update();
-    vue->rscaleFactor() *= 1.2;
-    vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
-    vue->update();    
+	vue->rscaleFactor() *= 1.2;
+	vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+	vue->update();    
 }
 
 void MainWindow::newSim() {
@@ -512,7 +540,7 @@ void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
 //	auto start(std::chrono::high_resolution_clock::now());
 	this->refreshScene(game->evolve());
-    vue->update();
+	vue->update();
 //	auto stop(std::chrono::high_resolution_clock::now());
 //	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
@@ -524,12 +552,17 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 		case Qt::Key_S:
 			this->setModifyState(Selecting);
 			break;
-		case Qt::Key_A:
+		case Qt::Key_A: {
+			this->insertMovableGroup();
 			this->setModifyState(Adding);
 			break;
-		case Qt::Key_D:
+		}
+		case Qt::Key_D: {
+			this->insertMovableGroup();
 			this->setModifyState(Deleting);
 			break;
+		}
+#ifdef DEBUG_MODE
 		case Qt::Key_L: {
 			newSelectedZoneRect = QRectF();
 			newSelectedZone->setRect(newSelectedZoneRect);
@@ -537,27 +570,28 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 			currentSelectedZone->setPolygon(currentSelectedZonePolygon);
 			this->refreshSelectionZone();
 //			this->setSelectionZoneColors();
-		    break;
+			break;
 		}
 		case Qt::Key_I: {
-		    for (size_t k(0); k < 20000; ++k) {
-		    	size_t i(QRandomGenerator::global()->bounded(0,MAX_LIGNES)), j(QRandomGenerator::global()->bounded(0,MAX_COLONNES));
-		    	if (game->addCell(i, j)) {
-		    		this->addCell(i,j);
-		    	}
-		    }
-		    break;
+			for (size_t k(0); k < 20000; ++k) {
+				size_t i(QRandomGenerator::global()->bounded(0,MAX_LIGNES)), j(QRandomGenerator::global()->bounded(0,MAX_COLONNES));
+				if (game->addCell(i, j)) {
+					this->addCell(i,j);
+				}
+			}
+			break;
 		}
+#endif
 		case Qt::Key_Return:
 		case Qt::Key_Enter: {
-		    this->insertMovableGroup();
-		    subState_ = Nothing;
-		    break;
+			this->insertMovableGroup();
+			
+			break;
 		}
-        case Qt::Key_H:
-        {
-            view->hide();
-        }
+		case Qt::Key_H:
+		{
+			view->hide();
+		}
 	}
 	if (event->modifiers() & Qt::CTRL) {
 		ctrlPressed = true;
@@ -620,53 +654,57 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event) {
 void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 	if (game != nullptr) {
 		QPointF pos(event->localPos());
-        size_t i(pos.x()), j(pos.y());
+		size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
-		    case Adding: {
-		        if (event->button() == Qt::LeftButton) {
-		        	leftButtonPressed = true;
-		        	if (lastModif != historic.begin()) {
-		        		historic.erase(historic.begin(), lastModif);
-		        	}
+			case Adding: {
+				if (event->button() == Qt::LeftButton) {
+					leftButtonPressed = true;
+					if (lastModif != historic.begin()) {
+						historic.erase(historic.begin(), lastModif);
+					}
 //			        Maintenant lastModif == historic.begin();
-		        	if (game->addCell(i, j)) {
-			            this->addCell(i,j);
-			            historic.push_front({true, Motif({{i,j}} )} );
-			            lastModif = historic.begin();
-		        	}
-			        this->updateStatusBar();
-		        }
-		        break;
-		    }
-		    case Deleting: {
-			    if (event->button() == Qt::LeftButton) {
-				    leftButtonPressed = true;
-				    if (lastModif != historic.begin()) {
-					    historic.erase(historic.begin(), lastModif);
-				    }
+					if (game->addCell(i, j)) {
+						this->addCell(i,j);
+						historic.push_front({true, Motif({{i,j}} )} );
+						lastModif = historic.begin();
+					} else {
+						alreadyModified = true;
+					}
+					this->updateStatusBar();
+				}
+				break;
+			}
+			case Deleting: {
+				if (event->button() == Qt::LeftButton) {
+					leftButtonPressed = true;
+					if (lastModif != historic.begin()) {
+						historic.erase(historic.begin(), lastModif);
+					}
 //			        Maintenant lastModif == historic.begin();
-				    if (game->deleteCell(i, j)) {
-					    this->deleteCell(i, j);
-					    historic.push_front({false, Motif({{i,j}} )}  );
-					    lastModif = historic.begin();
-				    }
-				    this->updateStatusBar();
-			    }
-			    break;
-		    }
-		    case Selecting: {
-			    if (event->button() == Qt::LeftButton) {
-			        if (subState_ == Moving) {
-			            if (movableGroup->rectItem()->rect().contains(pos)) {
-			                leftButtonPressed = true;
-			            } else {
-			            }
-			        }
-			    }
-		        break;
-		    }
-		    default:
-		        break;
+					if (game->deleteCell(i, j)) {
+						this->deleteCell(i, j);
+						historic.push_front({false, Motif({{i,j}} )}  );
+						lastModif = historic.begin();
+					} else {
+						alreadyModified = true;
+					}
+					this->updateStatusBar();
+				}
+				break;
+			}
+			case Selecting: {
+				if (event->button() == Qt::LeftButton) {
+					if (subState_ == Moving) {
+						if (movableGroup->rectItem()->rect().contains(pos)) {
+							leftButtonPressed = true;
+						} else {
+						}
+					}
+				}
+				break;
+			}
+			default:
+				break;
 		}
 		if (historic.size() >= 11) {
 			historic.pop_back();
@@ -674,7 +712,7 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 		lastI = pos.x();
 		lastJ = pos.y();
 		view->update();
-        vue->update();
+		vue->update();
 	} else {
 		std::cerr << termcolor::red << "[viewportMousePressEvent() n'a rien fait car il n'y a pas de jeu chargé]" << termcolor::reset;
 	}
@@ -698,64 +736,86 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 		QPointF pos(event->localPos());
 		size_t i(pos.x()), j(pos.y());
 		switch (modifyState_) {
-		    case Adding: {
-		        if (leftButtonPressed) {
-		        	if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
+			case Adding: {
+				if (leftButtonPressed) {
+					if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last added, we add a simple cell
-		        		if (game->addCell(i,j)) {
-			                historic.front().second.push_back({i,j});
-			                this->addCell(i,j);
-			            }
-		        	} else if (lastI >=0 && lastJ >= 0) {
+						if (game->addCell(i,j)) {
+							if (alreadyModified) {
+								historic.push_front({true,Motif({{i,j}})});
+								alreadyModified = false;
+							} else {
+								historic.front().second.push_back({i,j});
+							}
+							this->addCell(i,j);
+						}
+					} else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last added, we add a segment from the latter to the first
 						Motif seg(segment(i,j,lastI,lastJ));
 						std::vector<bool> ajouts(game->addMotif(seg));
-				        for (size_t k(0); k < ajouts.size(); ++k) {
-					        if (ajouts[k]) {
-					        	historic.front().second.push_back(seg[k]);
-					        	this->addCell(X(seg[k]), Y(seg[k]));
-					        }
-				        }
-		        	}
-		        }
-		        this->updateStatusBar();
-			    view->update();
-                vue->update();
-		        break;
-		    }
-		    case Deleting: {
-			    if (leftButtonPressed) {
-				    if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
+						for (size_t k(0); k < ajouts.size(); ++k) {
+							if (ajouts[k]) {
+								if (alreadyModified) {
+									historic.push_front({true,Motif({seg[k]})});
+									alreadyModified = false;
+								} else {
+									historic.front().second.push_back(seg[k]);
+								}
+								this->addCell(X(seg[k]), Y(seg[k]));
+							}
+						}
+					}
+					lastModif = historic.begin();
+					this->updateStatusBar();
+				}
+//			    view->update();
+				break;
+			}
+			case Deleting: {
+				if (leftButtonPressed) {
+					if (dist(i,lastI) <= 1 && dist(j,lastJ) <= 1){
 //			            The cell is next to the last deleted, we delete it
-					    if (game->deleteCell(i,j)) {
-						    historic.front().second.push_back({i,j});
+						if (game->deleteCell(i,j)) {
+							if (alreadyModified) {
+								historic.push_front({false,Motif({{i,j}})});
+								alreadyModified = false;
+							} else {
+								historic.front().second.push_back({i,j});
+							}
 							this->deleteCell(i, j);
-					    }
-				    } else if (lastI >=0 && lastJ >= 0) {
+						}
+					} else if (lastI >=0 && lastJ >= 0) {
 //		        		The cell is far from the last deleted, we delete a segment from the latter to the first
-					    Motif seg(segment(i,j,lastI,lastJ));
-					    std::vector<bool> supprimes(game->deleteMotif(seg));
-					    for (size_t k(0); k < supprimes.size(); ++k) {
-						    if (supprimes[k]) {
-							    historic.front().second.push_back(seg[k]);
+						Motif seg(segment(i,j,lastI,lastJ));
+						std::vector<bool> supprimes(game->deleteMotif(seg));
+						for (size_t k(0); k < supprimes.size(); ++k) {
+							if (supprimes[k]) {
+								if (alreadyModified) {
+									historic.push_front({false,Motif({seg[k]})});
+									alreadyModified = false;
+								} else {
+									historic.front().second.push_back(seg[k]);
+								}
 								this->deleteCell(X(seg[k]), Y(seg[k]));
-						    }
-					    }
-				    }
-				    this->updateStatusBar();
-			    }
-		    }
-		    case Selecting: {
-		    	if (doubleLeftButtonPressed) {
-			        newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
-			        newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
-			        newSelectedZone->setRect(newSelectedZoneRect);
-		    	} else if (subState_ == Moving && leftButtonPressed) {
-		    		movableGroup->moveBy((int)i-(int)lastI, (int)j-(int)lastJ);
-		    	}
-		    }
-		    default:
-		        break;
+							}
+						}
+					}
+					lastModif = historic.begin();
+					this->updateStatusBar();
+				}
+				break;
+			}
+			case Selecting: {
+				if (doubleLeftButtonPressed) {
+					newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
+					newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
+					newSelectedZone->setRect(newSelectedZoneRect);
+				} else if (subState_ == Moving && leftButtonPressed) {
+					movableGroup->moveBy((int)i-(int)lastI, (int)j-(int)lastJ);
+				}
+			}
+			default:
+				break;
 		}
 		lastI = pos.x();
 		lastJ = pos.y();
@@ -766,62 +826,74 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 	Q_UNUSED(event)
 	if (game != nullptr) {
 		switch (modifyState_) {
-		    case Adding: {
-			    if (leftButtonPressed) {
+			case Adding: {
+				if (leftButtonPressed) {
 					lastI = -1.0;
 					lastJ = -1.0;
-				    leftButtonPressed = false;
-			    }
-		        
-		        break;
-		    }
-		    case Deleting: {
-		    	if (leftButtonPressed) {
+					leftButtonPressed = false;
+				}
+				
+				break;
+			}
+			case Deleting: {
+				if (leftButtonPressed) {
 					lastI = -1.0;
 					lastJ = -1.0;
-		    		leftButtonPressed = false;
-		    	}
-		    }
-		    case Selecting: {
-		        if (doubleLeftButtonPressed) {
-		        	doubleLeftButtonPressed = false;
-			        if (currentSelectedZonePolygon.empty()) {
-			        	currentSelectedZonePolygon = newSelectedZoneRect;
-			        	newSelectedZoneRect = QRectF();
-			        } else {
-			        	if (currentSelectedZonePolygon.intersects(newSelectedZoneRect)) {
-			        		currentSelectedZonePolygon = currentSelectedZonePolygon.united(newSelectedZoneRect);
-					        newSelectedZoneRect = QRectF();
-			        	} else {
-			        		newSelectedZoneRect = QRectF();
-					        this->showStatusBarMessage("La zone de sélection doit être connexe", 1000);
-			        	}
-			        }
+					leftButtonPressed = false;
+				}
+			}
+			case Selecting: {
+				if (doubleLeftButtonPressed) {
+					doubleLeftButtonPressed = false;
+					if (currentSelectedZonePolygon.empty()) {
+						currentSelectedZonePolygon = newSelectedZoneRect;
+						newSelectedZoneRect = QRectF();
+					} else {
+						if (currentSelectedZonePolygon.intersects(newSelectedZoneRect)) {
+							currentSelectedZonePolygon = currentSelectedZonePolygon.united(newSelectedZoneRect);
+							newSelectedZoneRect = QRectF();
+						} else {
+							newSelectedZoneRect = QRectF();
+							this->showStatusBarMessage("La zone de sélection doit être connexe", 1000);
+						}
+					}
 					this->refreshSelectionZone();
-			        this->setSelectionZoneColors();
-		        } else if (subState_ == Moving && leftButtonPressed) {
-		        	leftButtonPressed = false;
-		        }
-		        break;
-		    }
-		    default:
-		        break;
+					this->setSelectionZoneColors();
+				} else if (subState_ == Moving && leftButtonPressed) {
+					leftButtonPressed = false;
+				}
+				break;
+			}
+			default:
+				break;
 		}
 	}
 }
 
-void MainWindow::insertMovableGroup() {  
-	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {      
-		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {           
-            size_t i((*it)->rect().x()), j((*it)->rect().y()); 
-			if (cells[i][j] == nullptr) {
+void MainWindow::insertMovableGroup() {
+	if (modifyState_ == Selecting && subState_ == Moving && movableGroup != nullptr) {
+		// On prépare l'historique pour ajouter l'ajout du motif collé
+		if (lastModif != historic.begin()) {
+			historic.erase(historic.begin(), lastModif);
+		}
+		historic.push_front({true, Motif()});
+		lastModif = historic.begin();
+		if (historic.size() >= 11) {
+			historic.pop_back();
+		}
+//		On ajoute le motif
+		for (auto it = movableGroup->begin(); it != movableGroup->end(); ++it) {
+			size_t i((*it)->rect().x()), j((*it)->rect().y());
+			if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
 				cells[i][j] = *it;
 				game->addCell(i, j);
-			} else { 
+				historic.front().second.push_back({i,j});
+			} else {
 				delete *it;
 			}
 		}
 		delete movableGroup;
 		movableGroup = nullptr;
+		subState_ = Nothing;
 	}
 }

@@ -53,6 +53,7 @@ private:
 	bool leftButtonPressed = false;
 	bool doubleLeftButtonPressed = false;
 	bool ctrlPressed = false;
+	bool alreadyModified = false;
 	qreal lastI = -1.0;
 	qreal lastJ = -1.0;
 

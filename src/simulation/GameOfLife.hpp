@@ -145,41 +145,42 @@ public :
 	/**
 	 *  @brief   Vérifie si la cellule indiquée est pas déjà dans la grille_ et sinon l'y insére (et dans la Liste des vivantes_)
 	 *  @param   i,j    coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
-	 *  @returns    référence sur l'instance courante
+	 *  @returns    true si la cellule a bien été ajoutée, false sinon
 	 */
 	virtual bool addCell(size_t const& i, size_t const& j);
 	/**
      *  @brief   Vérifie si la cellule indiquée est bien vivante et si oui la supprime de la grille_ (et dans la Liste des vivantes_)
      *  @param   i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
-     *  @returns    référence sur l'instance courante
+     *  @returns    true si la cellule a bien été supprimée, false sinon
      */
 	virtual bool deleteCell(size_t const& i, size_t const& j);
 	/**
      *  @brief  Inverse l'état de la cellule et met à jour les attributes de GameOfLife
      *  @param  i,j   coordonnées NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ )
-     *  @returns    référence sur l'instance courante
+     *  @returns    true si la cellule a bien été inversée, false sinon
      */
 	virtual bool inverseCell(size_t const& i, size_t const& j);
 	/**
 	 *  @brief  Ajoute un motif dans la grille_ à l'aide de addCell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
 	 *  @param  motif   Motif à rajouter (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
-	 *  @returns    référence sur l'instance courante
+	 *  @returns    liste de bool indiquant si chaque cellule a été bien ajoutée (true) ou non (false)
 	 */
 	virtual std::vector<bool> addMotif(Motif const& motif);
 	/**
      *  @brief  Supprime les cellules de la grille_ contenues dans un motif a l'aide de deleteCell()
      *  @param  motif   Motif à enlever (avec coordonnées comprises comme NE TENANT PAS COMPTE DES MARGES (ie dans [0,MAX_LIGNES[x[0,MAX_COLONNES[ ))
-     *  @returns    référence sur l'instance courante
+     *  @returns    liste de bool indiquant si chaque cellule a été bien supprimée (true) ou non (false)
      */
 	virtual std::vector<bool> deleteMotif(Motif const& motif);
 	/**
      *  @brief  Efface toute la grille_
-     *  @returns    référence sur l'instance courante
+     *  @returns    golChange (aka pair<Motif,Motif>) qui indique d'abord les cellules ajoutées, puis les cellules supprimées
      */
 	virtual golChange wipe();
 	
 	/**
      *  @brief  Fait evoluer la grille_ en la faisant passer a la génération suivante et en updatant ses attributs
+     *  @returns    golChange (aka pair<Motif,Motif>) qui indique d'abord les cellules ajoutées, puis les cellules supprimées
      */
 	virtual golChange evolve();
 	
@@ -286,41 +287,42 @@ public :
 	/**
 	 *  @brief   Vérifie si la cellule indiquée n'est pas déjà dans la grille_ et sinon l'y insère. Ne marche que pour des cellules dans la partie visible.
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
-	 *  @returns référence sur l'instance courante
+	 *  @returns true si la cellule a bien été ajoutée, false sinon
 	 */
 	bool addCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief   Vérifie si la cellule indiquée est bien vivante dans la grille_ et si oui la supprime. Ne marche que pour des cellules dans la partie visible.
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
-	 *  @returns référence sur l'instance courante
+	 *  @returns true si la cellule a bien été supprimée, false sinon
 	 */
 	bool deleteCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief  Inverse l'état de la cellule. Ne marche que pour des cellules dans la partie visible.
 	 *  @param   i,j  coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ )
-	 *  @returns référence sur l'instance courante
+	 *  @returns true si la cellule a bien été inversée, false sinon
 	 */
 	bool inverseCell(size_t const& i, size_t const& j) override;
 	/**
 	 *  @brief  Ajoute un motif dans la partie visible de la grille_ à l'aide de addCell(). Si ce motif dépasse, ne dessine que ce qui ne dépasse pas.
 	 *  @param  motif   Motif à rajouter (avec coordonnées par rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ ))
-	 *  @returns    référence sur l'instance courante
+	 *  @returns   liste de bool indiquant si chaque cellule a été bien ajoutée (true) ou non (false)
 	 */
 	std::vector<bool> addMotif(Motif const& motif) override;
 	/**
 	 *  @brief  Supprime les cellules de la partie visible de la grille_ contenues dans un motif a l'aide de deleteCell().
 	 *  @param  motif   Motif à enlever (avec coordonnéespar rapport à la partie visible (ie dans [0,Lmax_-Lmin_[x[0,Cmax_-Cmin_[ ))
-	 *  @returns    référence sur l'instance courante
+	 *  @returns    liste de bool indiquant si chaque cellule a été bien supprimée (true) ou non (false)
 	 */
 	std::vector<bool> deleteMotif(Motif const& motif) override;
 	/**
 	 *  @brief  Efface toute la partie visible de la grille_.
-	 *  @returns    référence sur l'instance courante
+	 *  @returns    golChange (aka pair<Motif,Motif>) qui indique d'abord les cellules ajoutées, puis les cellules supprimées
 	 */
 	golChange wipe() override;
 	/**
 	 *  @brief  Fait evoluer toute la grille_ en la faisant passer a la génération suivante et en updatant ses attributs.
 	 *  Masque la version de la super-classe GameOfLife pour aussi mettre à jour la Liste des cellules vivantes_ et visibles.
+	 *  @returns	golChange (aka pair<Motif,Motif>) qui indique d'abord les cellules ajoutées, puis les cellules supprimées
 	 */
 	golChange evolve() override;
 	

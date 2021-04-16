@@ -6,7 +6,7 @@
 #include <algorithm> // pour std::min, std::max
 #include <cmath> // pour std::abs
 #include <filesystem> // Pour trouver la Liste des fichiers
-
+#include <random>
 
 std::ostream& operator<<(std::ostream& out, FILE_CATEGORY const& cat) {
 	if (cat == local) out << "local";
@@ -265,6 +265,9 @@ size_t Motif::max_colonne() const {
 size_t Motif::size() const {
 	return cellules.size();
 }
+bool Motif::empty() const {
+	return cellules.empty();
+}
 
 // Gestion des motifs enregsitres
 std::vector<std::string> existing_local_motifs() {
@@ -459,3 +462,12 @@ Liste segment(size_t x1, size_t y1, size_t const& x2, size_t const& y2) {
 }
 
 Liste segment(Coord a, Coord const& b) {return segment(a.first, a.second, b.first, b.second);}
+
+Liste segment() {
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_int_distribution<size_t> distrib(0, std::min(MAX_COLONNES-1, MAX_LIGNES-1));
+	size_t x1(distrib(gen)), x2(distrib(gen)), y1(distrib(gen)), y2(distrib(gen));
+//	std::cerr << "x1 : " << x1 << " | y1 " << y1 << " | x2 " << x2 << " | y2 " << y2 << std::endl;
+	return segment(x1,y1,x2,y2);
+}
