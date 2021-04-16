@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <list>
 #include <deque>
+#include <vector>
 
 #include "GraphicsView.hpp"
 #include "CellItem.hpp"
@@ -69,7 +70,7 @@ private:
 	QGraphicsScene* scene;
 	GraphicsView* view;
 	GameOfLifeView* game;
-	std::array<std::array<CellItem*,MAX_LIGNES>,MAX_COLONNES> cells;
+	std::vector<std::vector<CellItem*>> cells = std::vector<std::vector<CellItem*>>(MAX_LIGNES, std::vector<CellItem*>(MAX_COLONNES, nullptr));
 	std::array<QLabel*,10> labels;
 	
 //	Zone de sélection et copy/paste ====================================================================================

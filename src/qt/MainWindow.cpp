@@ -34,11 +34,12 @@ MainWindow::MainWindow()
 		  currentSelectedZone(nullptr),
           vue(nullptr)
 {
-	for (size_t i(0); i < MAX_LIGNES; ++i) {
-		for (size_t j(0); j < MAX_COLONNES; ++j) {
+    /*
+	for (size_t i(0); i < 1000; ++i) {
+		for (size_t j(0); j < 1000; ++j) {
 			cells[i][j] = nullptr;
 		}
-	}
+	}*/
     vue = new OptimizedViewport();
     vue->set_draw(&(game->vivantes()));
     vue->resize(400, 400);
