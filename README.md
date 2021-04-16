@@ -1,9 +1,8 @@
-# Game of Life emulator
+# Game of Life emulator (GOL)
 
 Hello there !
 
-This open-source GUI emulator of [John Conway's "Game of Life"](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) 
-has two objectives :
+This open-source GUI emulator of [John Conway's "Game of Life"](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) has two objectives :
 1) *To a lesser extent* : popularize this cellular automaton
 2) *To a bigger extent* : enhance our C++ (and more generally programming) skills by solving concrete problems.
     This is for both of us a first experience with such a large project and we want to make it look
@@ -49,6 +48,13 @@ They are NOT unit tests (yet).
 - Multi-language support
 - Change/Display simulation speed
 - Dark mode for MacOS
+
+## Build Status :
+| | Main | Develop |
+|-|------|---------|
+|macOS|[![macOS](https://github.com/tudoroancea/game_of_life/actions/workflows/macos.yml/badge.svg?branch=main)](https://github.com/tudoroancea/game_of_life/actions/workflows/macos.yml)|[![macOS](https://github.com/tudoroancea/game_of_life/actions/workflows/macos.yml/badge.svg?branch=develop)](https://github.com/tudoroancea/game_of_life/actions/workflows/macos.yml)|
+|Linux|[![Linux](https://github.com/tudoroancea/game_of_life/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/tudoroancea/game_of_life/actions/workflows/linux.yml)|[![Linux](https://github.com/tudoroancea/game_of_life/actions/workflows/linux.yml/badge.svg?branch=develop)](https://github.com/tudoroancea/game_of_life/actions/workflows/linux.yml)|
+<!-- |Windows||| -->
 
 ## How to compile (on UNIX machines):
 First make sure you have installed the Qt library (version 5.14 or more recent) and CMake (version 3.7 or more recent). Then download the project using :
