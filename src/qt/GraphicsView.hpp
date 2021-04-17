@@ -8,7 +8,7 @@
 #include <QGraphicsView>
 #include <QObject>
 
-class GraphicsView : public QGraphicsView {
+class GraphicsView : public virtual QGraphicsView {
 Q_OBJECT
 private:
 	qreal currentScaleFactor = 1.0;
@@ -31,10 +31,10 @@ public:
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void resizeEvent(QResizeEvent* event) override;
 signals:
-	void sendMousePressEvent(QMouseEvent *event);
-	void sendMouseDoubleClickEvent(QMouseEvent *event);
-	void sendMouseMoveEvent(QMouseEvent *event);
-	void sendMouseReleaseEvent(QMouseEvent *event);
+//	void sendMousePressEvent(QMouseEvent *event);
+//	void sendMouseDoubleClickEvent(QMouseEvent *event);
+//	void sendMouseMoveEvent(QMouseEvent *event);
+//	void sendMouseReleaseEvent(QMouseEvent *event);
 };
 
 

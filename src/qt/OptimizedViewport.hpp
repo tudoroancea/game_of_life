@@ -14,20 +14,20 @@ class OptimizedViewport : public QWidget
 {
 Q_OBJECT
 public:
-	OptimizedViewport(QWidget* parent = nullptr, Liste const* t = nullptr);
-    ~OptimizedViewport();
+	explicit OptimizedViewport(QWidget* parent = nullptr, Liste const* t = nullptr);
+    ~OptimizedViewport() override;
 
-    void set_draw(Liste const* td) {to_draw = td;}
-    qreal& rscaleFactor() {return scaleFactor;}
+    void set_draw(Liste const* td);
+    qreal& rscaleFactor();
 	void setTransform(QTransform t);
 
-    void paintEvent(QPaintEvent * event);	
-    void mouseMoveEvent(QMouseEvent* event) {emit ViewportMouseMoveEvent(event);}
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event) {emit ViewportMouseReleaseEvent(event);}
-	void mouseDoubleClickEvent(QMouseEvent* event) {emit ViewportMouseDoubleClickEvent(event);}
-	void touchEvent(QTouchEvent* event) {emit ViewportTouchEvent(event);}   
-	void wheelEvent(QWheelEvent* event);
+    void paintEvent(QPaintEvent * event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+	void touchEvent(QTouchEvent* event);
+	void wheelEvent(QWheelEvent* event) override;
 	//void keyPressEvent(QKeyEvent* event);
 	//void keyReleaseEvent(QKeyEvent* event);
 

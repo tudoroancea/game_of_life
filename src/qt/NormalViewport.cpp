@@ -1,0 +1,244 @@
+//
+// Created by Tudor Oancea on 17/04/2021.
+//
+
+#include "NormalViewport.hpp"
+#include "Viewport.hpp"
+#include "MainWindow.hpp"
+#include "CellItem.hpp"
+#include "GraphicsView.hpp"
+
+#include <type_traits>
+#include <QStatusBar>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QGraphicsLineItem>
+#include <QGraphicsRectItem>
+#include <QGraphicsPolygonItem>
+#include <QPen>
+
+NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game) : Viewport(parent, game), GraphicsView(nullptr, parent), scene(new QGraphicsScene), newSelectedZone(new QGraphicsRectItem(0,0,0,0)), currentSelectedZone(new QGraphicsPolygonItem(QPolygonF())) {
+	static_cast<QGraphicsView*>(this)->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+	this->QGraphicsView::setBackgroundBrush(QBrush(Qt::white));
+	this->QGraphicsView::setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+	this->QGraphicsView::setRenderHint(QPainter::Antialiasing);
+	this->QGraphicsView::setCacheMode(QGraphicsView::CacheBackground);
+	this->QGraphicsView::setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+
+//	Ajojut cadre dans la scene
+	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
+	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES)); // NOLINT(bugprone-integer-division)
+	xaxis->setPen(QPen(Qt::red));
+	yaxis->setPen(QPen(Qt::green));
+	scene->addItem(xaxis);
+	scene->addItem(yaxis);
+
+	auto top(new QGraphicsLineItem(0.0, 0.0, MAX_COLONNES, 0.0));
+	top->setPen(QPen(Qt::blue));
+	scene->addItem(top);
+	auto left(new QGraphicsLineItem(0.0, 0.0, 0.0, MAX_LIGNES));
+	left->setPen(QPen(Qt::blue));
+	scene->addItem(left);
+	auto right(new QGraphicsLineItem(MAX_COLONNES, 0.0, MAX_COLONNES, MAX_LIGNES));
+	right->setPen(QPen(Qt::blue));
+	scene->addItem(right);
+	auto bottom(new QGraphicsLineItem(0.0, MAX_LIGNES, MAX_COLONNES, MAX_LIGNES));
+	bottom->setPen(QPen(Qt::blue));
+	scene->addItem(bottom);
+}
+
+NormalViewport::~NormalViewport() {
+	delete movableGroup;
+	delete scene;
+}
+
+bool NormalViewport::addCell(const size_t& i, const size_t& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
+		if (game->addCell(i, j)) {
+			cells[i][j] = new CellItem((qreal) i, (qreal) j);
+			scene->addItem(cells[i][j]);
+			scene->update(cells[i][j]->rect());
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NormalViewport::deleteCell(const size_t& i, const size_t& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] != nullptr) {
+		if (game->deleteCell(i, j)) {
+			delete cells[i][j];
+			cells[i][j] = nullptr;
+			return true;
+		}
+	}
+	return false;
+}
+
+void NormalViewport::wipe() {
+	this->deleteMotif(Motif(game->vivantes()));
+}
+
+void NormalViewport::refreshSelectedZone(const QRectF& newSelectedZoneRect, const QPolygonF& currentSelectedZonePolygon) {
+//	Replacing the current selection zone with the new ones
+//	REMARK : Deleting the item pointer should automatically remove it from the scene
+	delete newSelectedZone;
+	delete currentSelectedZone;
+	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
+	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
+
+//	Setting the colors
+	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+	newSelectedZone->setPen(QColor(0,102,255,255));
+	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
+	currentSelectedZone->setPen(QColor(0,0,255,255));
+
+//	Adding them items to the scene
+	scene->addItem(newSelectedZone);
+	scene->addItem(currentSelectedZone);
+}
+
+QGraphicsRectItem* NormalViewport::getNewSelectedZone() const {
+	return newSelectedZone;
+}
+
+void NormalViewport::createMovableGroup(const Motif& motif) {
+	movableGroup = new MovableGroup(motif);
+	for (auto it(movableGroup->cbegin()); it != movableGroup->cend(); ++it) {
+		scene->addItem(*it);
+	}
+	scene->addItem(movableGroup->rectItem());
+}
+
+void NormalViewport::moveMovableGroup(const int& dx, const int& dy) const {
+	if (movableGroup != nullptr) {
+		movableGroup->moveBy(dx, dy);
+	}
+}
+
+MovableGroup* NormalViewport::getMovableGroup() const {
+	return movableGroup;
+}
+
+golChange NormalViewport::insertMovableGroup() {
+	Motif added;
+	if (movableGroup != nullptr) {
+		for (auto it(movableGroup->begin()); it != movableGroup->end(); ++it) {
+			size_t i((*it)->rect().x()), j((*it)->rect().y()); // NOLINT(cppcoreguidelines-narrowing-conversions)
+			if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
+				cells[i][j] = *it;
+				game->addCell(i, j);
+				added.push_back({i,j});
+			} else {
+				delete *it;
+			}
+		}
+		delete movableGroup;
+		movableGroup = nullptr;
+	}
+	return {added, Motif()};
+}
+
+void NormalViewport::copy() {
+	if (!currentSelectedZone->polygon().empty()) {
+		copiedMotif.clear();
+		for (size_t i(0); i < MAX_LIGNES; ++i) {
+			for (size_t j(0); j < MAX_COLONNES; ++j) {
+				if (cells[i][j] != nullptr && currentSelectedZone->polygon().intersects(cells[i][j]->boundingRect())) {
+					copiedMotif.push_back({i,j});
+				}
+			}
+		}
+		currentSelectedZone->setPolygon(QPolygonF());
+		newSelectedZone->setRect(QRectF());
+		//		newSelectedZone->setRect(newSelectedZone-);
+		if (copiedMotif.empty()) {
+			mainWindow->statusBar()->showMessage("Sélection trop petite, rien copié", 1500);
+		}
+	} else {
+		mainWindow->statusBar()->showMessage("Copy ne marche qu'en mode Selecting", 1500);
+	}
+}
+
+void NormalViewport::cut() {
+	this->copy();
+	this->deleteMotif(copiedMotif);
+}
+
+void NormalViewport::paste() {
+	this->insertMovableGroup();
+	if (!copiedMotif.empty()) {
+		copiedMotif.recalibrate();
+		copiedMotif.translate((size_t)mainWindow->getLastI()-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,
+							  (size_t)mainWindow->getLastJ()-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
+		this->createMovableGroup(copiedMotif);
+	} else {
+		mainWindow->statusBar()->showMessage("Rien à coller", 1500);
+	}
+}
+
+void NormalViewport::evolve() {
+	this->modifyCells(game->evolve());
+}
+
+void NormalViewport::zoom(qreal const& zoomFactor) {
+	this->rscaleFactor() *= zoomFactor;
+	this->setTransform(QTransform::fromScale(this->scaleFactor(), this->scaleFactor()));
+	this->GraphicsView::update();
+}
+void NormalViewport::resetZoom() {
+	this->rscaleFactor() = 1;
+	this->setTransform(QTransform());
+	this->GraphicsView::update();
+}
+void NormalViewport::mousePressEvent(QMouseEvent* event) {
+	GraphicsView::mousePressEvent(event);
+	auto* t_event = new QMouseEvent(event->type(),
+	                                this->mapToScene(event->pos()),
+	                                event->windowPos(),
+	                                event->screenPos(),
+	                                event->button(),
+	                                event->buttons(),
+	                                event->modifiers(),
+	                                event->source());
+	emit viewportMousePressEvent(t_event);
+}
+
+void NormalViewport::mouseMoveEvent(QMouseEvent* event) {
+	GraphicsView::mouseMoveEvent(event);
+	auto* t_event = new QMouseEvent(event->type(),
+	                                this->mapToScene(event->pos()),
+
+	                                event->windowPos(),
+	                                event->screenPos(),
+	                                event->button(),
+	                                event->buttons(),
+	                                event->modifiers(),
+	                                event->source());
+	emit viewportMouseMoveEvent(t_event);
+}
+void NormalViewport::mouseReleaseEvent(QMouseEvent* event) {
+	GraphicsView::mouseReleaseEvent(event);
+	auto* t_event = new QMouseEvent(event->type(),
+	                                this->mapToScene(event->pos()),
+	                                event->windowPos(),
+	                                event->screenPos(),
+	                                event->button(),
+	                                event->buttons(),
+	                                event->modifiers(),
+	                                event->source());
+	emit viewportMouseReleaseEvent(t_event);
+}
+void NormalViewport::mouseDoubleClickEvent(QMouseEvent* event) {
+	GraphicsView::mouseDoubleClickEvent(event);
+	auto* t_event = new QMouseEvent(event->type(),
+	                                this->mapToScene(event->pos()),
+	                                event->windowPos(),
+	                                event->screenPos(),
+	                                event->button(),
+	                                event->buttons(),
+	                                event->modifiers(),
+	                                event->source());
+	emit viewportMouseDoubleClickEvent(t_event);
+}
+

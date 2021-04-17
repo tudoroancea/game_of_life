@@ -34,4 +34,5 @@ else()
 	add_executable(GOL main.cpp qt/images.qrc)
 endif()
 
-target_link_libraries(GOL PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui qt simulation)
+target_link_libraries(GOL PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
+target_link_libraries(GOL LINK_PUBLIC qt simulation)

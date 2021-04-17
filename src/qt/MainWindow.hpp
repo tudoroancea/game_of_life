@@ -25,7 +25,9 @@
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
 #include "MovableGroup.hpp"
+#include "Viewport.hpp"
 #include "OptimizedViewport.hpp"
+#include "NormalViewport.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -40,7 +42,6 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
 Q_OBJECT
 private:
-    OptimizedViewport* vue;
 //	Timer ====================================================================================
 	/**
 	 * @brief To see if a timer is started or not.
@@ -68,22 +69,17 @@ private:
 	std::deque<std::pair<bool,Motif>>::iterator lastModif;
 	
 //	Simulation data ====================================================================================
-	QGraphicsScene* scene;
-	GraphicsView* view;
 	GameOfLifeView* game;
-	std::vector<std::vector<CellItem*>> cells = std::vector<std::vector<CellItem*>>(MAX_LIGNES, std::vector<CellItem*>(MAX_COLONNES, nullptr));
+	Viewport* viewport;
+	bool optimizedMode = false;
+
+	//	QLabels for diverse purposes ====================================================================================
 	std::array<QLabel*,10> labels;
-	
+
 //	Zone de sélection et copy/paste ====================================================================================
 	QRectF newSelectedZoneRect;
-	QGraphicsRectItem* newSelectedZone;
 	QPolygonF currentSelectedZonePolygon;
-	QGraphicsPolygonItem* currentSelectedZone;
 	Motif copiedMotif;
-//	QGraphicsRectItem* movableFrame;
-//	QGraphicsItemGroup* movableGroup;
-//	QList<QGraphicsItem*> movableCells;
-	MovableGroup* movableGroup = nullptr;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
@@ -118,8 +114,8 @@ private slots:
 	void newSim();
 	void open();
 	void saveMotif();
-	void saveSim();
-	void about();
+	static void saveSim();
+	static void about();
 	void undo();
 	void redo();
 	void copy();
@@ -131,7 +127,7 @@ private slots:
 	void resetZoom();
 	void pauseResume();
 //	Utility ===========================================================================================
-	void showStatusBarMessage(const string& message, int const& timer);
+	void showStatusBarMessage(const std::string& message, int const& timer);
 
 public:
 //	Constructor & Destructors =========================================================================
@@ -148,6 +144,9 @@ public:
 	void wheelEvent(QWheelEvent* event) override;
 	bool event(QEvent* event) override;
 	void paintEvent(QPaintEvent* event) override;
+
+	qreal const& getLastI() const;
+	qreal const& getLastJ() const;
 
 public slots:
 	void viewportMousePressEvent(QMouseEvent *event);

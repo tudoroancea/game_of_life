@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - develop
-      - unit-tests-gol
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
