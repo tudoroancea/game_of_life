@@ -27,7 +27,7 @@ std::size_t pair_hash::operator()(std::pair<T1,T2> const& p) const {
 
 // Constructeurs ========================================================================================
 GameOfLife::GameOfLife() : generation_(0) {
-	clock_t T1(clock());
+//	clock_t T1(clock());
 	unsigned int max_l_temp(MAX_LIGNES + 99);
 	unsigned int max_c_temp(MAX_COLONNES + 99);
 	for (size_t j(1); j < MAX_COLONNES+100; ++j)
@@ -93,8 +93,8 @@ GameOfLife::GameOfLife() : generation_(0) {
 			}
 		}
 	}
-    double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
-    std::cout << "temps : " << ms << " ms" << std::endl;	
+//    double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
+//    std::cout << "temps : " << ms << " ms" << std::endl;
 }
 GameOfLife::GameOfLife(Motif const& a_marquer) : generation_(0) {
 	unsigned int max_l_temp(MAX_LIGNES + 99);
@@ -715,7 +715,7 @@ void GameOfLifeView::verif(size_t const& i, size_t const& j, Liste& v, Liste& v_
 }
 golChange GameOfLifeView::evolve() {
 	// On crée une nouvelle Liste qui contiendra les nouvelles vivantes_
-	clock_t T1(clock());
+//	clock_t T1(clock());
 	++generation_;
 	Liste nouvelles;
 	Liste mortes;
@@ -747,7 +747,7 @@ golChange GameOfLifeView::evolve() {
 	// On update la Liste des vivantes_ et le nombre de generatitons
 	vivantes_ = nouvelles;
 	vivantes_visibles = nouvelles_visibles;
-    double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
+//    double ms((double(clock() - T1)/CLOCKS_PER_SEC)*1000);
     //std::cout << "temps : " << ms << " ms" << std::endl;		
 	return {Motif(reborn), Motif(mortes)};
 }

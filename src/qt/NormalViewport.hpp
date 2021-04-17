@@ -8,16 +8,18 @@
 //#include "MainWindow.hpp"
 #include "Viewport.hpp"
 #include "GraphicsView.hpp"
+#include "CellItem.hpp"
 
 QT_BEGIN_NAMESPACE
 	class QGraphicsScene;
 QT_END_NAMESPACE
 
 
-class NormalViewport : public Viewport, public GraphicsView {
+class NormalViewport : public Viewport {
+Q_OBJECT
 private :
-	QGraphicsScene *scene;
-//	GraphicsView* view;
+	QGraphicsScene* scene;
+	GraphicsView* view;
 	std::vector<std::vector<CellItem*>> cells = std::vector<std::vector<CellItem*>>(MAX_LIGNES, std::vector<CellItem*>(MAX_COLONNES, nullptr));
 
 	QGraphicsRectItem* newSelectedZone;
@@ -28,6 +30,8 @@ private :
 public:
 	explicit NormalViewport(MainWindow* parent = nullptr, GameOfLifeView* game = nullptr);
 	~NormalViewport() override;
+
+	[[nodiscard]] QWidget* getWidget() override;
 
 //	Cells modifications ========================================
 	bool addCell(size_t const& i, size_t const& j) override;

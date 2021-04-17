@@ -10,9 +10,11 @@
 #include <QWidget>
 #include <QMouseEvent>
 
-Viewport::Viewport(MainWindow* parent, GameOfLifeView* game) : mainWindow(parent), game(g) {
-
+QWidget* Viewport::getWidget() {
+	return static_cast<QWidget*>(this);
 }
+
+Viewport::Viewport(MainWindow* parent, GameOfLifeView* game) : mainWindow(parent), game(game) {}
 
 Viewport::~Viewport() {
 	delete game;

@@ -16,14 +16,25 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsPolygonItem>
 #include <QPen>
+#include <QMouseEvent>
 
-NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game) : Viewport(parent, game), GraphicsView(nullptr, parent), scene(new QGraphicsScene), newSelectedZone(new QGraphicsRectItem(0,0,0,0)), currentSelectedZone(new QGraphicsPolygonItem(QPolygonF())) {
-	static_cast<QGraphicsView*>(this)->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	this->QGraphicsView::setBackgroundBrush(QBrush(Qt::white));
-	this->QGraphicsView::setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	this->QGraphicsView::setRenderHint(QPainter::Antialiasing);
-	this->QGraphicsView::setCacheMode(QGraphicsView::CacheBackground);
-	this->QGraphicsView::setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+QWidget* NormalViewport::getWidget() {
+	return view;
+}
+
+NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
+: Viewport(parent, game),
+  scene(new QGraphicsScene),
+  view(new GraphicsView(scene, parent)),
+  newSelectedZone(new QGraphicsRectItem(0,0,0,0)),
+  currentSelectedZone(new QGraphicsPolygonItem(QPolygonF()))
+{
+	dynamic_cast<QGraphicsView*>(this)->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+	view->QGraphicsView::setBackgroundBrush(QBrush(Qt::white));
+	view->QGraphicsView::setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+	view->QGraphicsView::setRenderHint(QPainter::Antialiasing);
+	view->QGraphicsView::setCacheMode(QGraphicsView::CacheBackground);
+	view->QGraphicsView::setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 
 //	Ajojut cadre dans la scene
 	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
@@ -169,8 +180,8 @@ void NormalViewport::paste() {
 	this->insertMovableGroup();
 	if (!copiedMotif.empty()) {
 		copiedMotif.recalibrate();
-		copiedMotif.translate((size_t)mainWindow->getLastI()-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2,
-							  (size_t)mainWindow->getLastJ()-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2);
+		copiedMotif.translate((size_t)mainWindow->getLastI()-(copiedMotif.max_ligne()-copiedMotif.min_ligne())/2, // NOLINT(cppcoreguidelines-narrowing-conversions)
+							  (size_t)mainWindow->getLastJ()-(copiedMotif.max_colonne()-copiedMotif.min_colonne())/2); // NOLINT(cppcoreguidelines-narrowing-conversions)
 		this->createMovableGroup(copiedMotif);
 	} else {
 		mainWindow->statusBar()->showMessage("Rien à coller", 1500);
@@ -182,19 +193,19 @@ void NormalViewport::evolve() {
 }
 
 void NormalViewport::zoom(qreal const& zoomFactor) {
-	this->rscaleFactor() *= zoomFactor;
-	this->setTransform(QTransform::fromScale(this->scaleFactor(), this->scaleFactor()));
-	this->GraphicsView::update();
+	view->rscaleFactor() *= zoomFactor;
+	view->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
+	view->GraphicsView::update();
 }
 void NormalViewport::resetZoom() {
-	this->rscaleFactor() = 1;
-	this->setTransform(QTransform());
-	this->GraphicsView::update();
+	view->rscaleFactor() = 1;
+	view->setTransform(QTransform());
+	view->GraphicsView::update();
 }
 void NormalViewport::mousePressEvent(QMouseEvent* event) {
-	GraphicsView::mousePressEvent(event);
+//	GraphicsView::mousePressEvent(event);
 	auto* t_event = new QMouseEvent(event->type(),
-	                                this->mapToScene(event->pos()),
+	                                view->mapToScene(event->pos()),
 	                                event->windowPos(),
 	                                event->screenPos(),
 	                                event->button(),
@@ -205,9 +216,9 @@ void NormalViewport::mousePressEvent(QMouseEvent* event) {
 }
 
 void NormalViewport::mouseMoveEvent(QMouseEvent* event) {
-	GraphicsView::mouseMoveEvent(event);
+//	GraphicsView::mouseMoveEvent(event);
 	auto* t_event = new QMouseEvent(event->type(),
-	                                this->mapToScene(event->pos()),
+	                                view->mapToScene(event->pos()),
 
 	                                event->windowPos(),
 	                                event->screenPos(),
@@ -218,9 +229,9 @@ void NormalViewport::mouseMoveEvent(QMouseEvent* event) {
 	emit viewportMouseMoveEvent(t_event);
 }
 void NormalViewport::mouseReleaseEvent(QMouseEvent* event) {
-	GraphicsView::mouseReleaseEvent(event);
+//	GraphicsView::mouseReleaseEvent(event);
 	auto* t_event = new QMouseEvent(event->type(),
-	                                this->mapToScene(event->pos()),
+	                                view->mapToScene(event->pos()),
 	                                event->windowPos(),
 	                                event->screenPos(),
 	                                event->button(),
@@ -230,9 +241,9 @@ void NormalViewport::mouseReleaseEvent(QMouseEvent* event) {
 	emit viewportMouseReleaseEvent(t_event);
 }
 void NormalViewport::mouseDoubleClickEvent(QMouseEvent* event) {
-	GraphicsView::mouseDoubleClickEvent(event);
+//	GraphicsView::mouseDoubleClickEvent(event);
 	auto* t_event = new QMouseEvent(event->type(),
-	                                this->mapToScene(event->pos()),
+	                                view->mapToScene(event->pos()),
 	                                event->windowPos(),
 	                                event->screenPos(),
 	                                event->button(),

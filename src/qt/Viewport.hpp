@@ -5,8 +5,10 @@
 #ifndef GAME_OF_LIFE_VIEWPORT_HPP
 #define GAME_OF_LIFE_VIEWPORT_HPP
 
-//#include "MainWindow.hpp"
+#include "MainWindow.hpp"
 #include "Motif.hpp"
+#include "GameOfLife.hpp"
+#include "MovableGroup.hpp"
 
 #include <QWidget>
 #include <vector>
@@ -19,11 +21,11 @@ QT_BEGIN_NAMESPACE
 	class QRectF;
 QT_END_NAMESPACE
 
-class MainWindow;
-class GameOfLifeView;
-class MovableGroup;
+//class MainWindow;
+//class MovableGroup;
 
-class Viewport : public virtual QWidget {
+class Viewport : public QWidget {
+Q_OBJECT
 protected:
 	MainWindow* mainWindow;
 	GameOfLifeView* game;
@@ -31,6 +33,8 @@ protected:
 public:
 	explicit Viewport(MainWindow* parent = nullptr, GameOfLifeView* game = nullptr);
 	~Viewport() override;
+
+	virtual QWidget* getWidget();
 
 //	Cells modifications ========================================
 	virtual bool addCell(size_t const& i, size_t const& j) = 0;
@@ -76,6 +80,5 @@ signals:
 	void viewportMouseDoubleClickEvent(QMouseEvent* event);
 //	virtual void viewportTouchEvent(QTouchEvent* event) = 0;
 };
-
 
 #endif //GAME_OF_LIFE_VIEWPORT_HPP

@@ -7,7 +7,6 @@
 #include "GraphicsView.hpp"
 #include "CellItem.hpp"
 #include "termcolor.hpp"
-#include "Viewport.hpp"
 #include "NormalViewport.hpp"
 #include "OptimizedViewport.hpp"
 
@@ -24,18 +23,11 @@
 
 using namespace std::literals::chrono_literals;
 
-MainWindow::MainWindow()
+MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 		: historic(std::deque<std::pair<bool,Motif>>()),
 		  lastModif(historic.begin()),
 		  game(new GameOfLifeView),
-		  viewport(new NormalViewport(this, game)),
-//		  scene(new QGraphicsScene(0.0, 0.0, MAX_LIGNES, MAX_COLONNES)),
-//		  view(new GraphicsView(scene, this)),
-//		  vue(new OptimizedViewport(this)),
-		newSelectedZoneRect(),
-		currentSelectedZonePolygon(),
-		copiedMotif()
-
+		  viewport(new NormalViewport(this, game))
 {
 	this->setWindowTitle("Conway's Game of Life Emulator");
 	this->resize(600,600);
@@ -49,7 +41,7 @@ MainWindow::MainWindow()
 
 	labels.fill(nullptr);
 
-	this->setCentralWidget(static_cast<QWidget*>(viewport));
+	this->setCentralWidget(viewport->getWidget());
 
 	viewport->refreshSelectedZone(newSelectedZoneRect, currentSelectedZonePolygon);
 //	this->setSelectionZoneColors();
@@ -227,28 +219,6 @@ void MainWindow::updateStatusBar() {
 	labels[1]->setNum((int)historic.size());
 	labels[3]->setNum(int(std::distance<std::deque<std::pair<bool,Motif>>::iterator>(historic.begin(), lastModif)));
 #endif
-}
-
-void MainWindow::createFrame() {
-//	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
-//	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES)); // NOLINT(bugprone-integer-division)
-//	xaxis->setPen(QPen(Qt::red));
-//	yaxis->setPen(QPen(Qt::green));
-//	scene->addItem(xaxis);
-//	scene->addItem(yaxis);
-//
-//	auto top(new QGraphicsLineItem(0.0, 0.0, MAX_COLONNES, 0.0));
-//	top->setPen(QPen(Qt::blue));
-//	scene->addItem(top);
-//	auto left(new QGraphicsLineItem(0.0, 0.0, 0.0, MAX_LIGNES));
-//	left->setPen(QPen(Qt::blue));
-//	scene->addItem(left);
-//	auto right(new QGraphicsLineItem(MAX_COLONNES, 0.0, MAX_COLONNES, MAX_LIGNES));
-//	right->setPen(QPen(Qt::blue));
-//	scene->addItem(right);
-//	auto bottom(new QGraphicsLineItem(0.0, MAX_LIGNES, MAX_COLONNES, MAX_LIGNES));
-//	bottom->setPen(QPen(Qt::blue));
-//	scene->addItem(bottom);
 }
 
 void MainWindow::refreshScene(golChange const& toChange) {

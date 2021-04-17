@@ -25,9 +25,6 @@
 #include "Motif.hpp"
 #include "EquivalenceTable.hpp"
 #include "MovableGroup.hpp"
-#include "Viewport.hpp"
-#include "OptimizedViewport.hpp"
-#include "NormalViewport.hpp"
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -38,6 +35,8 @@ class QEvent;
 class QToolBar;
 class QComboBox;
 QT_END_NAMESPACE
+
+class Viewport;
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
@@ -71,15 +70,13 @@ private:
 //	Simulation data ====================================================================================
 	GameOfLifeView* game;
 	Viewport* viewport;
-	bool optimizedMode = false;
 
 	//	QLabels for diverse purposes ====================================================================================
-	std::array<QLabel*,10> labels;
+	std::array<QLabel*,10> labels = std::array<QLabel*,10>();
 
 //	Zone de sélection et copy/paste ====================================================================================
 	QRectF newSelectedZoneRect;
 	QPolygonF currentSelectedZonePolygon;
-	Motif copiedMotif;
 
 //  Menus ====================================================================================
 	std::unordered_map<std::string, QMenu*> menus;
@@ -95,9 +92,7 @@ private:
 	void createToolBars();
 	void createStatusBar();
 	static void placeholder(const char* str);
-	// Create the frame and the axis on the simulation window
-	void createFrame();
-	
+
 	void refreshScene(golChange const& toChange);
 	
 	void setModifyState(int const& modifyState);
