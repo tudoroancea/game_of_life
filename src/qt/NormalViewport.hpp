@@ -60,11 +60,12 @@ public:
 	void zoom(qreal const& zoomFactor) override;
 	void resetZoom() override;
 
+public slots:
 //	QGraphicsView event handlers ==============================
-	void mousePressEvent(QMouseEvent * event) override;
-	void mouseMoveEvent(QMouseEvent * event) override;
-	void mouseReleaseEvent(QMouseEvent * event) override;
-	void mouseDoubleClickEvent(QMouseEvent * event) override;
+	void graphicsViewPressEvent(QMouseEvent* event);
+	void graphicsViewMoveEvent(QMouseEvent* event);
+	void graphicsViewReleaseEvent(QMouseEvent* event);
+	void graphicsViewDoubleClickEvent(QMouseEvent* event);
 };
 
 

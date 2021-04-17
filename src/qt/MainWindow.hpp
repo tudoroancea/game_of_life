@@ -140,8 +140,8 @@ public:
 	bool event(QEvent* event) override;
 	void paintEvent(QPaintEvent* event) override;
 
-	qreal const& getLastI() const;
-	qreal const& getLastJ() const;
+	[[nodiscard]] qreal const& getLastI() const;
+	[[nodiscard]] qreal const& getLastJ() const;
 
 public slots:
 	void viewportMousePressEvent(QMouseEvent *event);

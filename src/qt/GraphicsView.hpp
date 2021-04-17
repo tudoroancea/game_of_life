@@ -22,19 +22,20 @@ public:
 	[[nodiscard]] qreal& rscaleFactor();
 	[[nodiscard]] const qreal& scaleFactor() const;
 	
-//	Event handlers ========================================================================================
-	bool viewportEvent(QEvent *event) override;
-//	void mousePressEvent(QMouseEvent *event) override;
-//	void mouseMoveEvent(QMouseEvent *event) override;
-//	void mouseReleaseEvent(QMouseEvent *event) override;
-	void paintEvent(QPaintEvent *event) override;
-//	void mouseDoubleClickEvent(QMouseEvent *event) override;
+//	QGraphicsView Event handlers ========================================================================================
+	bool viewportEvent(QEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+	void paintEvent(QPaintEvent* event) override;
 	void resizeEvent(QResizeEvent* event) override;
-//signals:
-//	void sendMousePressEvent(QMouseEvent *event);
-//	void sendMouseDoubleClickEvent(QMouseEvent *event);
-//	void sendMouseMoveEvent(QMouseEvent *event);
-//	void sendMouseReleaseEvent(QMouseEvent *event);
+
+signals:
+	void sendMousePressEvent(QMouseEvent* event);
+	void sendMouseDoubleClickEvent(QMouseEvent* event);
+	void sendMouseMoveEvent(QMouseEvent* event);
+	void sendMouseReleaseEvent(QMouseEvent* event);
 };
 
 

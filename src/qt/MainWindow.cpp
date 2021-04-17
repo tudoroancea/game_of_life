@@ -34,12 +34,13 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 
+	labels.fill(nullptr);
+
 	createActions();
 	createMenus();
 	createToolBars();
 	createStatusBar();
 
-	labels.fill(nullptr);
 
 	this->setCentralWidget(viewport->getWidget());
 
@@ -408,14 +409,14 @@ void MainWindow::paste() {
 }
 
 void MainWindow::zoomOut() {
-	viewport->zoom(1.2);
+	viewport->zoom(1.0/1.2);
 //	vue->rscaleFactor() /= 1.2;
 //	vue->setTransform(QTransform::fromScale(view->scaleFactor(), view->scaleFactor()));
 //	vue->update();
 }
 
 void MainWindow::zoomIn() {
-	viewport->zoom(1.0/1.2);
+	viewport->zoom(1.2);
 }
 
 void MainWindow::newSim() {

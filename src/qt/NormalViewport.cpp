@@ -29,12 +29,15 @@ NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
   newSelectedZone(new QGraphicsRectItem(0,0,0,0)),
   currentSelectedZone(new QGraphicsPolygonItem(QPolygonF()))
 {
-	dynamic_cast<QGraphicsView*>(this)->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	view->QGraphicsView::setBackgroundBrush(QBrush(Qt::white));
-	view->QGraphicsView::setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-	view->QGraphicsView::setRenderHint(QPainter::Antialiasing);
-	view->QGraphicsView::setCacheMode(QGraphicsView::CacheBackground);
-	view->QGraphicsView::setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+	view->setBackgroundBrush(QBrush(Qt::white));
+	view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+	view->setRenderHint(QPainter::Antialiasing);
+	view->setCacheMode(QGraphicsView::CacheBackground);
+	view->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+	connect(view, SIGNAL(sendMousePressEvent(QMouseEvent*)), this, SLOT(graphicsViewPressEvent(QMouseEvent*)));
+	connect(view, SIGNAL(sendMouseMoveEvent(QMouseEvent*)), this, SLOT(graphicsViewMoveEvent(QMouseEvent*)));
+	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(graphicsViewReleaseEvent(QMouseEvent*)));
+	connect(view, SIGNAL(sendMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(graphicsViewReleaseEvent(QMouseEvent*)));
 
 //	Ajojut cadre dans la scene
 	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
@@ -202,54 +205,16 @@ void NormalViewport::resetZoom() {
 	view->setTransform(QTransform());
 	view->GraphicsView::update();
 }
-void NormalViewport::mousePressEvent(QMouseEvent* event) {
-//	GraphicsView::mousePressEvent(event);
-	auto* t_event = new QMouseEvent(event->type(),
-	                                view->mapToScene(event->pos()),
-	                                event->windowPos(),
-	                                event->screenPos(),
-	                                event->button(),
-	                                event->buttons(),
-	                                event->modifiers(),
-	                                event->source());
-	emit viewportMousePressEvent(t_event);
-}
 
-void NormalViewport::mouseMoveEvent(QMouseEvent* event) {
-//	GraphicsView::mouseMoveEvent(event);
-	auto* t_event = new QMouseEvent(event->type(),
-	                                view->mapToScene(event->pos()),
-
-	                                event->windowPos(),
-	                                event->screenPos(),
-	                                event->button(),
-	                                event->buttons(),
-	                                event->modifiers(),
-	                                event->source());
-	emit viewportMouseMoveEvent(t_event);
+void NormalViewport::graphicsViewPressEvent(QMouseEvent* event) {
+	emit viewportMousePressEvent(event);
 }
-void NormalViewport::mouseReleaseEvent(QMouseEvent* event) {
-//	GraphicsView::mouseReleaseEvent(event);
-	auto* t_event = new QMouseEvent(event->type(),
-	                                view->mapToScene(event->pos()),
-	                                event->windowPos(),
-	                                event->screenPos(),
-	                                event->button(),
-	                                event->buttons(),
-	                                event->modifiers(),
-	                                event->source());
-	emit viewportMouseReleaseEvent(t_event);
+void NormalViewport::graphicsViewMoveEvent(QMouseEvent* event) {
+	emit viewportMouseMoveEvent(event);
 }
-void NormalViewport::mouseDoubleClickEvent(QMouseEvent* event) {
-//	GraphicsView::mouseDoubleClickEvent(event);
-	auto* t_event = new QMouseEvent(event->type(),
-	                                view->mapToScene(event->pos()),
-	                                event->windowPos(),
-	                                event->screenPos(),
-	                                event->button(),
-	                                event->buttons(),
-	                                event->modifiers(),
-	                                event->source());
-	emit viewportMouseDoubleClickEvent(t_event);
+void NormalViewport::graphicsViewReleaseEvent(QMouseEvent* event) {
+	emit viewportMouseReleaseEvent(event);
 }
-
+void NormalViewport::graphicsViewDoubleClickEvent(QMouseEvent* event) {
+	emit viewportMouseDoubleClickEvent(event);
+}
