@@ -9,6 +9,7 @@
 #include "Viewport.hpp"
 #include "GraphicsView.hpp"
 #include "CellItem.hpp"
+#include "GameOfLife.hpp"
 
 QT_BEGIN_NAMESPACE
 	class QGraphicsScene;
@@ -27,6 +28,10 @@ private :
 
 	MovableGroup* movableGroup = nullptr;
 
+//	Utility methods ================================
+	void forceAddCell(size_t const& i, size_t const& j);
+	void forceDeleteCell(size_t const& i, size_t const& j);
+
 public:
 	explicit NormalViewport(MainWindow* parent = nullptr, GameOfLifeView* game = nullptr);
 	~NormalViewport() override;
@@ -37,6 +42,7 @@ public:
 	bool addCell(size_t const& i, size_t const& j) override;
 	bool deleteCell(size_t const& i, size_t const& j) override;
 	void wipe() override;
+	void modifyCells(golChange const& toChange) override;
 
 //	Selection zone modifications ================================
 	void refreshSelectedZone(QRectF const& newSelectedZoneRect, QPolygonF const& currentSelectedZonePolygon) override;

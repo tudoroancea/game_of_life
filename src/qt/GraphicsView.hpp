@@ -8,7 +8,7 @@
 #include <QGraphicsView>
 #include <QObject>
 
-class GraphicsView : public virtual QGraphicsView {
+class GraphicsView : public QGraphicsView {
 Q_OBJECT
 private:
 	qreal currentScaleFactor = 1.0;

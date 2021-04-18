@@ -37,16 +37,16 @@ NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
 	connect(view, SIGNAL(sendMousePressEvent(QMouseEvent*)), this, SLOT(graphicsViewPressEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseMoveEvent(QMouseEvent*)), this, SLOT(graphicsViewMoveEvent(QMouseEvent*)));
 	connect(view, SIGNAL(sendMouseReleaseEvent(QMouseEvent*)), this, SLOT(graphicsViewReleaseEvent(QMouseEvent*)));
-	connect(view, SIGNAL(sendMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(graphicsViewReleaseEvent(QMouseEvent*)));
+	connect(view, SIGNAL(sendMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(graphicsViewDoubleClickEvent(QMouseEvent*)));
 
-//	Ajojut cadre dans la scene
+//	Ajout axes dans la scene ==========================
 	auto xaxis(new QGraphicsLineItem(0.0, MAX_LIGNES/2, MAX_COLONNES, MAX_LIGNES/2)); // NOLINT(bugprone-integer-division)
 	auto yaxis(new QGraphicsLineItem(MAX_COLONNES/2, 0.0, MAX_COLONNES/2, MAX_LIGNES)); // NOLINT(bugprone-integer-division)
 	xaxis->setPen(QPen(Qt::red));
 	yaxis->setPen(QPen(Qt::green));
 	scene->addItem(xaxis);
 	scene->addItem(yaxis);
-
+//	Ajout cadre dans la scene ==========================
 	auto top(new QGraphicsLineItem(0.0, 0.0, MAX_COLONNES, 0.0));
 	top->setPen(QPen(Qt::blue));
 	scene->addItem(top);
@@ -65,32 +65,48 @@ NormalViewport::~NormalViewport() {
 	delete movableGroup;
 	delete scene;
 }
-
-bool NormalViewport::addCell(const size_t& i, const size_t& j) {
+void NormalViewport::forceAddCell(size_t const& i, size_t const& j) {
 	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] == nullptr) {
+		cells[i][j] = new CellItem((qreal) i, (qreal) j);
+		scene->addItem(cells[i][j]);
+		scene->update(cells[i][j]->rect());
+	}
+}
+void NormalViewport::forceDeleteCell(const size_t& i, const size_t& j) {
+	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] != nullptr) {
+		delete cells[i][j];
+		cells[i][j] = nullptr;
+	}
+}
+bool NormalViewport::addCell(const size_t& i, const size_t& j) {
 		if (game->addCell(i, j)) {
-			cells[i][j] = new CellItem((qreal) i, (qreal) j);
-			scene->addItem(cells[i][j]);
-			scene->update(cells[i][j]->rect());
+			this->forceAddCell(i,j);
 			return true;
 		}
-	}
+	view->update();
 	return false;
 }
 
 bool NormalViewport::deleteCell(const size_t& i, const size_t& j) {
-	if (i < MAX_LIGNES && j < MAX_COLONNES && cells[i][j] != nullptr) {
 		if (game->deleteCell(i, j)) {
-			delete cells[i][j];
-			cells[i][j] = nullptr;
+			this->forceDeleteCell(i,j);
 			return true;
 		}
-	}
+	view->update();
 	return false;
 }
 
 void NormalViewport::wipe() {
 	this->deleteMotif(Motif(game->vivantes()));
+}
+
+void NormalViewport::modifyCells(const golChange& toChange) {
+	for (auto it(toChange.toAdd.cbegin()); it != toChange.toAdd.cend(); ++it) {
+		this->forceAddCell(it->first, it->second);
+	}
+	for (auto it(toChange.toDelete.cbegin()); it != toChange.toDelete.cend(); ++it) {
+		this->forceDeleteCell(it->first, it->second);
+	}
 }
 
 void NormalViewport::refreshSelectedZone(const QRectF& newSelectedZoneRect, const QPolygonF& currentSelectedZonePolygon) {
@@ -125,9 +141,10 @@ void NormalViewport::createMovableGroup(const Motif& motif) {
 }
 
 void NormalViewport::moveMovableGroup(const int& dx, const int& dy) const {
-	if (movableGroup != nullptr) {
+//	if (movableGroup != nullptr) {
 		movableGroup->moveBy(dx, dy);
-	}
+//	}
+	view->update();
 }
 
 MovableGroup* NormalViewport::getMovableGroup() const {

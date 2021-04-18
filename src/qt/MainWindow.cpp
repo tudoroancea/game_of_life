@@ -31,7 +31,7 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 {
 	this->setWindowTitle("Conway's Game of Life Emulator");
 	this->resize(600,600);
-	this->move(QGuiApplication::screens()[0]->geometry().center() - frameGeometry().center());
+	this->move(QGuiApplication::screens()[1]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 
 	labels.fill(nullptr);
@@ -476,10 +476,7 @@ void MainWindow::showStatusBarMessage(string const& message, int const& timer) {
 
 void MainWindow::timerEvent(QTimerEvent* event) {
 	Q_UNUSED(event)
-//	auto start(std::chrono::high_resolution_clock::now());
 	viewport->evolve();
-//	auto stop(std::chrono::high_resolution_clock::now());
-//	std::cout << termcolor::green << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/game->vivantes().size() << termcolor::reset << " | ";
 }
 
 
@@ -672,10 +669,13 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 	if (game != nullptr) {
 		if (modifyState_ == Selecting && subState_ != Moving) {
+			std::cerr << "Début" << std::endl;
 			doubleLeftButtonPressed = true;
 			QPointF pos(event->localPos());
 			newSelectedZoneRect.moveTo(pos.x(), pos.y());
 			viewport->getNewSelectedZone()->setRect(newSelectedZoneRect);
+//			std::cerr << termcolor::yellow << newSelectedZoneRect.x() << " , " << newSelectedZoneRect.y() << " , " << newSelectedZoneRect.height() << " , " << newSelectedZoneRect.width() << termcolor::reset << std::endl;
+//			std::cerr << termcolor::green << viewport->getNewSelectedZone()->rect().x() << " , " << viewport->getNewSelectedZone()->rect().y() << " , " << viewport->getNewSelectedZone()->rect().height() << " , " << viewport->getNewSelectedZone()->rect().width() << termcolor::reset << std::endl;
 //			viewport->refreshSelectionZone(newSelectedZoneRect);
 	//			viewport->getNewSelectedZone()
 //			newSelectedZone->setRect(newSelectedZoneRect);
@@ -759,6 +759,8 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 					newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
 					newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
 					viewport->getNewSelectedZone()->setRect(newSelectedZoneRect);
+//					std::cerr << termcolor::yellow << newSelectedZoneRect.x() << " , " << newSelectedZoneRect.y() << " , " << newSelectedZoneRect.height() << " , " << newSelectedZoneRect.width() << termcolor::reset << std::endl;
+//					std::cerr << termcolor::green << viewport->getNewSelectedZone()->rect().x() << " , " << viewport->getNewSelectedZone()->rect().y() << " , " << viewport->getNewSelectedZone()->rect().height() << " , " << viewport->getNewSelectedZone()->rect().width() << termcolor::reset << std::endl;
 				} else if (subState_ == Moving && leftButtonPressed) {
 					viewport->moveMovableGroup((int)i-(int)lastI, (int)j-(int)lastJ);
 				}

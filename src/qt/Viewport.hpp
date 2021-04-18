@@ -41,7 +41,7 @@ public:
 	virtual bool deleteCell(size_t const& i, size_t const& j) = 0;
 	std::vector<bool> addMotif(Motif const& motif);
 	std::vector<bool> deleteMotif(Motif const& motif);
-	void modifyCells(golChange const& changes);
+	virtual void modifyCells(golChange const& toChange);
 	virtual void wipe() = 0;
 
 //	Selection zone modifications ================================
