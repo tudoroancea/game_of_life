@@ -45,10 +45,6 @@ MovableGroup::~MovableGroup() {
 }
 
 void MovableGroup::moveBy(const int& dx, const int& dy) {
-//	for (const auto & cell : cells) {
-//	    cell->moveBy(dx, dy);
-//	}
-//	rect->moveBy(dx, dy);
 	QRectF rect2(rect->rect());
 	int x(rect2.x()), y(rect2.y()), newX(x+dx), newY(y+dy);
 	bool xModified(false), yModified(false);
@@ -75,7 +71,6 @@ void MovableGroup::moveBy(const int& dx, const int& dy) {
 		}
 	}
 	rect->setRect(rect2);
-//	rect->setRect(size_t((int)rect->rect().x()+dx), size_t((int)rect->rect().y()+dy), rect->rect().width(), rect->rect().height());
 }
 
 void MovableGroup::append(CellItem* const& cell) {

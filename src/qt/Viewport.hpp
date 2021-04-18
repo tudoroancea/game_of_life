@@ -14,15 +14,12 @@
 #include <vector>
 
 QT_BEGIN_NAMESPACE
-//	class QWidget;
 	class QMouseEvent;
 	class QGraphicsRectItem;
 	class QPolygonF;
 	class QRectF;
 QT_END_NAMESPACE
 
-//class MainWindow;
-//class MovableGroup;
 
 class Viewport : public QWidget {
 Q_OBJECT
@@ -41,7 +38,7 @@ public:
 	virtual bool deleteCell(size_t const& i, size_t const& j) = 0;
 	std::vector<bool> addMotif(Motif const& motif);
 	std::vector<bool> deleteMotif(Motif const& motif);
-	virtual void modifyCells(golChange const& toChange);
+	virtual void modifyCells(golChange const& toChange) = 0;
 	virtual void wipe() = 0;
 
 //	Selection zone modifications ================================

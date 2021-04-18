@@ -6,14 +6,6 @@
 #define GAME_OF_LIFE_MAINWINDOW_HPP
 
 #include <QMainWindow>
-//#include <QObject>
-//#include <QAction>
-//#include <QMenu>
-//#include <QToolBar>
-//#include <QLabel>
-//#include <QActiongroup>
-//#include <QFrame>
-//#include <QWidget>
 #include <unordered_map>
 #include <list>
 #include <deque>
@@ -47,9 +39,8 @@ private:
 	 */
 	int timerId = 0;
 	std::chrono::milliseconds period = 50ms;
-	
-//	Event/Keys state ====================================================================================
-	bool hasTouchEvent = false;
+
+	//	Event/Keys state ====================================================================================
 	bool leftButtonPressed = false;
 	bool doubleLeftButtonPressed = false;
 	bool ctrlPressed = false;
@@ -91,26 +82,11 @@ private:
 	void createMenus();
 	void createToolBars();
 	void createStatusBar();
-	static void placeholder(const char* str);
 
-	void refreshScene(golChange const& toChange);
-	
 	void setModifyState(int const& modifyState);
 	void updateStatusBar();
-	
-	void refreshSelectionZone();
-	void setSelectionZoneColors();
-	void addCell(size_t const& i, size_t const& j);
-	void deleteCell(size_t const& i, size_t const& j);
-	void insertMovableGroup();
 
 private slots:
-//	For actions ==========================================================================================
-	void newSim();
-	void open();
-	void saveMotif();
-	static void saveSim();
-	static void about();
 	void undo();
 	void redo();
 	void copy();
@@ -121,8 +97,6 @@ private slots:
 	void zoomOut();
 	void resetZoom();
 	void pauseResume();
-//	Utility ===========================================================================================
-	void showStatusBarMessage(const std::string& message, int const& timer);
 
 public:
 //	Constructor & Destructors =========================================================================
@@ -133,12 +107,6 @@ public:
 	void timerEvent(QTimerEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void keyReleaseEvent(QKeyEvent* event) override;
-	void mousePressEvent(QMouseEvent* event) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
-	void mouseReleaseEvent(QMouseEvent* event) override;
-	void wheelEvent(QWheelEvent* event) override;
-	bool event(QEvent* event) override;
-	void paintEvent(QPaintEvent* event) override;
 
 	[[nodiscard]] qreal const& getLastI() const;
 	[[nodiscard]] qreal const& getLastJ() const;

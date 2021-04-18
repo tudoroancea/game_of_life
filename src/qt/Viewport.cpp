@@ -37,15 +37,6 @@ std::vector<bool> Viewport::deleteMotif(Motif const& motif) {
 	return result;
 }
 
-void Viewport::modifyCells(golChange const& toChange) {
-	for (auto it(toChange.toAdd.cbegin()); it != toChange.toAdd.cend(); ++it) {
-		this->addCell(it->first, it->second);
-	}
-	for (auto it(toChange.toDelete.cbegin()); it != toChange.toDelete.cend(); ++it) {
-		this->deleteCell(it->first, it->second);
-	}
-}
-
 void Viewport::mousePressEvent(QMouseEvent* event) {
 	QWidget::mousePressEvent(event);
 	emit viewportMousePressEvent(event);
