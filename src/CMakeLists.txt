@@ -10,10 +10,9 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 #permet de trouver les bibliotheques et targets créées
 add_subdirectory(qt)
 add_subdirectory(simulation)
-add_subdirectory(cli)
 
 # Permet les includes sans prefix
-include_directories(simulation qt cli)
+include_directories(simulation qt)
 
 if (APPLE)
 #	set_target_properties(GOL PROPERTIES MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/icons8-seed_of_life.png)
