@@ -50,7 +50,7 @@ private:
 
 //	Mode de modification ====================================================================================
 	enum CellModifier {Selecting, Adding, Deleting};
-	CellModifier modifyState_ = Selecting;
+	CellModifier modifyState_ = Adding;
 	enum SubState {Nothing, Moving};
 	SubState subState_ = Nothing;
 	

@@ -1,9 +1,10 @@
 #include "OptimizedViewport.hpp"
 
-OptimizedViewport::OptimizedViewport(QWidget* parent, const Liste* t) : QWidget(parent), to_draw(t) {
-}
+OptimizedViewport::OptimizedViewport(MainWindow* parent, GameOfLifeView* game) : Viewport(parent, game) {}
 
-void OptimizedViewport::set_draw(Liste const* td) {to_draw = td;}
+OptimizedViewport::~OptimizedViewport() {}
+
+/*void OptimizedViewport::set_draw(Liste const* td) {to_draw = td;}
 qreal& OptimizedViewport::rscaleFactor() {return scaleFactor;}
 
 void OptimizedViewport::setTransform(QTransform t) {
@@ -12,10 +13,6 @@ void OptimizedViewport::setTransform(QTransform t) {
 	transform.scale(scaleFactor, scaleFactor);
 }
 
-void OptimizedViewport::mousePressEvent(QMouseEvent* event) {
-	emit ViewportMousePressEvent(event);
-	this->update();
-}
 
 void OptimizedViewport::paintEvent(QPaintEvent* event) {
 	Q_UNUSED(event);
@@ -26,18 +23,27 @@ void OptimizedViewport::paintEvent(QPaintEvent* event) {
 		paint.setPen(Qt::blue);
 		paint.setTransform(transform);
 		paint.drawRect(QRect(0,0,MAX_LIGNES,MAX_COLONNES));
-		if (to_draw != nullptr) {
-			for (auto const& a : *to_draw) {
+		if (game != nullptr) {
+			for (auto const& a : game->vivantes()) {
 				QRect rect((int) a.first, (int) a.second, 1, 1);
 				paint.fillRect(rect, Qt::black);
 			}
 		}
 	}
 }
-void OptimizedViewport::mouseMoveEvent(QMouseEvent* event) {emit ViewportMouseMoveEvent(event);}
-void OptimizedViewport::mouseReleaseEvent(QMouseEvent* event) {emit ViewportMouseReleaseEvent(event);}
-void OptimizedViewport::mouseDoubleClickEvent(QMouseEvent* event) {emit ViewportMouseDoubleClickEvent(event);}
-void OptimizedViewport::touchEvent(QTouchEvent* event) {emit ViewportTouchEvent(event);}
+void OptimizedViewport::mousePressEvent(QMouseEvent* event) {
+	emit viewportMousePressEvent(event);
+}
+void OptimizedViewport::mouseMoveEvent(QMouseEvent* event) {
+	emit viewportMouseMoveEvent(event);
+}
+void OptimizedViewport::mouseReleaseEvent(QMouseEvent* event) {
+	emit viewportMouseReleaseEvent(event);
+}
+void OptimizedViewport::mouseDoubleClickEvent(QMouseEvent* event) {
+	emit viewportMouseDoubleClickEvent(event);
+}
+//void OptimizedViewport::touchEvent(QTouchEvent* event) {emit ViewportTouchEvent(event);}
 
 void OptimizedViewport::wheelEvent(QWheelEvent* event) {
 	bool vert_hori(abs(event->angleDelta().y()) > abs(event->angleDelta().x()));
@@ -48,6 +54,7 @@ void OptimizedViewport::wheelEvent(QWheelEvent* event) {
 	this->update();
 }
 
+*/
 /*
 void OptimizedViewport::keyPressEvent(QKeyEvent* event)
 {
@@ -68,5 +75,58 @@ void OptimizedViewport::keyReleaseEvent(QKeyEvent* event)
 }
 */
 
-OptimizedViewport::~OptimizedViewport() {
+// Yours to implement =======================================
+
+bool OptimizedViewport::addCell(const size_t& i, const size_t& j) {
+	Q_UNUSED(i)
+	Q_UNUSED(j)
+	return false;
+}
+
+bool OptimizedViewport::deleteCell(const size_t& i, const size_t& j) {
+	Q_UNUSED(i)
+	Q_UNUSED(j)
+	return false;
+}
+
+void OptimizedViewport::modifyCells(const golChange& toChange) {
+	Q_UNUSED(toChange)
+}
+
+void OptimizedViewport::wipe() {
+
+}
+
+// Garbage ====================================
+
+void OptimizedViewport::setNewSelectionZone(const QRectF& rect) {Q_UNUSED(rect)}
+
+void OptimizedViewport::setCurrentSelectedZone(const QPolygonF& polygon) {Q_UNUSED(polygon)}
+
+void OptimizedViewport::createMovableGroup(const Motif&) {}
+
+void OptimizedViewport::moveMovableGroup(const int& dx, const int& dy) const {Q_UNUSED(dx)Q_UNUSED(dy)}
+
+MovableGroup* OptimizedViewport::getMovableGroup() const {return nullptr;}
+
+golChange OptimizedViewport::insertMovableGroup() {return golChange();}
+
+void OptimizedViewport::copy() {}
+
+void OptimizedViewport::cut() {}
+
+void OptimizedViewport::paste() {}
+
+void OptimizedViewport::evolve() {
+
+}
+
+// Yours to implement =======================================
+
+void OptimizedViewport::zoom(const qreal& zoomFactor) {
+	Q_UNUSED(zoomFactor)
+}
+
+void OptimizedViewport::resetZoom() {
+
 }

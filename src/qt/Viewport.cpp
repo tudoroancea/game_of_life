@@ -37,26 +37,6 @@ std::vector<bool> Viewport::deleteMotif(Motif const& motif) {
 	return result;
 }
 
-void Viewport::mousePressEvent(QMouseEvent* event) {
-	QWidget::mousePressEvent(event);
-	emit viewportMousePressEvent(event);
-}
-
-void Viewport::mouseMoveEvent(QMouseEvent* event) {
-	QWidget::mouseMoveEvent(event);
-	emit viewportMouseMoveEvent(event);
-}
-
-void Viewport::mouseReleaseEvent(QMouseEvent* event) {
-	QWidget::mouseReleaseEvent(event);
-	emit viewportMouseReleaseEvent(event);
-}
-
-void Viewport::mouseDoubleClickEvent(QMouseEvent* event) {
-	QWidget::mouseDoubleClickEvent(event);
-	emit viewportMouseDoubleClickEvent(event);
-}
-
 Motif const& Viewport::getCopiedMotif() const {
 	return copiedMotif;
 }

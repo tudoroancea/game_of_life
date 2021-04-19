@@ -26,7 +26,7 @@ NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
 : Viewport(parent, game),
   scene(new QGraphicsScene),
   view(new GraphicsView(scene, parent)),
-  newSelectedZone(new QGraphicsRectItem(0,0,0,0)),
+  newSelectedZone(new QGraphicsRectItem(0.0,0.0,0.0,0.0)),
   currentSelectedZone(new QGraphicsPolygonItem(QPolygonF()))
 {
 	view->setBackgroundBrush(QBrush(Qt::white));
@@ -59,6 +59,11 @@ NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
 	auto bottom(new QGraphicsLineItem(0.0, MAX_LIGNES, MAX_COLONNES, MAX_LIGNES));
 	bottom->setPen(QPen(Qt::blue));
 	scene->addItem(bottom);
+//	Couleurs zones de séléction ======================
+	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
+	newSelectedZone->setPen(QColor(0,102,255,255));
+	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
+	currentSelectedZone->setPen(QColor(0,0,255,255));
 }
 
 NormalViewport::~NormalViewport() {
@@ -109,27 +114,21 @@ void NormalViewport::modifyCells(const golChange& toChange) {
 	}
 }
 
-void NormalViewport::refreshSelectedZone(const QRectF& newSelectedZoneRect, const QPolygonF& currentSelectedZonePolygon) {
-//	Replacing the current selection zone with the new ones
+void NormalViewport::setNewSelectionZone(const QRectF& rect) {
 //	REMARK : Deleting the item pointer should automatically remove it from the scene
 	delete newSelectedZone;
-	delete currentSelectedZone;
-	newSelectedZone = new QGraphicsRectItem(newSelectedZoneRect);
-	currentSelectedZone = new QGraphicsPolygonItem(currentSelectedZonePolygon);
-
-//	Setting the colors
+	newSelectedZone = new QGraphicsRectItem(rect);
 	newSelectedZone->setBrush(QColor(0, 102, 255, 133));
 	newSelectedZone->setPen(QColor(0,102,255,255));
+	scene->addItem(newSelectedZone);
+}
+void NormalViewport::setCurrentSelectedZone(const QPolygonF& polygon) {
+//	REMARK : Deleting the item pointer should automatically remove it from the scene
+	delete currentSelectedZone;
+	currentSelectedZone = new QGraphicsPolygonItem(polygon);
 	currentSelectedZone->setBrush(QColor(0, 0, 255, 133));
 	currentSelectedZone->setPen(QColor(0,0,255,255));
-
-//	Adding them items to the scene
-	scene->addItem(newSelectedZone);
 	scene->addItem(currentSelectedZone);
-}
-
-QGraphicsRectItem* NormalViewport::getNewSelectedZone() const {
-	return newSelectedZone;
 }
 
 void NormalViewport::createMovableGroup(const Motif& motif) {
@@ -182,7 +181,6 @@ void NormalViewport::copy() {
 		}
 		currentSelectedZone->setPolygon(QPolygonF());
 		newSelectedZone->setRect(QRectF());
-		//		newSelectedZone->setRect(newSelectedZone-);
 		if (copiedMotif.empty()) {
 			mainWindow->statusBar()->showMessage("Sélection trop petite, rien copié", 1500);
 		}

@@ -27,7 +27,9 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 		: historic(std::deque<std::pair<bool,Motif>>()),
 		  lastModif(historic.begin()),
 		  game(new GameOfLifeView),
-		  viewport(new NormalViewport(this, game))
+		  viewport(new NormalViewport(this, game)),
+		  newSelectedZoneRect(0.0,0.0,0.0,0.0),
+		  currentSelectedZonePolygon(QPolygonF())
 {
 	this->setWindowTitle("Conway's Game of Life Emulator");
 	this->resize(600,600);
@@ -41,10 +43,7 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 	createToolBars();
 	createStatusBar();
 
-
 	this->setCentralWidget(viewport->getWidget());
-
-	viewport->refreshSelectedZone(newSelectedZoneRect, currentSelectedZonePolygon);
 
 	connect(viewport, SIGNAL(viewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
 	connect(viewport, SIGNAL(viewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
@@ -212,30 +211,38 @@ void MainWindow::setModifyState(const int& modifyState) {
 }
 
 void MainWindow::undo() {
-	if (lastModif != historic.end()) {
-		if (lastModif->first) {
-			viewport->deleteMotif(lastModif->second);
+	if (timerId == 0) {
+		if (lastModif != historic.end()) {
+			if (lastModif->first) {
+				viewport->deleteMotif(lastModif->second);
+			} else {
+				viewport->addMotif(lastModif->second);
+			}
+			++lastModif;
+			this->updateStatusBar();
 		} else {
-			viewport->addMotif(lastModif->second);
+			statusBar()->showMessage("Pas de modif plus ancienne", 2000);
 		}
-		++lastModif;
-		this->updateStatusBar();
 	} else {
-		statusBar()->showMessage("Pas de modif plus ancienne", 2000);
+		this->statusBar()->showMessage("Appuyez sur Pause pour utiliser l'historique des actions", 1500);
 	}
 }
 
 void MainWindow::redo() {
-	if (lastModif != historic.begin()) {
-		--lastModif;
-		if (lastModif->first) {
-			viewport->addMotif(lastModif->second);
+	if (timerId == 0) {
+		if (lastModif != historic.begin()) {
+			--lastModif;
+			if (lastModif->first) {
+				viewport->addMotif(lastModif->second);
+			} else {
+				viewport->deleteMotif(lastModif->second);
+			}
+			this->updateStatusBar();
 		} else {
-			viewport->deleteMotif(lastModif->second);
+			statusBar()->showMessage("Pas de modif plus récente", 2000);
 		}
-		this->updateStatusBar();
 	} else {
-		statusBar()->showMessage("Pas de modif plus récente", 2000);
+		this->statusBar()->showMessage("Appuyez sur Pause pour utiliser l'historique des actions", 1500);
 	}
 }
 
@@ -350,8 +357,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 #ifdef DEBUG_MODE
 		case Qt::Key_L: {
 			newSelectedZoneRect = QRectF();
+			viewport->setNewSelectionZone(newSelectedZoneRect);
 			currentSelectedZonePolygon = QPolygonF();
-			viewport->refreshSelectedZone(newSelectedZoneRect, currentSelectedZonePolygon);
+			viewport->setCurrentSelectedZone(currentSelectedZonePolygon);
 			break;
 		}
 		case Qt::Key_I: {
@@ -432,8 +440,13 @@ void MainWindow::viewportMousePressEvent(QMouseEvent *event) {
 			case Selecting: {
 				if (event->button() == Qt::LeftButton) {
 					if (subState_ == Moving) {
-						if (viewport->getMovableGroup()->rectItem()->rect().contains(pos)) {
-							leftButtonPressed = true;
+						QGraphicsRectItem* rect(viewport->getMovableGroup()->rectItem());
+						if (rect != nullptr) {
+							if (rect->contains(pos)) {
+								leftButtonPressed = true;
+							}
+						} else {
+							this->statusBar()->showMessage("Le sélectionnage de cellules n'est pas disponible en mode optimisé.", 1500);
 						}
 					}
 				}
@@ -460,7 +473,7 @@ void MainWindow::viewportMouseDoubleClickEvent(QMouseEvent *event) {
 				doubleLeftButtonPressed = true;
 				QPointF pos(event->localPos());
 				newSelectedZoneRect.moveTo(pos.x(), pos.y());
-				viewport->getNewSelectedZone()->setRect(newSelectedZoneRect);
+				viewport->setNewSelectionZone(newSelectedZoneRect);
 			}
 		} else {
 			this->statusBar()->showMessage("Appuyez sur pause pour sélectionner des cellules.", 1500);
@@ -538,12 +551,16 @@ void MainWindow::viewportMouseMoveEvent(QMouseEvent *event) {
 				break;
 			}
 			case Selecting: {
-				if (doubleLeftButtonPressed) {
-					newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
-					newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
-					viewport->getNewSelectedZone()->setRect(newSelectedZoneRect);
-				} else if (subState_ == Moving && leftButtonPressed) {
-					viewport->moveMovableGroup((int)i-(int)lastI, (int)j-(int)lastJ);
+				if (timerId == 0) {
+					if (doubleLeftButtonPressed) {
+						newSelectedZoneRect.setWidth(pos.x()-newSelectedZoneRect.x());
+						newSelectedZoneRect.setHeight(pos.y()-newSelectedZoneRect.y());
+						viewport->setNewSelectionZone(newSelectedZoneRect);
+					} else if (subState_ == Moving && leftButtonPressed) {
+						viewport->moveMovableGroup((int)i-(int)lastI, (int)j-(int)lastJ);
+					}
+				} else {
+					this->statusBar()->showMessage("Appuyez sur pause pour sélectionner des cellules", 1500);
 				}
 			}
 			default:
@@ -591,7 +608,8 @@ void MainWindow::viewportMouseReleaseEvent(QMouseEvent *event) {
 							this->statusBar()->showMessage("La zone de sélection doit être connexe", 1000);
 						}
 					}
-					viewport->refreshSelectedZone(newSelectedZoneRect, currentSelectedZonePolygon);
+					viewport->setNewSelectionZone(newSelectedZoneRect);
+					viewport->setCurrentSelectedZone(currentSelectedZonePolygon);
 				} else if (subState_ == Moving && leftButtonPressed) {
 					leftButtonPressed = false;
 				}
