@@ -341,6 +341,20 @@ void MainWindow::timerEvent(QTimerEvent* event) {
 void MainWindow::keyPressEvent(QKeyEvent* event) {
 	QWidget::keyPressEvent(event);
 	switch (event->key()) {
+		case Qt::Key_O: {
+			if ([[maybe_unused]] auto ptr = dynamic_cast<NormalViewport*>(viewport)) {
+				delete viewport;
+				viewport = new OptimizedViewport(this, game);
+			} else {
+				delete viewport;
+				viewport = new NormalViewport(this, game);
+			}
+			connect(viewport, SIGNAL(viewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
+			connect(viewport, SIGNAL(viewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
+			connect(viewport, SIGNAL(viewportMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));
+			connect(viewport, SIGNAL(viewportMouseReleaseEvent(QMouseEvent*)), this, SLOT(viewportMouseReleaseEvent(QMouseEvent*)));
+			break;
+		}
 		case Qt::Key_S:
 			this->setModifyState(Selecting);
 			break;
