@@ -27,7 +27,7 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 		: historic(std::deque<std::pair<bool,Motif>>()),
 		  lastModif(historic.begin()),
 		  game(new GameOfLifeView),
-		  viewport(new NormalViewport(this, game)),
+		  viewport(new OptimizedViewport(this, game)),
 		  newSelectedZoneRect(0.0,0.0,0.0,0.0),
 		  currentSelectedZonePolygon(QPolygonF())
 {

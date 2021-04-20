@@ -29,6 +29,11 @@ NormalViewport::NormalViewport(MainWindow* parent, GameOfLifeView* game)
   newSelectedZone(new QGraphicsRectItem(0.0,0.0,0.0,0.0)),
   currentSelectedZone(new QGraphicsPolygonItem(QPolygonF()))
 {
+	for (const auto & cell : game->vivantes()) {
+	    cells[cell.first][cell.second] = new CellItem(cell.first, cell.second);
+	    scene->addItem(cells[cell.first][cell.second]);
+	}
+
 	view->setBackgroundBrush(QBrush(Qt::white));
 	view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 	view->setRenderHint(QPainter::Antialiasing);
