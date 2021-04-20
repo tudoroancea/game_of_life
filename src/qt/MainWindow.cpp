@@ -33,7 +33,8 @@ MainWindow::MainWindow() // NOLINT(cppcoreguidelines-pro-type-member-init)
 {
 	this->setWindowTitle("Conway's Game of Life Emulator");
 	this->resize(600,600);
-	this->move(QGuiApplication::screens()[1]->geometry().center() - frameGeometry().center());
+	QList screens(QGuiApplication::screens());
+	this->move(screens[(screens.size() > 1 ? 1 : 0)]->geometry().center() - frameGeometry().center());
 	this->setUnifiedTitleAndToolBarOnMac(true);
 
 	labels.fill(nullptr);
@@ -64,8 +65,8 @@ MainWindow::~MainWindow() {
 	for (auto const& action : actions) {
 		delete action.second;
 	}
-	delete game;
 	delete viewport;
+	delete game;	
 }
 
 //	Utility methods ====================================================================================
@@ -349,6 +350,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
 				delete viewport;
 				viewport = new NormalViewport(this, game);
 			}
+			this->setCentralWidget(viewport->getWidget());	
 			connect(viewport, SIGNAL(viewportMousePressEvent(QMouseEvent*)), this, SLOT(viewportMousePressEvent(QMouseEvent*)));
 			connect(viewport, SIGNAL(viewportMouseDoubleClickEvent(QMouseEvent*)), this, SLOT(viewportMouseDoubleClickEvent(QMouseEvent*)));
 			connect(viewport, SIGNAL(viewportMouseMoveEvent(QMouseEvent*)), this, SLOT(viewportMouseMoveEvent(QMouseEvent*)));

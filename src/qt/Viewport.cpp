@@ -17,8 +17,8 @@ QWidget* Viewport::getWidget() {
 Viewport::Viewport(MainWindow* parent, GameOfLifeView* game) : mainWindow(parent), game(game) {}
 
 Viewport::~Viewport() {
-	delete game;
-	delete mainWindow;
+	//delete game;
+	//delete mainWindow;
 }
 
 std::vector<bool> Viewport::addMotif(Motif const& motif) {
