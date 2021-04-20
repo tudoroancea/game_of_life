@@ -1,6 +1,11 @@
 #include "OptimizedViewport.hpp"
+#include <QApplication>
+#include <QStyle>
 
-OptimizedViewport::OptimizedViewport(MainWindow* parent, GameOfLifeView* game) : Viewport(parent, game) {}
+OptimizedViewport::OptimizedViewport(MainWindow* parent, GameOfLifeView* game) : Viewport(parent, game)
+{
+	//this->resize(parent->width(), this->height());
+}
 
 OptimizedViewport::~OptimizedViewport() {}
 
@@ -13,7 +18,7 @@ void OptimizedViewport::setTransform(QTransform t) {
 	transform.scale(scaleFactor, scaleFactor);
 }
 
-
+*/
 void OptimizedViewport::paintEvent(QPaintEvent* event) {
 	Q_UNUSED(event);
 	if (this->isVisible()) {
@@ -22,7 +27,9 @@ void OptimizedViewport::paintEvent(QPaintEvent* event) {
 		paint.fillRect(background, Qt::white);
 		paint.setPen(Qt::blue);
 		paint.setTransform(transform);
-		paint.drawRect(QRect(0,0,MAX_LIGNES,MAX_COLONNES));
+		x_ = (this->width() - MAX_LIGNES)/2;
+		y_ = (this->height() - MAX_COLONNES)/2;		
+		paint.drawRect(QRect(x_,y_,MAX_LIGNES,MAX_COLONNES));
 		if (game != nullptr) {
 			for (auto const& a : game->vivantes()) {
 				QRect rect((int) a.first, (int) a.second, 1, 1);
@@ -31,6 +38,7 @@ void OptimizedViewport::paintEvent(QPaintEvent* event) {
 		}
 	}
 }
+
 void OptimizedViewport::mousePressEvent(QMouseEvent* event) {
 	emit viewportMousePressEvent(event);
 }
@@ -54,7 +62,7 @@ void OptimizedViewport::wheelEvent(QWheelEvent* event) {
 	this->update();
 }
 
-*/
+
 /*
 void OptimizedViewport::keyPressEvent(QKeyEvent* event)
 {
@@ -78,8 +86,7 @@ void OptimizedViewport::keyReleaseEvent(QKeyEvent* event)
 // Yours to implement =======================================
 
 bool OptimizedViewport::addCell(const size_t& i, const size_t& j) {
-	Q_UNUSED(i)
-	Q_UNUSED(j)
+	game->addCell(i,j);
 	return false;
 }
 
@@ -124,7 +131,20 @@ void OptimizedViewport::evolve() {
 // Yours to implement =======================================
 
 void OptimizedViewport::zoom(const qreal& zoomFactor) {
-	Q_UNUSED(zoomFactor)
+	QPoint pos = this->mapFromGlobal(QCursor::pos());
+	//std::cout << pos.x() << " " << pos.y() << std::endl;
+	QRect bounds = transform.mapRect(QRect(x_, y_, MAX_LIGNES, MAX_COLONNES));
+	if (bounds.contains(pos))
+	{
+		pos -= QPoint(x_, y_);
+		transform.translate(pos.x(), pos.y());
+		transform.scale(zoomFactor, zoomFactor);
+		transform.translate(-pos.x()/zoomFactor, -pos.y()/zoomFactor);		
+	}
+	transform.translate(this->width() / 2, this->height() / 2);
+	transform.scale(zoomFactor, zoomFactor);
+	transform.translate(-this->width() / 2, -this->height() / 2);
+	this->update();
 }
 
 void OptimizedViewport::resetZoom() {

@@ -21,6 +21,7 @@ private:
 //	Liste const* to_draw;
 	QTransform transform = QTransform();
 	qreal scaleFactor = 1.0;
+	int x_, y_;
 
 public:
 	explicit OptimizedViewport(MainWindow* parent = nullptr, GameOfLifeView* game = nullptr);
@@ -66,15 +67,15 @@ public:
 //    qreal& rscaleFactor();
 //	void setTransform(QTransform t);
 //
-//    void paintEvent(QPaintEvent * event) override;
-//    void mouseMoveEvent(QMouseEvent* event) override;
-//    void mousePressEvent(QMouseEvent* event) override;
-//    void mouseReleaseEvent(QMouseEvent* event) override;
-//	void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void paintEvent(QPaintEvent * event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
 //	void touchEvent(QTouchEvent* event);
-//	void wheelEvent(QWheelEvent* event) override;
-	//void keyPressEvent(QKeyEvent* event);
-	//void keyReleaseEvent(QKeyEvent* event);
+	void wheelEvent(QWheelEvent* event) override;
+//	void keyPressEvent(QKeyEvent* event);
+//	void keyReleaseEvent(QKeyEvent* event);
 
 //signals:
 //	void ViewportMouseMoveEvent(QMouseEvent* event);
