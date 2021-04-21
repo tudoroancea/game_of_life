@@ -86,8 +86,9 @@ void OptimizedViewport::keyReleaseEvent(QKeyEvent* event)
 // Yours to implement =======================================
 
 bool OptimizedViewport::addCell(const size_t& i, const size_t& j) {
-	game->addCell(i,j);
-	return false;
+	bool retour(game->addCell(i,j));
+	this->update();
+	return retour;
 }
 
 bool OptimizedViewport::deleteCell(const size_t& i, const size_t& j) {
@@ -124,26 +125,32 @@ void OptimizedViewport::cut() {}
 
 void OptimizedViewport::paste() {}
 
-void OptimizedViewport::evolve() {
-
+void OptimizedViewport::evolve() 
+{
+	game->evolve();
+	this->update();
 }
 
 // Yours to implement =======================================
 
 void OptimizedViewport::zoom(const qreal& zoomFactor) {
 	QPoint pos = this->mapFromGlobal(QCursor::pos());
-	//std::cout << pos.x() << " " << pos.y() << std::endl;
+	//std::cout << pos.x() << " " << pos.y() << " " << zoomFactor << std::endl;
 	QRect bounds = transform.mapRect(QRect(x_, y_, MAX_LIGNES, MAX_COLONNES));
-	if (bounds.contains(pos))
+	QRect bounds_inter = bounds.intersected(this->geometry());
+	if (bounds_inter.contains(pos))
 	{
-		pos -= QPoint(x_, y_);
-		transform.translate(pos.x(), pos.y());
-		transform.scale(zoomFactor, zoomFactor);
-		transform.translate(-pos.x()/zoomFactor, -pos.y()/zoomFactor);		
+		transform.translate(pos.x(), pos.y());	
+		transform.scale(zoomFactor, zoomFactor);			
+		transform.translate(-pos.x(), -pos.y());		
 	}
-	transform.translate(this->width() / 2, this->height() / 2);
-	transform.scale(zoomFactor, zoomFactor);
-	transform.translate(-this->width() / 2, -this->height() / 2);
+	else
+	{
+		QPoint center(bounds.center());
+		transform.translate(center.x(), center.y());
+		transform.scale(zoomFactor, zoomFactor);
+		transform.translate(-center.x(), -center.y());
+	}
 	this->update();
 }
 
