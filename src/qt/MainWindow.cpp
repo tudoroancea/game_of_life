@@ -141,6 +141,7 @@ void MainWindow::createToolBars() {
 	stateBox->addItem("Delete");
 	stateBox->setCurrentIndex(1);
 	stateBox->setToolTip("How you can modify the grid");
+	stateBox->setFocusPolicy(Qt::NoFocus);
 	connect(stateBox, QOverload<int>::of(&QComboBox::activated), this, &MainWindow::setModifyState);
 
 	mainToolBar = new QToolBar;
@@ -155,6 +156,7 @@ void MainWindow::createToolBars() {
 	mainToolBar->addAction(actions["zoomInAct"]);
 	mainToolBar->addAction(actions["zoomOutAct"]);
 	mainToolBar->addAction(actions["resetZoomAct"]);
+	mainToolBar->setFocusPolicy(Qt::NoFocus);
 	this->addToolBar(mainToolBar);
 }
 
